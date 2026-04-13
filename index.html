@@ -1496,7 +1496,7 @@ function gerarPdfRet(ret,qty,obs,data,user,ts){
   +'<div class="ob">'+(obs||'—')+'</div></div>'
   +'<div class="sig"><div><div class="sl">Assinatura do Responsável</div></div><div><div class="sl">Assinatura da Gestão</div></div></div>'
   +'<div class="ft">Gerado em '+tstr+' · Clínica Luisa Costa</div>'
-  +'<scr'+'ipt>window.onload=function(){window.print();}</scr'+'ipt></body></html>');
+  +'\x3cscript\x3ewindow.onload=function(){window.print();}\x3c/script\x3e</body></html>');
   w.document.close();
 }
 
@@ -1738,7 +1738,7 @@ function pdfPedido(){
     +'<div style="margin-top:14px;padding:10px 14px;border:1px dashed #c8bdb2;border-radius:4px;font-size:11px;color:#6e6560">Farmácia: _________________________ &nbsp;&nbsp;&nbsp; Data da Cotação: _________________ &nbsp;&nbsp;&nbsp; Validade da Proposta: _____________</div>'
     +'<div class="sig"><div><div class="sl">Responsável — Clínica Luisa Costa</div></div><div><div class="sl">Farmácia / Fornecedor</div></div></div>'
     +'<div class="ft">Clínica Luisa Costa · Gestão de Estoque · '+tstr+'</div>'
-    +'<scr'+'ipt>window.onload=function(){window.print();}</scr'+'ipt></body></html>');
+    +'\x3cscript\x3ewindow.onload=function(){window.print();}\x3c/script\x3e</body></html>');
   w.document.close();
 }
 
