@@ -1,556 +1,1733 @@
--- ============================================================
---  CLÍNICA LUISA COSTA — Schema Supabase v2.0
---  Arquivo: supabase_schema.sql
---  Descrição: Estrutura completa do banco de dados
--- ============================================================
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clínica Luisa Costa — Gestão de Estoque</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --c:#2c2824;--c2:#4a4540;--c3:#6e6560;--c4:#9a8f84;--c5:#c8bdb2;--c6:#e0d8cf;--c7:#ede8e2;--c8:#f7f3ee;
+  --gold:#a8843e;--gold2:#c9a55a;--gold3:#f5edda;
+  --R:#7a2e2e;--Rbg:#fdf0f0;--Rbr:#e0b4b4;--Rm:#b84040;
+  --W:#6b4e12;--Wbg:#fdf5e4;--Wbr:#ddb870;--Wm:#b07020;
+  --G:#1e4d2e;--Gbg:#eaf2ec;--Gbr:#7ec09a;--Gm:#2a7a48;
+  --I:#1a3a5c;--Ibg:#eaf0f8;--Ibr:#7aaed4;--Im:#2a5a8c;
+  --T:#0f4444;--Tbg:#e6f4f4;--Tbr:#6abcbc;--Tm:#1a6e6e;
+  --P:#3d1a5c;--Pbg:#f0eafa;--Pbr:#b08ad4;--Pm:#6a2a9e;
+  --sh1:0 1px 3px rgba(44,40,36,.08);--sh2:0 3px 10px rgba(44,40,36,.11);--sh3:0 6px 24px rgba(44,40,36,.15);
+  --rad:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px;-webkit-font-smoothing:antialiased}
+body{font-family:'Raleway',sans-serif;background:var(--c8);color:var(--c);min-height:100vh}
 
--- ── EXTENSÕES ───────────────────────────────────────────────
-create extension if not exists "uuid-ossp";
-create extension if not exists "pg_trgm"; -- busca por texto
+/* LOGIN */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--c);padding:20px}
+.login-box{background:var(--c8);border-radius:12px;padding:40px;width:100%;max-width:420px;box-shadow:var(--sh3)}
+.login-brand{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:400;color:var(--c);letter-spacing:4px;text-transform:uppercase;text-align:center;margin-bottom:4px}
+.login-sub{font-size:9px;font-weight:700;color:var(--gold);letter-spacing:4px;text-transform:uppercase;text-align:center;margin-bottom:28px}
+.login-title{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--c3);text-align:center;margin-bottom:20px}
+.lrow{margin-bottom:14px}
+.lrow label{font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--c3);display:block;margin-bottom:5px}
+.lrow input{width:100%;padding:11px 13px;border:1.5px solid var(--c5);border-radius:var(--rad);font-family:'Raleway',sans-serif;font-size:13px;color:var(--c);background:#fff;outline:none;transition:border-color .2s}
+.lrow input:focus{border-color:var(--gold)}
+.btn-login{width:100%;padding:13px;background:var(--c);border:none;border-radius:var(--rad);font-family:'Raleway',sans-serif;font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#faf8f5;cursor:pointer;margin-top:6px;transition:background .2s}
+.btn-login:hover{background:var(--c2)}
+.login-err{font-size:11px;color:var(--Rm);text-align:center;margin-top:10px;font-weight:600;min-height:18px}
+.login-gold-bar{width:50px;height:2px;background:var(--gold);margin:0 auto 20px}
 
--- ============================================================
---  PERFIS DE USUÁRIO
---  Complementa a tabela auth.users do Supabase Auth
--- ============================================================
-create table public.perfis (
-  id           uuid references auth.users(id) on delete cascade primary key,
-  nome         text not null,
-  email        text not null,
-  nivel        text not null check (nivel in ('administrador','colaborador','compras')),
-  ativo        boolean not null default true,
-  criado_em    timestamptz not null default now(),
-  atualizado_em timestamptz not null default now()
-);
+/* HEADER */
+.hdr{background:var(--c);position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.22)}
+.hdr-top{display:flex;align-items:center;gap:18px;padding:14px 28px 12px}
+.brand-name{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:400;color:#faf8f5;letter-spacing:4px;text-transform:uppercase}
+.brand-sub{font-size:8px;font-weight:700;color:var(--gold2);letter-spacing:4px;text-transform:uppercase;margin-top:2px}
+.brand-div{width:1px;height:30px;background:var(--gold);opacity:.28;flex-shrink:0}
+.brand-mod{font-size:9px;font-weight:600;color:var(--c4);letter-spacing:3px;text-transform:uppercase}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.user-pill{display:flex;align-items:center;gap:8px;padding:6px 12px;background:rgba(255,255,255,.07);border-radius:20px}
+.user-nome{font-size:11px;font-weight:600;color:var(--c5)}
+.user-nivel{font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold2)}
+.spill{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--Gm);opacity:0;transition:opacity .4s;padding:4px 11px;background:var(--Gbg);border-radius:20px;border:1px solid var(--Gbr)}
+.spill.on{opacity:1}
+.nav{display:flex;overflow-x:auto;scrollbar-width:none;border-top:1px solid rgba(255,255,255,.06);padding:0 28px}
+.nav::-webkit-scrollbar{display:none}
+.ntab{padding:11px 18px;font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:rgba(181,168,152,.62);cursor:pointer;border-bottom:2.5px solid transparent;white-space:nowrap;transition:.2s;user-select:none}
+.ntab:hover{color:rgba(181,168,152,.9)}
+.ntab.on{color:var(--gold2);border-bottom-color:var(--gold)}
+.ndiv{width:1px;height:16px;background:rgba(255,255,255,.09);align-self:center;margin:0 4px}
+.ntab.hidden{display:none}
 
-comment on table public.perfis is 'Perfis e níveis de acesso dos usuários da clínica';
-comment on column public.perfis.nivel is 'administrador=acesso total | colaborador=estoque e retiradas | compras=pedidos e fornecedores';
+/* PAGES */
+.pg{display:none;padding:24px 28px;max-width:1500px;margin:0 auto}
+.pg.on{display:block;animation:fi .18s ease}
+@keyframes fi{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
 
--- ============================================================
---  SETORES
---  Medicamentos, Insumos Clínicos, Limpeza, Conforto, Escritório
--- ============================================================
-create table public.setores (
-  id        uuid primary key default uuid_generate_v4(),
-  nome      text not null unique,
-  icone     text,
-  ordem     int not null default 0,
-  ativo     boolean not null default true
-);
+/* LOADING */
+.loading-wrap{display:flex;align-items:center;justify-content:center;padding:60px;flex-direction:column;gap:14px}
+.loading-spinner{width:32px;height:32px;border:2.5px solid var(--c6);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-txt{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--c4)}
 
-comment on table public.setores is 'Setores de estoque da clínica';
+/* DASHBOARD */
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:22px}
+.dash-card{background:#fff;border:1px solid var(--c6);border-radius:var(--rad);padding:16px 18px;box-shadow:var(--sh1);cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.dash-card:hover{transform:translateY(-2px);box-shadow:var(--sh2)}
+.dash-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;border-radius:0 0 var(--rad) var(--rad)}
+.dc-gold::after{background:var(--gold)}.dc-red::after{background:var(--Rm)}.dc-warn::after{background:var(--Wm)}.dc-green::after{background:var(--Gm)}.dc-teal::after{background:var(--Tm)}
+.dc-label{font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--c3);margin-bottom:9px}
+.dc-val{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:500;line-height:1}
+.dc-val.gold{color:var(--gold)}.dc-val.red{color:var(--Rm)}.dc-val.warn{color:var(--Wm)}.dc-val.green{color:var(--Gm)}.dc-val.teal{color:var(--Tm)}
+.dc-hint{font-size:9px;color:var(--c4);margin-top:5px}
+.ia-resumo-box{background:#fff;border:1px solid var(--c6);border-left:3px solid var(--gold);border-radius:var(--rad);padding:18px 20px;margin-bottom:22px;box-shadow:var(--sh1)}
+.ia-tag{display:inline-flex;align-items:center;gap:6px;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);background:var(--gold3);padding:4px 12px;border-radius:20px;border:1px solid var(--gold2);margin-bottom:12px}
+.ia-txt{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:400;color:var(--c2);line-height:1.7;font-style:italic}
 
-insert into public.setores (nome, icone, ordem) values
-  ('Medicamentos',     '💊', 1),
-  ('Tirzepatida',      '💉', 2),
-  ('Insumos Clínicos', '🩺', 3),
-  ('Limpeza',          '🧹', 4),
-  ('Conforto',         '☕', 5),
-  ('Escritório',       '📋', 6);
+/* ALERT BANNER */
+.alrt{display:none;margin-bottom:18px;background:#fff;border:1px solid var(--Rbr);border-left:4px solid var(--Rm);border-radius:var(--rad);padding:11px 18px;align-items:center;gap:16px;flex-wrap:wrap}
+.alrt.on{display:flex}
+.ai{font-size:11px;font-weight:700;color:var(--R)}
+.ai.w{color:var(--W)}
+.adiv{width:1px;height:13px;background:var(--c5)}
 
--- ============================================================
---  FORNECEDORES
--- ============================================================
-create table public.fornecedores (
-  id             uuid primary key default uuid_generate_v4(),
-  nome           text not null,
-  tipo           text check (tipo in ('farmacia','distribuidor','outro')),
-  contato        text,
-  email          text,
-  telefone       text,
-  observacoes    text,
-  ativo          boolean not null default true,
-  criado_em      timestamptz not null default now(),
-  atualizado_em  timestamptz not null default now()
-);
+/* STATS */
+.stats{display:flex;gap:12px;margin-bottom:22px;flex-wrap:wrap}
+.sc{flex:1;min-width:120px;background:#fff;border:1px solid var(--c6);border-radius:var(--rad);padding:16px 18px;cursor:pointer;transition:.2s;position:relative;overflow:hidden;user-select:none;box-shadow:var(--sh1)}
+.sc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;border-radius:0 0 var(--rad) var(--rad)}
+.sc:hover{transform:translateY(-1px);box-shadow:var(--sh2)}
+.sc.on{border-color:var(--gold);box-shadow:0 0 0 2.5px rgba(168,132,62,.18),var(--sh2)}
+.sc.tot::after{background:var(--gold)}.sc.venc::after{background:var(--Rm)}.sc.atc::after{background:var(--Wm)}.sc.low::after{background:var(--Rm)}.sc.oks::after{background:var(--Gm)}
+.sl{font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--c3);margin-bottom:9px}
+.sv{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:500;line-height:1}
+.sv.g{color:var(--gold)}.sv.r{color:var(--Rm)}.sv.w{color:var(--Wm)}.sv.k{color:var(--Gm)}
+.sh{font-size:9px;color:var(--c4);margin-top:5px}
 
-comment on table public.fornecedores is 'Fornecedores e farmácias de manipulação';
+/* TOOLBAR */
+.tb{display:flex;gap:10px;margin-bottom:18px;align-items:center;flex-wrap:wrap}
+.sw{flex:1;min-width:180px;position:relative}
+.sw input{width:100%;padding:10px 14px 10px 36px;border:1.5px solid var(--c5);border-radius:var(--rad);font-family:'Raleway',sans-serif;font-size:13px;color:var(--c);background:#fff;outline:none;transition:.2s;box-shadow:var(--sh1)}
+.sw input:focus{border-color:var(--gold)}
+.sw input::placeholder{color:var(--c4)}
+.si{position:absolute;left:11px;top:50%;transform:translateY(-50%);opacity:.35;width:14px;height:14px;pointer-events:none}
+.sel{padding:10px 12px;border:1.5px solid var(--c5);border-radius:var(--rad);background:#fff;font-family:'Raleway',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--c2);outline:none;cursor:pointer;box-shadow:var(--sh1)}
+.sel:focus{border-color:var(--gold)}
 
--- ============================================================
---  MEDICAMENTOS / ITENS DE ESTOQUE
--- ============================================================
-create table public.itens (
-  id               uuid primary key default uuid_generate_v4(),
-  setor_id         uuid not null references public.setores(id),
-  nome             text not null,
-  unidade          text not null default 'caixas',  -- caixas, ampolas, frascos, comprimidos, unidades, litros, kg
-  amp_por_caixa    int not null default 1,           -- ampolas/unidades por embalagem
-  estoque_min      int not null default 0,           -- estoque mínimo em unidades base
-  estoque_ideal    int not null default 0,           -- estoque ideal em unidades base
-  usado_total      int not null default 0,           -- total consumido (acumulado)
-  ativo            boolean not null default true,
-  criado_em        timestamptz not null default now(),
-  atualizado_em    timestamptz not null default now()
-);
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 18px;border-radius:var(--rad);font-family:'Raleway',sans-serif;font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;cursor:pointer;border:1.5px solid;transition:all .15s;white-space:nowrap;line-height:1}
+.btn:active{transform:scale(.97)}
+.btn-dk{background:var(--c);border-color:var(--c);color:#faf8f5}.btn-dk:hover{background:var(--c2)}
+.btn-gd{background:var(--gold);border-color:var(--gold);color:#fff}.btn-gd:hover{background:var(--gold2)}
+.btn-gh{background:#fff;border-color:var(--c5);color:var(--c2)}.btn-gh:hover{border-color:var(--c3);color:var(--c)}
+.btn-tl{background:var(--T);border-color:var(--T);color:#fff}.btn-tl:hover{opacity:.88}
+.btn-rd{background:var(--R);border-color:var(--R);color:#fff}.btn-rd:hover{opacity:.88}
+.btn-pm{background:var(--P);border-color:var(--P);color:#fff}.btn-pm:hover{opacity:.88}
+.btn-sm{padding:7px 13px;font-size:8px}
+.btn-xs{padding:5px 10px;font-size:7.5px}
+.btn-del{background:#fff;border-color:var(--Rbr);color:var(--R)}.btn-del:hover{background:var(--Rbg)}
+.btn-edit{background:#fff;border-color:var(--c5);color:var(--c2)}.btn-edit:hover{border-color:var(--gold);color:var(--gold)}
+/* PROG BAR */
+.prog{display:flex;align-items:center;gap:7px;margin-top:4px}
+.prog-track{flex:1;height:5px;background:var(--c7);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px}
+.prog-pct{font-size:9px;font-weight:700;color:var(--c4);min-width:32px;text-align:right}
+/* IMPLANTES */
+.impl-card{background:#fff;border:1px solid var(--c6);border-radius:var(--rad);overflow:hidden;margin-bottom:9px;box-shadow:var(--sh1);transition:.2s}
+.impl-card:hover{box-shadow:var(--sh2)}
+.impl-card.iv{border-left:4px solid var(--Rm)}.impl-card.iw{border-left:4px solid var(--Wm)}.impl-card.iok{border-left:4px solid var(--Pm)}
+.impl-grid{display:grid;grid-template-columns:minmax(140px,1.8fr) minmax(120px,1.4fr) 110px 100px 130px auto;align-items:stretch}
+.badge-pm{background:var(--Pbg);color:var(--P);border-color:var(--Pbr)}
+/* PEDIDO SECTIONS */
+.ped-section{background:#fff;border:1px solid var(--c6);border-radius:var(--rad);margin-bottom:12px;overflow:hidden;box-shadow:var(--sh1)}
+.ped-sec-hdr{display:flex;align-items:center;gap:12px;padding:10px 15px;background:var(--c8);border-bottom:1px solid var(--c6)}
+.ped-sec-nm{font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--c2)}
+.ped-thr{display:grid;grid-template-columns:28px minmax(150px,2fr) 85px 65px 65px 100px 90px;padding:7px 14px;background:var(--c7);border-bottom:1px solid var(--c6)}
+.ped-row{display:grid;grid-template-columns:28px minmax(150px,2fr) 85px 65px 65px 100px 90px;align-items:center;border-bottom:1px solid var(--c7)}
+.ped-row:last-child{border-bottom:none}
+.pc{padding:10px 13px;min-width:0}
+.pc.ctr{text-align:center}
+.p-inp{width:100%;padding:6px 8px;border:1.5px solid var(--c5);border-radius:5px;font-family:"Raleway",sans-serif;font-size:12px;color:var(--c);background:var(--c8);outline:none;transition:.2s}
+.p-inp:focus{border-color:var(--gold);background:#fff}
+.p-inp::placeholder{color:var(--c4)}
+.p-inp.num{text-align:center;font-weight:700;font-size:13px;width:60px}
+.chk{width:15px;height:15px;accent-color:var(--gold);cursor:pointer}
 
-comment on table public.itens is 'Itens de estoque de todos os setores';
-comment on column public.itens.amp_por_caixa is 'Quantidade de unidades base por embalagem (ex: 10 ampolas por caixa)';
+/* SECTION */
+.sdiv{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.sdiv-t{font-size:9px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--c3);white-space:nowrap}
+.sdiv-l{flex:1;height:1px;background:var(--c6)}
 
--- ============================================================
---  LOTES
---  Cada entrada de estoque tem seu próprio lote e validade
--- ============================================================
-create table public.lotes (
-  id               uuid primary key default uuid_generate_v4(),
-  item_id          uuid not null references public.itens(id) on delete cascade,
-  fornecedor_id    uuid references public.fornecedores(id),
-  numero_lote      text,
-  validade         date not null,
-  quantidade_cx    int not null default 0,           -- caixas/embalagens
-  amp_por_caixa    int not null default 1,           -- pode variar por lote
-  quantidade_base  int generated always as (quantidade_cx * amp_por_caixa) stored,  -- total de unidades base
-  usado_base       int not null default 0,           -- unidades base já consumidas deste lote
-  disponivel_base  int generated always as (quantidade_cx * amp_por_caixa - usado_base) stored,
-  preco_total      numeric(10,2) not null default 0, -- valor pago pela entrada
-  preco_por_cx     numeric(10,2) generated always as (
-                     case when quantidade_cx > 0 then preco_total / quantidade_cx else 0 end
-                   ) stored,
-  nf_numero        text,
-  nf_arquivo_url   text,                             -- URL do PDF da NF no Supabase Storage
-  status           text not null default 'pendente' check (status in ('pendente','aprovado','rejeitado')),
-  aprovado_por     uuid references public.perfis(id),
-  aprovado_em      timestamptz,
-  observacoes      text,
-  criado_por       uuid references public.perfis(id),
-  criado_em        timestamptz not null default now()
-);
+/* MED CARDS */
+.mlist{display:flex;flex-direction:column;gap:10px}
+.mcard{background:#fff;border:1px solid var(--c6);border-radius:var(--rad);overflow:hidden;box-shadow:var(--sh1);transition:.2s}
+.mcard:hover{box-shadow:var(--sh2)}
+.mcard.lc{border-left:4px solid var(--Rm)}.mcard.wc{border-left:4px solid var(--Wm)}.mcard.oc{border-left:4px solid var(--Gm)}
+.mrow{display:grid;grid-template-columns:minmax(180px,2.2fr) 150px 110px 80px 80px 110px;align-items:stretch}
+.mrow.bot{background:var(--c8);border-top:1px solid var(--c6)}
+.mc{padding:13px 16px;border-right:1px solid var(--c7);display:flex;flex-direction:column;justify-content:center;min-width:0}
+.mc:last-child{border-right:none}
+.mc.ctr{align-items:center}
+.col-lbl{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--c4);margin-bottom:4px}
+.mni{border:none;background:transparent;font-family:'Raleway',sans-serif;font-size:14px;font-weight:700;color:var(--c);width:100%;padding:2px 5px;border-radius:4px;outline:none}
+.mni:hover{background:var(--c7)}
+.mni:focus{background:var(--c6);outline:2px solid var(--gold)}
+.ie{border:none;background:transparent;font-family:'Raleway',sans-serif;font-size:13px;color:var(--c);width:100%;padding:2px 5px;border-radius:4px;outline:none}
+.ie:hover{background:var(--c7)}
+.ie:focus{background:var(--c6);outline:2px solid var(--gold)}
+.ien{width:58px;text-align:center;font-size:14px;font-weight:600}
+.ied{font-size:12px;width:138px}
 
-comment on table public.lotes is 'Lotes de entrada de estoque com validade individual';
-comment on column public.lotes.status is 'pendente=aguardando aprovacao | aprovado=ativo no estoque | rejeitado=nao entra';
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:4px 10px;border-radius:20px;border:1.5px solid;white-space:nowrap}
+.bd{background:var(--Rbg);color:var(--R);border-color:var(--Rbr)}
+.bw{background:var(--Wbg);color:var(--W);border-color:var(--Wbr)}
+.bs{background:var(--Gbg);color:var(--G);border-color:var(--Gbr)}
+.bi{background:var(--Ibg);color:var(--I);border-color:var(--Ibr)}
+.bt{background:var(--Tbg);color:var(--T);border-color:var(--Tbr)}
+.bg{background:var(--c7);color:var(--c3);border-color:var(--c5)}
+.dot{width:5px;height:5px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dr{background:var(--Rm)}.dw{background:var(--Wm)}.dk{background:var(--Gm)}.di{background:var(--Im)}.dt{background:var(--Tm)}
 
--- ============================================================
---  NOTAS FISCAIS
---  Vinculada a múltiplos lotes de uma mesma compra
--- ============================================================
-create table public.notas_fiscais (
-  id              uuid primary key default uuid_generate_v4(),
-  fornecedor_id   uuid references public.fornecedores(id),
-  numero          text,
-  data_emissao    date,
-  valor_total     numeric(10,2),
-  arquivo_url     text,                              -- PDF no Supabase Storage
-  status          text not null default 'pendente' check (status in ('pendente','aprovado','rejeitado')),
-  aprovado_por    uuid references public.perfis(id),
-  aprovado_em     timestamptz,
-  observacoes     text,
-  criado_por      uuid references public.perfis(id),
-  criado_em       timestamptz not null default now()
-);
+/* TYPOGRAPHY */
+.nb{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:500;line-height:1}
+.nm{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:400;line-height:1.2}
+.lt{font-size:9px;color:var(--c4);margin-top:3px;letter-spacing:.4px}
 
-comment on table public.notas_fiscais is 'Notas fiscais vinculadas a entradas de estoque';
+/* FORMS */
+.fcard{background:#fff;border:1px solid var(--c6);border-top:3px solid var(--gold);border-radius:var(--rad);padding:22px;max-width:560px;margin-bottom:22px;box-shadow:var(--sh1)}
+.fcard h3{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;letter-spacing:2px;text-transform:uppercase;color:var(--c);margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--c6)}
+.frow{margin-bottom:13px}
+.frow label{font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--c3);display:block;margin-bottom:5px}
+.frow input,.frow select,.frow textarea{width:100%;padding:10px 12px;border:1.5px solid var(--c5);border-radius:var(--rad);font-family:'Raleway',sans-serif;font-size:13px;color:var(--c);background:#fff;outline:none;transition:.2s}
+.frow input:focus,.frow select:focus,.frow textarea:focus{border-color:var(--gold)}
+.frow textarea{resize:vertical;min-height:70px}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px}
+.fg4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:13px}
+.fa{display:flex;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid var(--c6);align-items:center;flex-wrap:wrap}
+.fmsg{font-size:11px;font-weight:600}
 
--- relação NF ↔ lotes
-alter table public.lotes add column nf_id uuid references public.notas_fiscais(id);
+/* MODAL */
+.mwrap{display:none;position:fixed;inset:0;z-index:500;background:rgba(30,24,20,.52);align-items:center;justify-content:center;padding:20px}
+.mwrap.on{display:flex}
+.mbox{background:#fff;border-radius:10px;border-top:4px solid var(--gold);padding:26px;width:100%;max-width:500px;box-shadow:var(--sh3);max-height:90vh;overflow-y:auto;animation:fi .2s ease}
+.mbox h3{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;letter-spacing:2px;text-transform:uppercase;color:var(--c);margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--c6)}
+.ma{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;padding-top:12px;border-top:1px solid var(--c6)}
 
--- ============================================================
---  MOVIMENTAÇÕES
---  Registro de toda entrada e saída do estoque
--- ============================================================
-create table public.movimentacoes (
-  id              uuid primary key default uuid_generate_v4(),
-  item_id         uuid not null references public.itens(id),
-  lote_id         uuid references public.lotes(id),
-  tipo            text not null check (tipo in ('entrada','saida','ajuste','descarte')),
-  quantidade      int not null,                      -- em unidades base (ampolas/unidades)
-  data            date not null default current_date,
-  motivo          text,
-  responsavel_id  uuid references public.perfis(id),
-  responsavel_nome text,                             -- snapshot do nome na hora do registro
-  pdf_url         text,                              -- URL do comprovante de retirada
-  criado_em       timestamptz not null default now()
-);
+/* HIST */
+.hlist{background:#fff;border:1px solid var(--c6);border-radius:var(--rad);overflow:hidden;box-shadow:var(--sh1)}
+.hi{display:grid;grid-template-columns:1fr auto;gap:16px;padding:14px 20px;border-bottom:1px solid var(--c7);transition:.15s}
+.hi:last-child{border-bottom:none}
+.hi:hover{background:var(--c8)}
+.hn{font-size:14px;font-weight:700;color:var(--c);margin-bottom:3px}
+.hd{font-size:11px;color:var(--c3);line-height:1.5}
+.hr{text-align:right}
+.ha{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400}
+.hu{font-size:9px;color:var(--c4);margin-top:4px;font-weight:700}
+.tag{font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:2px 8px;border-radius:20px;border:1px solid var(--c6);background:var(--c7);color:var(--c3);display:inline-block;margin-top:4px;margin-right:3px}
 
-comment on table public.movimentacoes is 'Histórico completo de todas as movimentações de estoque';
-comment on column public.movimentacoes.tipo is 'entrada=compra | saida=uso | ajuste=correcao | descarte=vencido';
+/* INSUMOS */
+.shdr{display:flex;align-items:center;gap:13px;margin-bottom:14px;padding:14px 18px;background:#fff;border:1px solid var(--c6);border-radius:var(--rad);box-shadow:var(--sh1)}
+.sico{width:38px;height:38px;border-radius:var(--rad);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.snm{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;letter-spacing:2px;text-transform:uppercase}
+.sct{font-size:10px;color:var(--c3);margin-top:2px}
+.icard{background:#fff;border:1px solid var(--c6);border-radius:var(--rad);padding:0;margin-bottom:7px;display:grid;grid-template-columns:minmax(150px,2fr) 110px 70px 70px 80px 70px auto;align-items:stretch;box-shadow:var(--sh1);transition:.15s;overflow:hidden}
+.icard:hover{box-shadow:var(--sh2)}
+.icard.li{border-left:4px solid var(--Rm)}
+.ic{padding:12px 14px;border-right:1px solid var(--c7);display:flex;flex-direction:column;justify-content:center;min-width:0}
+.ic:last-child{border-right:none}
+.ic.ctr{align-items:center}
+.ini{border:none;background:transparent;font-family:'Raleway',sans-serif;font-size:13px;font-weight:700;color:var(--c);width:100%;padding:2px 4px;border-radius:4px;outline:none}
+.ini:hover{background:var(--c7)}
+.ini:focus{background:var(--c6);outline:2px solid var(--gold)}
+.qc{display:flex;align-items:center;gap:6px;justify-content:center}
+.qb{width:26px;height:26px;border:1.5px solid var(--c5);border-radius:5px;background:#fff;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:.15s;line-height:1}
+.qb:hover{border-color:var(--gold);color:var(--gold)}
+.qv{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:500;min-width:28px;text-align:center}
+.sgrid{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
+.spill2{padding:5px 13px;border:1.5px dashed var(--c5);border-radius:20px;font-size:11px;font-weight:600;color:var(--c3);cursor:pointer;background:#fff;transition:.18s}
+.spill2:hover{border-color:var(--gold);color:var(--gold);background:var(--gold3)}
 
--- ============================================================
---  TIRZEPATIDA — controle especializado
--- ============================================================
-create table public.tirzepatida_frascos (
-  id              uuid primary key default uuid_generate_v4(),
-  mg              int not null check (mg in (60, 90)),
-  fornecedor_id   uuid references public.fornecedores(id),
-  numero_lote     text,
-  validade        date not null,
-  ampolas_total   int not null default 1,
-  ampolas_usadas  int not null default 0,
-  ampolas_disp    int generated always as (ampolas_total - ampolas_usadas) stored,
-  preco_pago      numeric(10,2) not null default 0,
-  preco_por_amp   numeric(10,2) generated always as (
-                    case when ampolas_total > 0 then preco_pago / ampolas_total else 0 end
-                  ) stored,
-  observacoes     text,
-  status          text not null default 'ativo' check (status in ('ativo','esgotado','vencido','descartado')),
-  criado_por      uuid references public.perfis(id),
-  criado_em       timestamptz not null default now(),
-  atualizado_em   timestamptz not null default now()
-);
+/* TIRZ */
+.tcard{background:#fff;border:1px solid var(--c6);border-radius:var(--rad);overflow:hidden;margin-bottom:10px;box-shadow:var(--sh1);transition:.2s}
+.tcard:hover{box-shadow:var(--sh2)}
+.tcard.tv{border-left:4px solid var(--Rm)}.tcard.tw{border-left:4px solid var(--Wm)}
+.tgrid{display:grid;grid-template-columns:85px minmax(140px,1.6fr) 120px 110px 140px auto;align-items:stretch}
+.tc{padding:14px 16px;border-right:1px solid var(--c7);display:flex;flex-direction:column;justify-content:center;min-width:0}
+.tc:last-child{border-right:none}
+.mgp{display:inline-flex;align-items:center;justify-content:center;background:var(--Tbg);color:var(--T);border:2px solid var(--Tbr);border-radius:var(--rad);font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:500;padding:5px 10px;min-width:65px}
+.dc{display:flex;align-items:center;gap:6px}
+.db{width:27px;height:27px;border:1.5px solid var(--c5);border-radius:5px;background:#fff;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:.15s;line-height:1}
+.db:hover{border-color:var(--T);color:var(--T)}
+.dv{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:500;min-width:30px;text-align:center}
 
-comment on table public.tirzepatida_frascos is 'Controle especializado de frascos de tirzepatida manipulada';
+/* FINANCEIRO */
+.fgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-bottom:22px}
+.fc{background:#fff;border:1px solid var(--c6);border-radius:var(--rad);padding:18px 20px;box-shadow:var(--sh1)}
+.fl{font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--c3);margin-bottom:9px}
+.fv{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:500;color:var(--c);line-height:1}
+.fs{font-size:9.5px;color:var(--c4);margin-top:5px}
+.ftbl{width:100%;border-collapse:collapse}
+.ftbl th{text-align:left;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--c3);padding:9px 13px;border-bottom:1.5px solid var(--c6);background:var(--c8)}
+.ftbl td{padding:11px 13px;border-bottom:1px solid var(--c7);font-size:12px;color:var(--c);vertical-align:middle}
+.ftbl tr:last-child td{border-bottom:none}
+.ftbl tr:hover td{background:var(--c8)}
 
-create table public.tirzepatida_movimentacoes (
-  id              uuid primary key default uuid_generate_v4(),
-  frasco_id       uuid not null references public.tirzepatida_frascos(id),
-  tipo            text not null check (tipo in ('entrada','saida','ajuste')),
-  quantidade      int not null,
-  data            date not null default current_date,
-  motivo          text,
-  responsavel_id  uuid references public.perfis(id),
-  responsavel_nome text,
-  pdf_url         text,
-  criado_em       timestamptz not null default now()
-);
+/* PEDIDOS */
+.pitem{background:#fff;border:1px solid var(--c6);border-radius:var(--rad);padding:14px 18px;margin-bottom:9px;box-shadow:var(--sh1)}
+.pitem.pu{border-left:4px solid var(--Rm)}.pitem.pb{border-left:4px solid var(--Wm)}
+.pobs{width:100%;padding:7px 10px;border:1.5px solid var(--c5);border-radius:var(--rad);font-family:'Raleway',sans-serif;font-size:12px;color:var(--c);background:var(--c8);outline:none;margin-top:8px;transition:.2s}
+.pobs:focus{border-color:var(--gold);background:#fff}
+.pobs::placeholder{color:var(--c4)}
 
--- ============================================================
---  ALERTAS DE VARIAÇÃO DE PREÇO
---  Gerado automaticamente quando NF tem variação > 20%
--- ============================================================
-create table public.alertas_preco (
-  id              uuid primary key default uuid_generate_v4(),
-  item_id         uuid references public.itens(id),
-  lote_id         uuid references public.lotes(id),
-  preco_anterior  numeric(10,2),
-  preco_novo      numeric(10,2),
-  variacao_pct    numeric(5,2),                      -- percentual de variação
-  visualizado     boolean not null default false,
-  criado_em       timestamptz not null default now()
-);
+/* IA CHAT */
+.chat-area{display:flex;flex-direction:column;gap:12px;max-height:400px;overflow-y:auto;padding:4px 0;margin-bottom:14px}
+.chat-msg{display:flex;gap:12px}
+.chat-msg.user{flex-direction:row-reverse}
+.chat-bubble{max-width:75%;padding:12px 16px;border-radius:12px;font-size:13px;line-height:1.6;color:var(--c)}
+.chat-msg.ai .chat-bubble{background:var(--c8);border:1px solid var(--c6);border-radius:0 12px 12px 12px}
+.chat-msg.user .chat-bubble{background:var(--c);color:#faf8f5;border-radius:12px 0 12px 12px;font-weight:500}
+.chat-av{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.chat-msg.ai .chat-av{background:var(--gold3);color:var(--gold);border:1.5px solid var(--gold2);font-family:'Cormorant Garamond',serif;font-size:14px}
+.chat-msg.user .chat-av{background:var(--c2);color:#faf8f5;font-family:'Raleway',sans-serif;font-size:10px;letter-spacing:1px}
+.chat-inp-row{display:flex;gap:10px}
+.chat-inp{flex:1;padding:11px 14px;border:1.5px solid var(--c5);border-radius:var(--rad);font-family:'Raleway',sans-serif;font-size:13px;color:var(--c);background:#fff;outline:none;transition:.2s}
+.chat-inp:focus{border-color:var(--gold)}
+.chat-inp::placeholder{color:var(--c4)}
+.typing span{width:7px;height:7px;border-radius:50%;background:var(--c4);display:inline-block;animation:bounce .8s infinite;margin:0 2px}
+.typing span:nth-child(2){animation-delay:.15s}.typing span:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,80%,100%{transform:scale(.6);opacity:.5}40%{transform:scale(1);opacity:1}}
+.ia-sug{padding:6px 13px;border:1.5px solid var(--c5);border-radius:20px;font-size:11px;font-weight:600;color:var(--c3);cursor:pointer;background:#fff;transition:.18s;display:inline-block;margin:0 6px 6px 0}
+.ia-sug:hover{border-color:var(--gold);color:var(--gold);background:var(--gold3)}
 
-comment on table public.alertas_preco is 'Alertas de variação de preço acima de 20% por NF';
+/* LOTES */
+.lote-badge{display:inline-flex;align-items:center;gap:4px;font-size:8px;font-weight:700;letter-spacing:1px;padding:3px 8px;border-radius:4px;border:1px solid}
+.lote-pendente{background:var(--Wbg);color:var(--W);border-color:var(--Wbr)}
+.lote-aprovado{background:var(--Gbg);color:var(--G);border-color:var(--Gbr)}
+.lote-rejeitado{background:var(--Rbg);color:var(--R);border-color:var(--Rbr)}
 
--- ============================================================
---  LOG DE AUDITORIA
---  Registro imutável de todas as ações no sistema
--- ============================================================
-create table public.auditoria (
-  id              uuid primary key default uuid_generate_v4(),
-  usuario_id      uuid references public.perfis(id),
-  usuario_nome    text,
-  acao            text not null,                     -- ex: 'criou_lote', 'aprovou_nf', 'deletou_item'
-  tabela          text,
-  registro_id     uuid,
-  dados_antes     jsonb,
-  dados_depois    jsonb,
-  ip              text,
-  criado_em       timestamptz not null default now()
-);
+/* DASHBOARD BARS */
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.bar-lbl{font-size:11px;font-weight:600;color:var(--c2);width:140px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{flex:1;height:7px;background:var(--c7);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px}
+.bar-val{font-size:10px;font-weight:700;color:var(--c);width:35px;text-align:right;flex-shrink:0}
+.alert-item{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:0.5px solid var(--Rbg)}
+.alert-item:last-child{border-bottom:none}
+.alert-nm{font-size:12px;font-weight:600;color:var(--c)}
+/* IMPL */
+.impl-card{background:#fff;border:0.5px solid var(--c6);border-radius:var(--rad);margin-bottom:9px;overflow:hidden;box-shadow:var(--sh1);transition:.2s}
+.impl-card:hover{box-shadow:var(--sh2)}
+.impl-card.iv{border-left:4px solid var(--Rm)}.impl-card.iw{border-left:4px solid var(--Wm)}.impl-card.iok{border-left:4px solid var(--Pm)}
+.impl-grid{display:grid;grid-template-columns:minmax(140px,1.8fr) minmax(120px,1.4fr) 110px 100px 130px auto;align-items:stretch}
+.tc{padding:13px 15px;border-right:0.5px solid var(--c7);display:flex;flex-direction:column;justify-content:center;min-width:0}
+.tc:last-child{border-right:none}
+.empty{text-align:center;padding:44px 20px;color:var(--c4)}
+.et{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:300;letter-spacing:3px;text-transform:uppercase;margin-bottom:5px;color:var(--c3)}
+.es{font-size:9px;letter-spacing:2px;text-transform:uppercase}
+</style>
+</head>
+<body>
 
-comment on table public.auditoria is 'Log imutável de auditoria — nenhum registro pode ser alterado ou deletado';
+<!-- TELA DE LOGIN -->
+<div class="login-wrap" id="login-wrap">
+  <div class="login-box">
+    <div class="login-brand">Luisa Costa</div>
+    <div class="login-sub">Clínica Médica</div>
+    <div class="login-gold-bar"></div>
+    <div class="login-title">Gestão de Estoque</div>
+    <div class="lrow">
+      <label>Email</label>
+      <input type="email" id="login-email" placeholder="seu@email.com" onkeydown="if(event.key==='Enter')fazerLogin()">
+    </div>
+    <div class="lrow">
+      <label>Senha</label>
+      <input type="password" id="login-senha" placeholder="••••••••" onkeydown="if(event.key==='Enter')fazerLogin()">
+    </div>
+    <button class="btn-login" onclick="fazerLogin()" id="btn-login-txt">Entrar</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>
 
--- ============================================================
---  NOTIFICAÇÕES
--- ============================================================
-create table public.notificacoes (
-  id              uuid primary key default uuid_generate_v4(),
-  tipo            text not null check (tipo in ('vencimento','estoque_minimo','variacao_preco','resumo_semanal','nf_pendente')),
-  titulo          text not null,
-  mensagem        text not null,
-  item_id         uuid references public.itens(id),
-  enviado_para    text,                              -- email destino
-  enviado_em      timestamptz,
-  status          text not null default 'pendente' check (status in ('pendente','enviado','erro')),
-  criado_em       timestamptz not null default now()
-);
+<!-- APP PRINCIPAL -->
+<div id="app" style="display:none">
+  <div class="hdr">
+    <div class="hdr-top">
+      <div>
+        <div class="brand-name">Luisa Costa</div>
+        <div class="brand-sub">Clínica Médica</div>
+      </div>
+      <div class="brand-div"></div>
+      <div class="brand-mod">Gestão de Estoque</div>
+      <div class="hdr-right">
+        <span class="spill" id="spill">✓ Salvo</span>
+        <div class="user-pill">
+          <div>
+            <div class="user-nome" id="user-nome">—</div>
+            <div class="user-nivel" id="user-nivel">—</div>
+          </div>
+        </div>
+        <button class="btn btn-gh btn-sm" onclick="fazerLogout()">Sair</button>
+      </div>
+    </div>
+    <div class="nav" id="nav">
+      <div class="ntab on"  onclick="tab('dash')">Dashboard</div>
+      <div class="ntab" onclick="tab('meds')">Medicamentos</div>
+      <div class="ndiv"></div>
+      <div class="ntab" onclick="tab('tirz')">Tirzepatida</div>
+      <div class="ntab" onclick="tab('impl')">Implantes</div>
+      <div class="ndiv"></div>
+      <div class="ntab" onclick="tab('insumos')">Insumos Clínicos</div>
+      <div class="ntab" onclick="tab('outros')">Outros Insumos</div>
+      <div class="ndiv"></div>
+      <div class="ntab admin-only" onclick="tab('nfs')">Notas Fiscais</div>
+      <div class="ntab" onclick="tab('pedidos')">Pedido de Compras</div>
+      <div class="ntab admin-only" onclick="tab('fin')">Financeiro</div>
+      <div class="ndiv"></div>
+      <div class="ntab" onclick="tab('ia')">Assistente IA</div>
+      <div class="ndiv"></div>
+      <div class="ntab" onclick="tab('hist')">Histórico</div>
+      <div class="ntab admin-only" onclick="tab('usuarios')">Usuários</div>
+    </div>
+  </div>
 
--- ============================================================
---  CONFIGURAÇÕES DO SISTEMA
--- ============================================================
-create table public.configuracoes (
-  chave   text primary key,
-  valor   text not null,
-  descricao text
-);
+  <!-- DASHBOARD -->
+  <div id="pg-dash" class="pg on">
+    <div class="ia-resumo-box" id="dash-resumo" style="background:#fff;border:1px solid var(--c6);border-left:3px solid var(--gold);border-radius:var(--rad);padding:16px 20px;margin-bottom:18px;box-shadow:var(--sh1)">
+      <div class="ia-tag" style="font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);margin-bottom:8px">✦ Resumo do Dia — Inteligência Artificial</div>
+      <div style="font-size:13px;color:var(--c2);line-height:1.65" id="dash-resumo-txt">Carregando análise...</div>
+      <button class="btn btn-gh btn-sm" style="margin-top:10px" onclick="gerarResumo()">↺ Atualizar</button>
+    </div>
+    <div class="stats" id="dash-cards"></div>
+    <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:16px">
+      <div style="background:#fff;border:1px solid var(--c6);border-radius:var(--rad);padding:16px;box-shadow:var(--sh1)">
+        <div style="font-size:8.5px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--c);margin-bottom:14px">Estoque disponível por medicamento</div>
+        <div id="dash-bars"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="background:#fff;border:1px solid var(--Rbr);border-top:3px solid var(--Rm);border-radius:var(--rad);padding:14px;box-shadow:var(--sh1)">
+          <div style="font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--Rm);margin-bottom:10px">Alertas Urgentes</div>
+          <div id="dash-alertas"><div style="font-size:11px;color:var(--c4)">Carregando...</div></div>
+        </div>
+        <div style="background:#fff;border:1px solid var(--Tbr);border-top:3px solid var(--Tm);border-radius:var(--rad);padding:14px;box-shadow:var(--sh1)">
+          <div style="font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--Tm);margin-bottom:10px">Tirzepatida & Implantes</div>
+          <div id="dash-tirz"><div style="font-size:11px;color:var(--c4)">Carregando...</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-insert into public.configuracoes (chave, valor, descricao) values
-  ('alerta_vencimento_dias',    '30',    'Dias de antecedência para alerta de vencimento'),
-  ('alerta_preco_pct',          '20',    'Percentual mínimo de variação para gerar alerta de preço'),
-  ('email_notificacoes',        '',      'Email para receber notificações automáticas'),
-  ('resumo_dia_semana',         '1',     'Dia da semana para resumo semanal (1=segunda)'),
-  ('clinica_nome',              'Clínica Luisa Costa', 'Nome da clínica'),
-  ('nf_aprovacao_obrigatoria',  'true',  'Exige aprovação antes de atualizar estoque por NF');
+  <!-- MEDICAMENTOS -->
+  <div id="pg-meds" class="pg">
+    <div class="alrt" id="alrt"></div>
+    <div class="stats" id="stats"></div>
+    <div class="tb">
+      <div class="sw">
+        <svg class="si" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="6.5" r="4"/><path d="M11 11l3 3"/></svg>
+        <input type="text" id="srch" placeholder="Buscar medicamento..." oninput="renderMeds()">
+      </div>
+      <select class="sel" id="filt" onchange="changeFilt()">
+        <option value="all">Todos os itens</option>
+        <option value="venc">Vencidos</option>
+        <option value="crit">Vence em 30 dias</option>
+        <option value="low">Estoque mínimo</option>
+        <option value="ok">OK</option>
+      </select>
+      <button class="btn btn-gd" onclick="abrir('madmed')">+ Novo Medicamento</button>
+    </div>
+    <div style="display:grid;grid-template-columns:minmax(180px,2.2fr) 150px 110px 80px 80px 110px;gap:0;padding:8px 16px;background:var(--c7);border-radius:var(--rad);margin-bottom:8px;border:1px solid var(--c6)">
+      <div class="col-lbl">Medicamento</div><div class="col-lbl">Validade</div><div class="col-lbl">Status</div>
+      <div class="col-lbl" style="text-align:center">Caixas</div><div class="col-lbl" style="text-align:center">Amp/Cx</div><div class="col-lbl" style="text-align:center">Ações</div>
+    </div>
+    <div class="mlist" id="mlist"></div>
+    <div id="emeds" style="display:none" class="empty"><div class="et">Nenhum item</div><div class="es">Tente outro filtro</div></div>
+  </div>
 
--- ============================================================
---  VIEWS ÚTEIS
--- ============================================================
+  <!-- TIRZEPATIDA -->
+  <div id="pg-tirz" class="pg">
+    <div class="tb">
+      <button class="btn btn-tl" onclick="abrir('madtz')">+ Novo Frasco</button>
+      <select class="sel" id="tfilt" onchange="renderTirz()">
+        <option value="all">Todos</option><option value="60">60 mg</option><option value="90">90 mg</option>
+        <option value="venc">Vencidos</option><option value="crit">Vence em 30 dias</option>
+      </select>
+    </div>
+    <div class="fgrid" id="tstats"></div>
+    <div style="display:grid;grid-template-columns:85px minmax(140px,1.6fr) 120px 110px 140px auto;gap:0;padding:8px 16px;background:var(--c7);border-radius:var(--rad);margin-bottom:8px;border:1px solid var(--c6)">
+      <div class="col-lbl">MG</div><div class="col-lbl">Farmácia / Lote</div><div class="col-lbl">Vencimento</div>
+      <div class="col-lbl">Valor Pago</div><div class="col-lbl">Ampolas</div><div class="col-lbl"></div>
+    </div>
+    <div id="tlist"></div>
+    <div id="etrz" style="display:none" class="empty"><div class="et">Nenhum frasco</div></div>
+  </div>
 
--- Estoque atual por item (soma de todos os lotes aprovados)
-create or replace view public.estoque_atual as
-select
-  i.id,
-  i.nome,
-  i.unidade,
-  i.amp_por_caixa,
-  i.estoque_min,
-  i.estoque_ideal,
-  s.nome as setor,
-  coalesce(sum(l.disponivel_base) filter (where l.status = 'aprovado' and l.validade >= current_date), 0) as disponivel,
-  coalesce(sum(l.quantidade_base) filter (where l.status = 'aprovado'), 0) as total_entrada,
-  min(l.validade) filter (where l.status = 'aprovado' and l.disponivel_base > 0) as proxima_validade,
-  case
-    when coalesce(sum(l.disponivel_base) filter (where l.status = 'aprovado' and l.validade >= current_date), 0) <= i.estoque_min then 'critico'
-    when coalesce(sum(l.disponivel_base) filter (where l.status = 'aprovado' and l.validade >= current_date), 0) <= i.estoque_ideal * 0.5 then 'baixo'
-    else 'ok'
-  end as status_estoque,
-  case
-    when min(l.validade) filter (where l.status = 'aprovado' and l.disponivel_base > 0) < current_date then 'vencido'
-    when min(l.validade) filter (where l.status = 'aprovado' and l.disponivel_base > 0) <= current_date + interval '30 days' then 'critico'
-    when min(l.validade) filter (where l.status = 'aprovado' and l.disponivel_base > 0) <= current_date + interval '90 days' then 'atencao'
-    else 'ok'
-  end as status_validade,
-  -- preço médio histórico por caixa
-  case
-    when coalesce(sum(l.quantidade_cx) filter (where l.status = 'aprovado'), 0) > 0
-    then round(sum(l.preco_total) filter (where l.status = 'aprovado') / sum(l.quantidade_cx) filter (where l.status = 'aprovado'), 2)
-    else 0
-  end as preco_medio_cx,
-  -- último preço pago
-  (select l2.preco_por_cx from public.lotes l2 where l2.item_id = i.id and l2.status = 'aprovado' order by l2.criado_em desc limit 1) as ultimo_preco_cx,
-  -- custo estimado do estoque disponível
-  case
-    when coalesce(sum(l.quantidade_cx) filter (where l.status = 'aprovado'), 0) > 0
-    then round(
-      coalesce(sum(l.disponivel_base) filter (where l.status = 'aprovado'), 0)::numeric
-      / i.amp_por_caixa
-      * round(sum(l.preco_total) filter (where l.status = 'aprovado') / sum(l.quantidade_cx) filter (where l.status = 'aprovado'), 2)
-    , 2)
-    else 0
-  end as custo_estoque,
-  i.ativo
-from public.itens i
-join public.setores s on s.id = i.setor_id
-left join public.lotes l on l.item_id = i.id
-where i.ativo = true
-group by i.id, i.nome, i.unidade, i.amp_por_caixa, i.estoque_min, i.estoque_ideal, s.nome;
+  <!-- IMPLANTES -->
+  <div id="pg-impl" class="pg">
+    <div class="tb">
+      <button class="btn btn-pm" onclick="abrir('madimpl')">+ Novo Lote de Implante</button>
+      <select class="sel" id="ifilt" onchange="renderImpl()">
+        <option value="all">Todos os tipos</option>
+        <option value="testosterona">Testosterona</option>
+        <option value="estradiol">Estradiol</option>
+        <option value="venc">Vencidos</option>
+        <option value="crit">Vence em 30d</option>
+      </select>
+    </div>
+    <div class="fgrid" id="istats"></div>
+    <div style="display:grid;grid-template-columns:minmax(140px,1.8fr) minmax(120px,1.4fr) 110px 100px 130px auto;gap:0;padding:8px 16px;background:var(--c7);border-radius:var(--rad);margin-bottom:8px;border:1px solid var(--c6)">
+      <div class="col-lbl">Tipo / Dosagem</div><div class="col-lbl">Farmácia / Lote</div><div class="col-lbl">Vencimento</div>
+      <div class="col-lbl">Valor Pago</div><div class="col-lbl">Unidades</div><div class="col-lbl"></div>
+    </div>
+    <div id="ilist"></div>
+    <div id="eimpl" style="display:none" class="empty"><div class="et">Nenhum implante</div><div class="es">Adicione acima</div></div>
+  </div>
 
--- Lotes próximos do vencimento ou vencidos
-create or replace view public.alertas_validade as
-select
-  l.id as lote_id,
-  i.nome as item_nome,
-  s.nome as setor,
-  l.numero_lote,
-  l.validade,
-  l.disponivel_base,
-  (l.validade - current_date) as dias_para_vencer,
-  case
-    when l.validade < current_date then 'vencido'
-    when l.validade <= current_date + interval '30 days' then 'critico'
-    when l.validade <= current_date + interval '90 days' then 'atencao'
-    else 'ok'
-  end as status
-from public.lotes l
-join public.itens i on i.id = l.item_id
-join public.setores s on s.id = i.setor_id
-where l.status = 'aprovado'
-  and l.disponivel_base > 0
-  and l.validade <= current_date + interval '90 days'
-order by l.validade asc;
+  <!-- INSUMOS -->
+  <div id="pg-insumos" class="pg"><div id="ins-c"></div></div>
 
--- Dashboard executivo
-create or replace view public.dashboard as
-select
-  (select count(*) from public.itens where ativo = true) as total_itens,
-  (select count(*) from public.estoque_atual where status_validade = 'vencido') as itens_vencidos,
-  (select count(*) from public.estoque_atual where status_validade = 'critico') as itens_vencendo,
-  (select count(*) from public.estoque_atual where status_estoque = 'critico') as itens_estoque_minimo,
-  (select coalesce(sum(custo_estoque),0) from public.estoque_atual) as valor_total_estoque,
-  (select count(*) from public.lotes where status = 'pendente') as nfs_pendentes_aprovacao,
-  (select count(*) from public.alertas_preco where visualizado = false) as alertas_preco_novos,
-  (select coalesce(sum(ampolas_disp),0) from public.tirzepatida_frascos where status = 'ativo') as tirz_ampolas_total,
-  (select coalesce(sum(preco_pago),0) from public.tirzepatida_frascos) as tirz_total_investido;
+  <!-- OUTROS INSUMOS -->
+  <div id="pg-outros" class="pg">
+    <div class="sdiv"><div class="sdiv-t">Outros Insumos</div><div class="sdiv-l"></div></div>
+    <div id="outros-lmp"></div>
+    <div id="outros-cnf"></div>
+    <div id="outros-esc"></div>
+  </div>
 
--- Comparativo de fornecedores por item
-create or replace view public.comparativo_fornecedores as
-select
-  i.nome as item_nome,
-  f.nome as fornecedor,
-  count(l.id) as total_compras,
-  round(avg(l.preco_por_cx), 2) as preco_medio_cx,
-  min(l.preco_por_cx) as menor_preco,
-  max(l.preco_por_cx) as maior_preco,
-  max(l.criado_em) as ultima_compra
-from public.lotes l
-join public.itens i on i.id = l.item_id
-join public.fornecedores f on f.id = l.fornecedor_id
-where l.status = 'aprovado' and l.preco_por_cx > 0
-group by i.nome, f.nome
-order by i.nome, preco_medio_cx asc;
+  <!-- NOTAS FISCAIS -->
+  <div id="pg-nfs" class="pg">
+    <div class="sdiv"><div class="sdiv-t">Notas Fiscais Pendentes de Aprovação</div><div class="sdiv-l"></div>
+      <button class="btn btn-gd btn-sm" onclick="abrir('madlote-nf')">+ Nova Entrada</button>
+    </div>
+    <div id="nfs-pendentes"></div>
+    <div class="sdiv" style="margin-top:20px"><div class="sdiv-t">Histórico de NFs</div><div class="sdiv-l"></div></div>
+    <div id="nfs-historico"></div>
+  </div>
 
--- ============================================================
---  ROW LEVEL SECURITY (RLS)
---  Controle de acesso por nível de usuário
--- ============================================================
-alter table public.perfis enable row level security;
-alter table public.itens enable row level security;
-alter table public.lotes enable row level security;
-alter table public.movimentacoes enable row level security;
-alter table public.notas_fiscais enable row level security;
-alter table public.tirzepatida_frascos enable row level security;
-alter table public.auditoria enable row level security;
-alter table public.alertas_preco enable row level security;
-alter table public.notificacoes enable row level security;
+  <!-- PEDIDOS -->
+  <div id="pg-pedidos" class="pg">
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+      <div class="sdiv-t" style="white-space:nowrap">Pedido de Compras</div><div class="sdiv-l"></div>
+      <button class="btn btn-gh btn-sm" onclick="selTodos()">Selecionar Todos</button>
+      <button class="btn btn-gd btn-sm" onclick="analisarPedidoIA()">✦ Analisar com IA</button>
+      <button class="btn btn-dk btn-sm" onclick="pdfPedido()">↓ Gerar PDF</button>
+    </div>
+    <div style="background:var(--Ibg);border:1px solid var(--Ibr);border-radius:var(--rad);padding:11px 15px;margin-bottom:14px;font-size:12px;color:var(--I)">
+      Itens críticos detectados automaticamente. Edite quantidades e observações antes de gerar o PDF.
+    </div>
+    <div id="ped-ia-box" style="display:none;background:#fff;border:1px solid var(--c6);border-left:3px solid var(--gold);border-radius:var(--rad);padding:16px 20px;margin-bottom:16px;box-shadow:var(--sh1)">
+      <div style="font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);margin-bottom:8px">✦ Análise IA — Pedido de Compras</div>
+      <div id="ped-ia-txt" style="font-size:13px;color:var(--c2);line-height:1.65"></div>
+    </div>
+    <div id="pled"></div>
+    <div id="ped-footer" style="display:none;background:var(--c8);border:1px solid var(--c6);border-radius:var(--rad);padding:14px 18px;margin-top:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>
+        <div style="font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--c4);margin-bottom:4px" id="ped-count"></div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:500;color:var(--c)" id="ptot"></div>
+      </div>
+      <button class="btn btn-gd" onclick="pdfPedido()">↓ Gerar PDF do Pedido</button>
+    </div>
+  </div>
 
--- Função helper para pegar nível do usuário logado
-create or replace function public.get_nivel()
-returns text as $$
-  select nivel from public.perfis where id = auth.uid();
-$$ language sql security definer;
+  <!-- FINANCEIRO -->
+  <div id="pg-fin" class="pg">
+    <div class="sdiv"><div class="sdiv-t">Painel Financeiro</div><div class="sdiv-l"></div></div>
+    <div class="fgrid" id="fcards"></div>
+    <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:22px">
+      <div>
+        <div class="sdiv"><div class="sdiv-t">Custo por Medicamento</div><div class="sdiv-l"></div></div>
+        <div style="background:#fff;border:1px solid var(--c6);border-radius:var(--rad);overflow:hidden;box-shadow:var(--sh1)">
+          <table class="ftbl"><thead><tr><th>Medicamento</th><th>Disp.</th><th>Ideal</th><th>Preço méd/cx</th><th>Custo estoque</th><th>Repor</th></tr></thead>
+          <tbody id="ftbody"></tbody></table>
+        </div>
+      </div>
+      <div>
+        <div class="sdiv"><div class="sdiv-t">Comparativo de Fornecedores</div><div class="sdiv-l"></div></div>
+        <div id="comp-forn" style="background:#fff;border:1px solid var(--c6);border-radius:var(--rad);overflow:hidden;box-shadow:var(--sh1)">
+          <div class="empty" style="padding:20px"><div class="es">Registre compras para ver comparativos</div></div>
+        </div>
+        <div style="margin-top:16px">
+          <div class="sdiv"><div class="sdiv-t">Análise IA de Fornecedores</div><div class="sdiv-l"></div></div>
+          <div style="background:#fff;border:1px solid var(--c6);border-radius:var(--rad);padding:16px;box-shadow:var(--sh1)">
+            <div id="ia-forn-txt" class="ia-txt" style="font-size:13px">Clique abaixo para a IA analisar seus fornecedores.</div>
+            <button class="btn btn-gd btn-sm" style="margin-top:12px" onclick="analisarFornecedores()">✦ Analisar com IA</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
--- Administrador vê tudo
-create policy "admin_tudo" on public.lotes
-  for all using (public.get_nivel() = 'administrador');
+  <!-- IA -->
+  <div id="pg-ia" class="pg">
+    <div class="sdiv"><div class="sdiv-t">Assistente IA — Clínica Luisa Costa</div><div class="sdiv-l"></div></div>
+    <div style="background:#fff;border:1px solid var(--c6);border-radius:var(--rad);padding:20px;box-shadow:var(--sh1)">
+      <div style="margin-bottom:14px;flex-wrap:wrap;display:flex">
+        <div class="ia-sug" onclick="enviarSug(this)">Quais medicamentos vão vencer em 60 dias?</div>
+        <div class="ia-sug" onclick="enviarSug(this)">Quanto para repor tudo ao ideal?</div>
+        <div class="ia-sug" onclick="enviarSug(this)">Quais itens priorizar no próximo pedido?</div>
+        <div class="ia-sug" onclick="enviarSug(this)">No ritmo atual, quais medicamentos acabam em breve?</div>
+        <div class="ia-sug" onclick="enviarSug(this)">Faça um resumo financeiro do estoque atual</div>
+      </div>
+      <div class="chat-area" id="chat-area"></div>
+      <div class="chat-inp-row">
+        <input class="chat-inp" id="chat-inp" type="text" placeholder="Pergunte sobre estoque, validades, custos..." onkeydown="if(event.key==='Enter')enviarChat()">
+        <button class="btn btn-gd" onclick="enviarChat()">Enviar</button>
+      </div>
+    </div>
+  </div>
 
-create policy "admin_tudo" on public.itens
-  for all using (public.get_nivel() in ('administrador','colaborador','compras'));
+  <!-- HISTÓRICO -->
+  <div id="pg-hist" class="pg">
+    <div class="tb" style="margin-bottom:18px">
+      <select class="sel" id="hset" onchange="renderHist()">
+        <option value="all">Todos os setores</option>
+        <option value="Medicamentos">Medicamentos</option><option value="Tirzepatida">Tirzepatida</option>
+        <option value="Insumos Clínicos">Insumos</option><option value="Limpeza">Limpeza</option>
+        <option value="Conforto">Conforto</option><option value="Escritório">Escritório</option>
+      </select>
+      <select class="sel" id="htip" onchange="renderHist()">
+        <option value="all">Entradas e Saídas</option><option value="saida">Saídas</option><option value="entrada">Entradas</option>
+      </select>
+    </div>
+    <div class="hlist"><div id="hlist"><div class="empty"><div class="et">Sem registros</div></div></div></div>
+  </div>
 
-create policy "admin_tudo" on public.notas_fiscais
-  for all using (public.get_nivel() in ('administrador','compras'));
+  <!-- USUÁRIOS -->
+  <div id="pg-usuarios" class="pg">
+    <div class="sdiv"><div class="sdiv-t">Gestão de Usuários</div><div class="sdiv-l"></div>
+      <button class="btn btn-gd btn-sm" onclick="abrir('madusr')">+ Convidar Usuário</button>
+    </div>
+    <div id="usuarios-lista"></div>
+  </div>
+</div>
 
-create policy "admin_tudo" on public.movimentacoes
-  for all using (public.get_nivel() in ('administrador','colaborador','compras'));
+<!-- MODAIS -->
+<div class="mwrap" id="madmed"><div class="mbox">
+  <h3>Novo Medicamento</h3>
+  <div class="frow"><label>Nome completo</label><input type="text" id="an" placeholder="Nome do medicamento"></div>
+  <div class="fg2">
+    <div class="frow"><label>Unidade</label><select id="au"><option>caixas</option><option>ampolas</option><option>frascos</option><option>comprimidos</option><option>unidades</option></select></div>
+    <div class="frow"><label>Amp. por caixa</label><input type="number" id="ax" min="1" value="10"></div>
+  </div>
+  <div class="fg3">
+    <div class="frow"><label>Estoque mínimo</label><input type="number" id="am" min="0" value="10"></div>
+    <div class="frow"><label>Estoque ideal</label><input type="number" id="ai" min="0" value="50"></div>
+    <div class="frow"><label>Setor</label><select id="asetor"></select></div>
+  </div>
+  <div style="background:var(--Ibg);border:1px solid var(--Ibr);border-radius:var(--rad);padding:10px 14px;margin-bottom:10px;font-size:11px;color:var(--I)">
+    Se já tem estoque em mãos, preencha abaixo para criar o primeiro lote automaticamente.
+  </div>
+  <div class="fg3">
+    <div class="frow"><label>Qtd. caixas iniciais</label><input type="number" id="acx" min="0" value="0" placeholder="0"></div>
+    <div class="frow"><label>Validade</label><input type="date" id="aval"></div>
+    <div class="frow"><label>Valor total (R$)</label><input type="number" id="avalor" min="0" step="0.01" placeholder="0,00"></div>
+  </div>
+  <div class="ma">
+    <button class="btn btn-gh" onclick="fechar('madmed')">Cancelar</button>
+    <button class="btn btn-gd" onclick="salvarMed()">Salvar</button>
+  </div>
+  <div id="med-msg" class="fmsg" style="margin-top:8px"></div>
+</div></div>
 
-create policy "admin_tudo" on public.tirzepatida_frascos
-  for all using (public.get_nivel() in ('administrador','colaborador'));
+<div class="mwrap" id="madedit"><div class="mbox">
+  <h3>Editar Medicamento</h3>
+  <div class="frow"><label>Nome</label><input type="text" id="edit-nome"></div>
+  <div class="fg2">
+    <div class="frow"><label>Unidade</label><select id="edit-unit"><option>caixas</option><option>ampolas</option><option>frascos</option><option>comprimidos</option><option>unidades</option></select></div>
+    <div class="frow"><label>Amp. por caixa</label><input type="number" id="edit-apx" min="1"></div>
+  </div>
+  <div class="fg2">
+    <div class="frow"><label>Estoque mínimo</label><input type="number" id="edit-min" min="0"></div>
+    <div class="frow"><label>Estoque ideal</label><input type="number" id="edit-ideal" min="0"></div>
+  </div>
+  <input type="hidden" id="edit-id">
+  <div class="ma">
+    <button class="btn btn-gh" onclick="fechar('madedit')">Cancelar</button>
+    <button class="btn btn-gd" onclick="confirmarEdicao()">Salvar Alterações</button>
+  </div>
+  <div id="edit-msg" class="fmsg" style="margin-top:8px"></div>
+</div></div>
 
--- Auditoria: todos podem inserir, só admin lê
-create policy "insert_auditoria" on public.auditoria
-  for insert with check (true);
-create policy "select_auditoria" on public.auditoria
-  for select using (public.get_nivel() = 'administrador');
+<div class="mwrap" id="madimpl"><div class="mbox">
+  <h3>Novo Lote — Implante Hormonal</h3>
+  <div class="fg2">
+    <div class="frow"><label>Tipo de Hormônio</label>
+      <select id="impl-tipo">
+        <option value="Testosterona">Testosterona</option>
+        <option value="Estradiol">Estradiol</option>
+        <option value="Progesterona">Progesterona</option>
+        <option value="DHEA">DHEA</option>
+        <option value="Outro">Outro</option>
+      </select>
+    </div>
+    <div class="frow"><label>Dosagem (mg)</label><input type="number" id="impl-dose" min="1" placeholder="Ex: 100"></div>
+  </div>
+  <div class="fg2">
+    <div class="frow"><label>Quantidade de unidades</label><input type="number" id="impl-qtd" min="1" value="1"></div>
+    <div class="frow"><label>Vencimento</label><input type="date" id="impl-val"></div>
+  </div>
+  <div class="fg2">
+    <div class="frow"><label>Farmácia / Fornecedor</label><input type="text" id="impl-farm" placeholder="Nome da farmácia"></div>
+    <div class="frow"><label>Número do lote</label><input type="text" id="impl-lote" placeholder="LOT-2025-001"></div>
+  </div>
+  <div class="fg2">
+    <div class="frow"><label>Valor pago (R$)</label><input type="number" id="impl-valor" min="0" step="0.01" placeholder="0,00"></div>
+    <div class="frow"><label>Observação</label><input type="text" id="impl-obs" placeholder="Opcional"></div>
+  </div>
+  <div class="ma">
+    <button class="btn btn-gh" onclick="fechar('madimpl')">Cancelar</button>
+    <button class="btn btn-pm" onclick="salvarImpl()">Salvar Implante</button>
+  </div>
+  <div id="impl-msg" class="fmsg" style="margin-top:8px"></div>
+</div></div>
 
--- Alertas de preço: só admin e compras
-create policy "alertas_preco" on public.alertas_preco
-  for all using (public.get_nivel() in ('administrador','compras'));
+<div class="mwrap" id="madlote"><div class="mbox">
+  <h3>Adicionar Lote / Entrada</h3>
+  <div id="lote-item-info" style="background:var(--c8);border:1px solid var(--c6);border-radius:var(--rad);padding:10px 14px;margin-bottom:14px;font-size:13px;font-weight:700;color:var(--c)"></div>
+  <div class="fg2">
+    <div class="frow"><label>Validade</label><input type="date" id="lval"></div>
+    <div class="frow"><label>Número do lote</label><input type="text" id="llote" placeholder="Ex: LOT-2024-001"></div>
+  </div>
+  <div class="fg3">
+    <div class="frow"><label>Qtd. caixas</label><input type="number" id="lcx" min="1" value="1"></div>
+    <div class="frow"><label>Amp. por caixa</label><input type="number" id="lapx" min="1" value="10"></div>
+    <div class="frow"><label>Valor total (R$)</label><input type="number" id="lvalor" min="0" step="0.01" placeholder="0,00"></div>
+  </div>
+  <div class="frow"><label>Farmácia / Fornecedor</label><input type="text" id="lfarm" placeholder="Nome da farmácia"></div>
+  <div class="frow"><label>Observação</label><input type="text" id="lobs" placeholder="Opcional"></div>
+  <div style="background:var(--Wbg);border:1px solid var(--Wbr);border-radius:var(--rad);padding:10px 14px;font-size:11px;color:var(--W);margin-bottom:4px">
+    ⚠ Este lote ficará <strong>pendente de aprovação</strong> pelo administrador antes de entrar no estoque.
+  </div>
+  <div class="ma">
+    <button class="btn btn-gh" onclick="fechar('madlote')">Cancelar</button>
+    <button class="btn btn-gd" onclick="salvarLote()">Enviar para Aprovação</button>
+  </div>
+  <div id="lote-msg" class="fmsg" style="margin-top:8px"></div>
+</div></div>
 
--- Notificações: só admin
-create policy "notificacoes" on public.notificacoes
-  for all using (public.get_nivel() = 'administrador');
+<div class="mwrap" id="madtz"><div class="mbox">
+  <h3>Novo Frasco — Tirzepatida</h3>
+  <div class="fg2">
+    <div class="frow"><label>Apresentação (mg)</label><select id="tmg"><option value="60">60 mg</option><option value="90">90 mg</option></select></div>
+    <div class="frow"><label>Número de ampolas</label><input type="number" id="tamp" min="1" value="1"></div>
+  </div>
+  <div class="fg2">
+    <div class="frow"><label>Farmácia</label><input type="text" id="tfarm" placeholder="Nome da farmácia"></div>
+    <div class="frow"><label>Lote</label><input type="text" id="tlote" placeholder="Número do lote"></div>
+  </div>
+  <div class="fg2">
+    <div class="frow"><label>Vencimento</label><input type="date" id="tval"></div>
+    <div class="frow"><label>Valor pago (R$)</label><input type="number" id="tvalor" min="0" step="0.01" placeholder="0,00"></div>
+  </div>
+  <div class="frow"><label>Observação</label><input type="text" id="tobs" placeholder="Paciente, protocolo..."></div>
+  <div class="ma">
+    <button class="btn btn-gh" onclick="fechar('madtz')">Cancelar</button>
+    <button class="btn btn-tl" onclick="salvarTirz()">Salvar Frasco</button>
+  </div>
+  <div id="tirz-msg" class="fmsg" style="margin-top:8px"></div>
+</div></div>
 
--- Perfis: cada um vê o próprio, admin vê todos
-create policy "perfil_proprio" on public.perfis
-  for select using (id = auth.uid() or public.get_nivel() = 'administrador');
-create policy "admin_gerencia_perfis" on public.perfis
-  for all using (public.get_nivel() = 'administrador');
+<div class="mwrap" id="madret"><div class="mbox">
+  <h3>Confirmar Retirada</h3>
+  <div id="ret-info" style="background:var(--c8);border:1px solid var(--c6);border-radius:var(--rad);padding:11px 14px;margin-bottom:14px;font-size:13px;font-weight:700;color:var(--c)"></div>
+  <div class="fg2">
+    <div class="frow"><label>Quantidade</label><input type="number" id="rqty" min="1" value="1"></div>
+    <div class="frow"><label>Data</label><input type="date" id="rdata"></div>
+  </div>
+  <div class="frow"><label>Motivo / Observação</label><textarea id="robs" placeholder="Paciente, protocolo, finalidade..."></textarea></div>
+  <div class="ma">
+    <button class="btn btn-gh" onclick="fechar('madret')">Cancelar</button>
+    <button class="btn btn-rd" onclick="confirmarRet()">Confirmar Retirada</button>
+  </div>
+  <div id="ret-msg" class="fmsg" style="margin-top:8px"></div>
+</div></div>
 
--- ============================================================
---  TRIGGERS — AUTOMAÇÕES
--- ============================================================
+<div class="mwrap" id="madusr"><div class="mbox">
+  <h3>Convidar Usuário</h3>
+  <div class="frow"><label>Email</label><input type="email" id="usr-email" placeholder="email@clinica.com.br"></div>
+  <div class="frow"><label>Nome completo</label><input type="text" id="usr-nome" placeholder="Nome do colaborador"></div>
+  <div class="frow"><label>Nível de acesso</label>
+    <select id="usr-nivel">
+      <option value="colaborador">Colaborador Clínico — estoque e retiradas</option>
+      <option value="compras">Compras — estoque e pedidos</option>
+      <option value="administrador">Administrador — acesso total</option>
+    </select>
+  </div>
+  <div class="ma">
+    <button class="btn btn-gh" onclick="fechar('madusr')">Cancelar</button>
+    <button class="btn btn-gd" onclick="convidarUsuario()">Enviar Convite</button>
+  </div>
+  <div id="usr-msg" class="fmsg" style="margin-top:8px"></div>
+</div></div>
 
--- Atualiza timestamp automaticamente
-create or replace function public.set_atualizado_em()
-returns trigger as $$
-begin new.atualizado_em = now(); return new; end;
-$$ language plpgsql;
+<script>
+// ── SUPABASE ─────────────────────────────────────────────────────────
+const SUPA_URL  = 'https://eeianweavbnrikzqquxq.supabase.co';
+const SUPA_KEY  = 'sb_publishable_RWouef1R4SySi3PyBxq0lQ_AEEpGHly';
+const { createClient } = supabase;
+const db = createClient(SUPA_URL, SUPA_KEY);
 
-create trigger trg_perfis_updated
-  before update on public.perfis
-  for each row execute function public.set_atualizado_em();
+// ── ESTADO GLOBAL ────────────────────────────────────────────────────
+var USER       = null;
+var PERFIL     = null;
+var NIVEL      = null;
+var afilt      = 'all';
+var pendRet    = null;
+var pendLoteId = null;
+var chatMsgs   = [];
+var pObs       = {};
 
-create trigger trg_itens_updated
-  before update on public.itens
-  for each row execute function public.set_atualizado_em();
+// ── UTILS ────────────────────────────────────────────────────────────
+var TODAY = new Date(); TODAY.setHours(0,0,0,0);
+function dys(v){ return Math.round((new Date(v+'T00:00:00') - TODAY)/86400000); }
+function st(v){ var d=dys(v); if(d<0)return'venc'; if(d<=30)return'crit'; if(d<=90)return'atenc'; return'ok'; }
+function bdg(v){
+  var s=st(v),d=dys(v);
+  if(s==='venc') return'<span class="badge bd"><span class="dot dr"></span>Vencido</span>';
+  if(s==='crit') return'<span class="badge bw"><span class="dot dw"></span>Vence em '+d+'d</span>';
+  if(s==='atenc') return'<span class="badge bi"><span class="dot di"></span>Vence em '+d+'d</span>';
+  return'<span class="badge bs"><span class="dot dk"></span>Em dia</span>';
+}
+function fd(v){ if(!v)return'—'; var p=v.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+function fbr(v){ try{return new Date(v+'T00:00:00').toLocaleDateString('pt-BR');}catch(e){return v;} }
+function fdt(v){ try{return new Date(v).toLocaleString('pt-BR');}catch(e){return v;} }
+function fBRL(v){ return 'R$ '+parseFloat(v||0).toFixed(2); }
+function abrir(id){ document.getElementById(id).classList.add('on'); }
+function fechar(id){ document.getElementById(id).classList.remove('on'); }
+function today(){ return new Date().toISOString().slice(0,10); }
+function flash(){
+  var el=document.getElementById('spill');
+  if(el){el.classList.add('on');setTimeout(function(){el.classList.remove('on');},1800);}
+}
+function isAdmin(){ return NIVEL==='administrador'; }
+function isAdminOrCompras(){ return NIVEL==='administrador'||NIVEL==='compras'; }
 
-create trigger trg_tirz_updated
-  before update on public.tirzepatida_frascos
-  for each row execute function public.set_atualizado_em();
+// ── AUTH ─────────────────────────────────────────────────────────────
+async function fazerLogin(){
+  var email=document.getElementById('login-email').value.trim();
+  var senha=document.getElementById('login-senha').value;
+  var err=document.getElementById('login-err');
+  var btn=document.getElementById('btn-login-txt');
+  if(!email||!senha){err.textContent='Preencha email e senha.';return;}
+  btn.textContent='Entrando...';
+  var {data,error}=await db.auth.signInWithPassword({email,password:senha});
+  if(error){err.textContent='Email ou senha incorretos.';btn.textContent='Entrar';return;}
+  await iniciarApp(data.user);
+}
 
--- Gera alerta automático quando variação de preço > 20%
-create or replace function public.verificar_variacao_preco()
-returns trigger as $$
-declare
-  preco_anterior numeric;
-  variacao numeric;
-  limite numeric;
-begin
-  select valor::numeric into limite
-  from public.configuracoes where chave = 'alerta_preco_pct';
+async function iniciarApp(user){
+  USER=user;
+  var {data:perfil}=await db.from('perfis').select('*').eq('id',user.id).single();
+  PERFIL=perfil;
+  NIVEL=perfil?perfil.nivel:'colaborador';
+  document.getElementById('user-nome').textContent=perfil?perfil.nome:user.email;
+  document.getElementById('user-nivel').textContent=NIVEL;
+  // Ocultar abas por nível
+  if(!isAdmin()){
+    document.querySelectorAll('.admin-only').forEach(function(el){el.classList.add('hidden');});
+  }
+  document.getElementById('login-wrap').style.display='none';
+  document.getElementById('app').style.display='block';
+  await renderDash();
+  await carregarSetores();
+  await renderMeds();
+}
 
-  select preco_por_cx into preco_anterior
-  from public.lotes
-  where item_id = new.item_id
-    and status = 'aprovado'
-    and id != new.id
-  order by criado_em desc
-  limit 1;
+async function fazerLogout(){
+  await db.auth.signOut();
+  location.reload();
+}
 
-  if preco_anterior is not null and preco_anterior > 0 and new.preco_por_cx > 0 then
-    variacao := round(((new.preco_por_cx - preco_anterior) / preco_anterior) * 100, 2);
-    if abs(variacao) >= coalesce(limite, 20) then
-      insert into public.alertas_preco (item_id, lote_id, preco_anterior, preco_novo, variacao_pct)
-      values (new.item_id, new.id, preco_anterior, new.preco_por_cx, variacao);
-    end if;
-  end if;
-  return new;
-end;
-$$ language plpgsql;
+// Verificar sessão ao carregar
+(async function(){
+  var {data:{session}}=await db.auth.getSession();
+  if(session&&session.user) await iniciarApp(session.user);
+})();
 
-create trigger trg_alerta_preco
-  after insert on public.lotes
-  for each row execute function public.verificar_variacao_preco();
+// ── TABS ─────────────────────────────────────────────────────────────
+var TABS=['dash','meds','tirz','impl','insumos','outros','nfs','pedidos','fin','ia','hist','usuarios'];
+function tab(t){
+  document.querySelectorAll('.pg').forEach(function(el){el.classList.remove('on');});
+  document.querySelectorAll('.ntab').forEach(function(el,i){el.classList.toggle('on',TABS[i]===t);});
+  var pg=document.getElementById('pg-'+t);
+  if(pg) pg.classList.add('on');
+  if(t==='meds')    renderMeds();
+  if(t==='tirz')    renderTirz();
+  if(t==='impl')    renderImpl();
+  if(t==='hist')    renderHist();
+  if(t==='fin')     renderFin();
+  if(t==='pedidos') renderPedidos();
+  if(t==='dash')    renderDash();
+  if(t==='nfs')     renderNFs();
+  if(t==='usuarios') renderUsuarios();
+  if(t==='ia')      gerarResumo();
+  if(t==='insumos') renderSetor('insumos','ins-c');
+  if(t==='outros')  renderOutros();
+}
 
--- Quando lote aprovado, registra entrada na movimentação
-create or replace function public.registrar_entrada_aprovada()
-returns trigger as $$
-begin
-  if new.status = 'aprovado' and old.status = 'pendente' then
-    insert into public.movimentacoes (item_id, lote_id, tipo, quantidade, data, motivo, responsavel_id)
-    values (new.item_id, new.id, 'entrada', new.quantidade_base, current_date, 'Entrada aprovada via NF', new.aprovado_por);
-  end if;
-  return new;
-end;
-$$ language plpgsql;
+// ── DASHBOARD ────────────────────────────────────────────────────────
+async function renderDash(){
+  var {data:dash}=await db.from('dashboard').select('*').single();
+  if(!dash) return;
+  var {data:meds}=await db.from('estoque_atual').select('*').eq('ativo',true).order('proxima_validade',{ascending:true,nullsFirst:false}).limit(10);
+  var maxDisp=Math.max.apply(null,(meds||[]).map(function(m){return m.disponivel||0;}).concat([1]));
+  // Métricas
+  document.getElementById('dash-cards').innerHTML=
+    '<div class="sc tot"><div class="sl">Valor Estoque</div><div class="sv g" style="font-size:22px;font-family:Raleway,sans-serif">'+fBRL(dash.valor_total_estoque)+'</div><div class="sh">medicamentos</div></div>'
+    +'<div class="sc venc"><div class="sl">Vencidos</div><div class="sv r">'+dash.itens_vencidos+'</div><div class="sh">retirar</div></div>'
+    +'<div class="sc atc"><div class="sl">Vencendo</div><div class="sv w">'+dash.itens_vencendo+'</div><div class="sh">próximos 30 dias</div></div>'
+    +'<div class="sc low"><div class="sl">Est. Mínimo</div><div class="sv r">'+dash.itens_estoque_minimo+'</div><div class="sh">abaixo</div></div>'
+    +'<div class="sc" style="border-bottom-color:var(--Tm)" onclick="tab(\'nfs\')"><div class="sl">NFs Pendentes</div><div class="sv" style="color:var(--Wm)">'+dash.nfs_pendentes_aprovacao+'</div><div class="sh">aprovação</div></div>';
+  // Resumo IA
+  var iaEl=document.getElementById('dash-resumo-txt');
+  if(iaEl) iaEl.textContent='Carregando análise...';
+  // Barras de estoque
+  var barsEl=document.getElementById('dash-bars');
+  if(barsEl){
+    barsEl.innerHTML=(meds||[]).map(function(m){
+      var pct=maxDisp>0?Math.round((m.disponivel/maxDisp)*100):0;
+      var cor=m.status_estoque==='critico'?'var(--Rm)':m.status_validade==='critico'||m.status_validade==='atencao'?'var(--Wm)':'var(--gold)';
+      return'<div class="bar-row"><div class="bar-lbl">'+m.nome+'</div>'
+        +'<div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:'+cor+'"></div></div>'
+        +'<div class="bar-val">'+m.disponivel+'</div></div>';
+    }).join('')||'<div class="es">Sem dados de estoque</div>';
+  }
+  // Alertas
+  var {data:alertas}=await db.from('alertas_validade').select('*').limit(4);
+  var ae=document.getElementById('dash-alertas');
+  if(ae){
+    ae.innerHTML=(alertas&&alertas.length)?alertas.map(function(a){
+      return'<div class="alert-item"><span class="alert-nm">'+a.item_nome+'</span>'+bdg(a.validade)+'</div>';
+    }).join(''):'<div style="font-size:11px;color:var(--Gm);font-weight:600;padding:6px 0">Nenhum alerta crítico ✓</div>';
+  }
+  // Tirz
+  var tEl=document.getElementById('dash-tirz');
+  if(tEl){
+    tEl.innerHTML='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:0.5px solid var(--c7)">'
+      +'<span style="font-size:12px;font-weight:600">Tirzepatida</span>'
+      +'<span style="font-family:Cormorant Garamond,serif;font-size:18px;font-weight:500;color:var(--Tm)">'+dash.tirz_ampolas_total+' amp</span></div>'
+      +'<div style="display:flex;justify-content:space-between;padding:6px 0">'
+      +'<span style="font-size:12px;font-weight:600">Implantes</span>'
+      +'<button class="btn btn-gh btn-xs" onclick="tab(\'impl\')">Ver →</button></div>';
+  }
+  gerarResumoDash(dash);
+}
 
-create trigger trg_entrada_aprovada
-  after update on public.lotes
-  for each row execute function public.registrar_entrada_aprovada();
+async function gerarResumoDash(dash){
+  var el=document.getElementById('dash-resumo-txt');
+  if(!el) return;
+  try{
+    var ctx=await buildContextoIA();
+    var resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:280,system:ctx,
+        messages:[{role:'user',content:'Gere um resumo executivo do estoque em 2 frases diretas. Destaque o que é mais urgente hoje.'}]})
+    });
+    var d=await resp.json();
+    if(d.error) throw new Error(d.error.message);
+    el.textContent=(d.content&&d.content[0]&&d.content[0].text)||'Estoque carregado.';
+  }catch(e){
+    el.textContent='Estoque avaliado em '+fBRL(dash.valor_total_estoque)+'.'+(dash.itens_vencidos>0?' '+dash.itens_vencidos+' item(s) vencido(s) precisam de atenção imediata.':'')+(dash.itens_estoque_minimo>0?' '+dash.itens_estoque_minimo+' item(s) abaixo do estoque mínimo.':' Tudo dentro do prazo.');
+  }
+}
 
--- ============================================================
---  ÍNDICES — PERFORMANCE
--- ============================================================
-create index idx_lotes_item_id       on public.lotes(item_id);
-create index idx_lotes_status        on public.lotes(status);
-create index idx_lotes_validade      on public.lotes(validade);
-create index idx_movimentacoes_item  on public.movimentacoes(item_id);
-create index idx_movimentacoes_data  on public.movimentacoes(data);
-create index idx_auditoria_usuario   on public.auditoria(usuario_id);
-create index idx_auditoria_criado    on public.auditoria(criado_em);
-create index idx_itens_setor         on public.itens(setor_id);
-create index idx_alertas_preco_item  on public.alertas_preco(item_id);
-create index idx_tirz_status         on public.tirzepatida_frascos(status);
-create index idx_tirz_validade       on public.tirzepatida_frascos(validade);
-create index idx_notificacoes_status on public.notificacoes(status);
+// Alias para IA tab
+async function gerarResumo(){ var {data:dash}=await db.from('dashboard').select('*').single(); if(dash) gerarResumoDash(dash); }
 
--- ============================================================
---  DADOS INICIAIS — ITENS DO ESTOQUE ATUAL
--- ============================================================
-do $$
-declare
-  med_id uuid;
-  tirz_id uuid;
-  ins_id uuid;
-begin
-  select id into med_id  from public.setores where nome = 'Medicamentos';
-  select id into tirz_id from public.setores where nome = 'Tirzepatida';
-  select id into ins_id  from public.setores where nome = 'Insumos Clínicos';
+// ── SETORES ──────────────────────────────────────────────────────────
+var SETORES_DB = {};
+async function carregarSetores(){
+  var {data}=await db.from('setores').select('*').order('ordem');
+  if(data) data.forEach(function(s){SETORES_DB[s.nome]=s.id;});
+  var sel=document.getElementById('asetor');
+  if(sel) sel.innerHTML=data?data.map(function(s){return'<option value="'+s.id+'">'+s.nome+'</option>';}).join(''):'';
+}
 
-  insert into public.itens (setor_id, nome, unidade, amp_por_caixa, estoque_min, estoque_ideal) values
-    (med_id, 'Moro 40',                  'caixas',      10, 10, 100),
-    (med_id, 'Complexo B',               'caixas',      10, 10,  80),
-    (med_id, 'Acetil Cisteína',          'caixas',      10, 10,  60),
-    (med_id, 'B12',                      'caixas',      10, 10,  80),
-    (med_id, 'Exsynutriment',            'caixas',      10, 10, 100),
-    (med_id, 'Cúrcuma',                  'caixas',      10, 10, 100),
-    (med_id, 'β-Hidroximetilbutirato',   'caixas',      10, 10, 100),
-    (med_id, 'Trio Metilador',           'caixas',      10, 10,  60),
-    (med_id, 'CoQ10',                    'caixas',      10, 10,  60),
-    (med_id, 'L-Carnitina',              'caixas',      10, 10,  60),
-    (med_id, 'Protocolo de Fadiga',      'unidades',     1,  5,  20),
-    (med_id, 'Protocolo de P. Saudável', 'unidades',     1,  5,  20),
-    (med_id, 'Ácido Lipóico',            'comprimidos',  1, 20, 200),
-    (med_id, 'Pool de Minerais',         'caixas',      10, 10,  60);
-end;
-$$;
+// ── MEDICAMENTOS ─────────────────────────────────────────────────────
+var medsCache=[];
+async function renderMeds(){
+  var q=document.getElementById('srch')?document.getElementById('srch').value.toLowerCase():'';
+  var f=afilt;
+  // Buscar do Supabase via view estoque_atual
+  var query=db.from('estoque_atual').select('*').eq('ativo',true);
+  if(f==='venc') query=query.eq('status_validade','vencido');
+  if(f==='crit') query=query.in('status_validade',['critico','atencao']);
+  if(f==='low')  query=query.eq('status_estoque','critico');
+  if(f==='ok')   query=query.eq('status_validade','ok').eq('status_estoque','ok');
+  var {data:meds}=await query.order('proxima_validade',{ascending:true,nullsFirst:false});
+  if(!meds) return;
+  medsCache=meds;
+  if(q) meds=meds.filter(function(m){return m.nome.toLowerCase().includes(q);});
+  renderStatsFromData(meds);
+  var c=document.getElementById('mlist');
+  if(!c) return;
+  c.innerHTML='';
+  document.getElementById('emeds').style.display=meds.length?'none':'block';
+  meds.forEach(function(m){
+    var b=m.status_estoque==='critico', s=m.status_validade;
+    var cls=b?'lc':(s==='critico'||s==='atencao')?'wc':'oc';
+    var pct=m.estoque_ideal>0?Math.min(100,Math.round((m.disponivel/m.estoque_ideal)*100)):0;
+    var pctColor=pct<30?'var(--Rm)':pct<60?'var(--Wm)':'var(--gold)';
+    var nomeEsc=(m.nome||'').replace(/['"\\]/g,'');
+    var div=document.createElement('div');
+    div.className='mcard '+cls;
+    div.innerHTML=
+      '<div class="mrow">'
+        +'<div class="mc"><div class="col-lbl">Medicamento</div><div style="font-size:14px;font-weight:700;color:var(--c)">'+m.nome+'</div><div class="lt">'+m.setor+'</div></div>'
+        +'<div class="mc"><div class="col-lbl">Validade</div><div style="font-size:12px">'+fd(m.proxima_validade)+'</div></div>'
+        +'<div class="mc"><div class="col-lbl">Status</div>'+bdg(m.proxima_validade||'2099-01-01')+'</div>'
+        +'<div class="mc ctr"><div class="col-lbl">Caixas</div><div class="nb">'+Math.round(m.disponivel/(m.amp_por_caixa||1))+'</div></div>'
+        +'<div class="mc ctr"><div class="col-lbl">Amp/Cx</div><div style="font-size:14px;font-weight:600">'+m.amp_por_caixa+'</div></div>'
+        +'<div class="mc" style="gap:5px;flex-direction:column;justify-content:center;padding:10px 12px">'
+          +'<button class="btn btn-gd btn-sm" onclick="abrirLote(\''+m.id+'\',\''+nomeEsc+'\','+m.amp_por_caixa+')">+ Entrada</button>'
+          +'<button class="btn btn-rd btn-sm" onclick="abrirRet(\'med\',\''+m.id+'\',\''+nomeEsc+'\','+m.disponivel+',\'amp\')">− Retirar</button>'
+          +(isAdmin()?'<div style="display:flex;gap:4px;margin-top:2px">'
+            +'<button class="btn btn-xs" style="background:#fff;border-color:var(--c5);color:var(--c2);flex:1" onclick="abrirEditar(\''+m.id+'\',\''+nomeEsc+'\',\''+m.unidade+'\','+m.amp_por_caixa+','+(m.estoque_min||0)+','+(m.estoque_ideal||0)+')">✏ Editar</button>'
+            +'<button class="btn btn-xs btn-del" onclick="excluirItem(\''+m.id+'\',\''+nomeEsc+'\')">🗑</button>'
+          +'</div>':'')
+        +'</div>'
+      +'</div>'
+      +'<div class="mrow bot">'
+        +'<div class="mc"><div class="col-lbl">Ampolas Disponíveis</div>'
+          +'<div style="display:flex;align-items:center;gap:8px;margin-top:4px">'
+            +'<span class="nb" style="'+(b?'color:var(--Rm)':'')+'">'+m.disponivel+'</span>'
+            +'<span style="font-size:11px;color:var(--c4)">amp</span>'
+            +(b?'<span class="badge bd" style="font-size:7px">Mínimo</span>':'')
+          +'</div>'
+          +'<div style="display:flex;align-items:center;gap:6px;margin-top:5px">'
+            +'<div style="flex:1;height:5px;background:var(--c7);border-radius:3px;overflow:hidden"><div style="height:100%;border-radius:3px;background:'+pctColor+';width:'+pct+'%"></div></div>'
+            +'<span style="font-size:9px;font-weight:700;color:var(--c4)">'+pct+'%</span>'
+          +'</div>'
+          +'<div class="lt">Mín: '+(m.estoque_min||0)+' · Ideal: '+(m.estoque_ideal||'—')+'</div>'
+        +'</div>'
+        +'<div class="mc"><div class="col-lbl">Último Preço/Cx</div><div class="nm" style="margin-top:4px">'+(m.ultimo_preco_cx>0?fBRL(m.ultimo_preco_cx):'<span style="color:var(--c4)">—</span>')+'</div></div>'
+        +'<div class="mc"><div class="col-lbl">Preço Médio/Cx</div><div class="nm" style="margin-top:4px">'+(m.preco_medio_cx>0?fBRL(m.preco_medio_cx):'<span style="color:var(--c4)">—</span>')+'</div></div>'
+        +'<div class="mc"><div class="col-lbl">Custo Estoque</div><div class="nm" style="margin-top:4px;color:var(--Gm)">'+(m.custo_estoque>0?fBRL(m.custo_estoque):'—')+'</div></div>'
+        +'<div class="mc"><div class="col-lbl">Custo p/ Repor</div>'
+          +(m.preco_medio_cx>0&&m.disponivel<(m.estoque_ideal||0)
+            ?'<div class="nm" style="margin-top:4px;color:var(--Wm)">'+fBRL(Math.ceil(((m.estoque_ideal||0)-m.disponivel)/(m.amp_por_caixa||1))*m.preco_medio_cx)+'</div>'
+            :'<div class="nm" style="margin-top:4px;color:var(--c4)">—</div>')
+        +'</div>'
+        +'<div class="mc"><div class="col-lbl">Lotes</div><button class="btn btn-gh btn-xs" style="margin-top:5px" onclick="verLotes(\''+m.id+'\',\''+nomeEsc+'\')">Ver lotes</button></div>'
+      +'</div>';
+    c.appendChild(div);
+  });
+  renderAlrt(meds);
+}
+function renderStatsFromData(meds){
+  var t=meds.length,v=0,a=0,b=0,ok=0;
+  meds.forEach(function(m){
+    if(m.status_validade==='vencido') v++;
+    if(m.status_validade==='critico'||m.status_validade==='atencao') a++;
+    if(m.status_estoque==='critico') b++;
+    if(m.status_validade==='ok'&&m.status_estoque!=='critico') ok++;
+  });
+  var data=[
+    {key:'all',cls:'tot',lbl:'Total',val:t,vc:'g',hint:'ver todos'},
+    {key:'venc',cls:'venc',lbl:'Vencidos',val:v,vc:'r',hint:'retirar'},
+    {key:'crit',cls:'atc',lbl:'Atenção',val:a,vc:'w',hint:'até 90 dias'},
+    {key:'low',cls:'low',lbl:'Est. Mínimo',val:b,vc:'r',hint:'abaixo'},
+    {key:'ok',cls:'oks',lbl:'OK',val:ok,vc:'k',hint:'dentro do prazo'},
+  ];
+  var el=document.getElementById('stats');
+  if(el) el.innerHTML=data.map(function(d){
+    return'<div class="sc '+d.cls+(afilt===d.key?' on':'')+'" onclick="setFilt(\''+d.key+'\')">'
+      +'<div class="sl">'+d.lbl+'</div><div class="sv '+d.vc+'">'+d.val+'</div><div class="sh">'+d.hint+'</div></div>';
+  }).join('');
+}
+function renderAlrt(meds){
+  var venc=meds.filter(function(m){return m.status_validade==='vencido';}).length;
+  var crit=meds.filter(function(m){return m.status_validade==='critico';}).length;
+  var low=meds.filter(function(m){return m.status_estoque==='critico';}).length;
+  var items=[];
+  if(venc) items.push('<span class="ai">'+venc+' medicamento(s) vencido(s)</span>');
+  if(crit) items.push('<span class="ai w">'+crit+' vencendo em até 30 dias</span>');
+  if(low)  items.push('<span class="ai">'+low+' abaixo do estoque mínimo</span>');
+  var el=document.getElementById('alrt');
+  if(!el) return;
+  if(items.length){el.innerHTML=items.join('<span class="adiv"></span>');el.classList.add('on');}
+  else el.classList.remove('on');
+}
+function setFilt(k){afilt=k;if(document.getElementById('filt'))document.getElementById('filt').value=k;renderMeds();}
+function changeFilt(){afilt=document.getElementById('filt').value;renderMeds();}
 
--- ============================================================
---  FIM DO SCHEMA
---  Total: 12 tabelas | 5 views | 4 triggers | 14 itens iniciais
--- ============================================================
+// SALVAR MED
+// LOTES
+function abrirLote(itemId,nome,apx){
+  pendLoteId={itemId,nome,apx};
+  document.getElementById('lote-item-info').textContent=nome;
+  document.getElementById('lapx').value=apx;
+  document.getElementById('lval').value='';
+  document.getElementById('llote').value='';
+  document.getElementById('lcx').value=1;
+  document.getElementById('lvalor').value='';
+  document.getElementById('lfarm').value='';
+  document.getElementById('lote-msg').textContent='';
+  abrir('madlote');
+}
+async function salvarLote(){
+  if(!pendLoteId) return;
+  var val=document.getElementById('lval').value;
+  var msg=document.getElementById('lote-msg');
+  if(!val){msg.style.color='var(--Rm)';msg.textContent='Informe a validade.';return;}
+  var cx=parseInt(document.getElementById('lcx').value)||1;
+  var apx=parseInt(document.getElementById('lapx').value)||1;
+  var valor=parseFloat(document.getElementById('lvalor').value)||0;
+  var farm=document.getElementById('lfarm').value.trim();
+  // Buscar/criar fornecedor
+  var fornId=null;
+  if(farm){
+    var {data:forn}=await db.from('fornecedores').select('id').eq('nome',farm).single();
+    if(forn) fornId=forn.id;
+    else{var {data:nf}=await db.from('fornecedores').insert({nome:farm,tipo:'farmacia'}).select('id').single();if(nf)fornId=nf.id;}
+  }
+  var {error}=await db.from('lotes').insert({
+    item_id:pendLoteId.itemId,numero_lote:document.getElementById('llote').value.trim()||null,
+    validade:val,quantidade_cx:cx,amp_por_caixa:apx,preco_total:valor,
+    fornecedor_id:fornId,observacoes:document.getElementById('lobs').value.trim()||null,
+    status:'pendente',criado_por:USER.id
+  });
+  if(error){msg.style.color='var(--Rm)';msg.textContent='Erro ao registrar.';return;}
+  fechar('madlote');flash();
+  msg.style.color='var(--Gm)';msg.textContent='Lote registrado! Aguarda aprovação do administrador.';
+  renderMeds();
+  // Registrar auditoria
+  await db.from('auditoria').insert({usuario_id:USER.id,usuario_nome:PERFIL?PERFIL.nome:'',acao:'criou_lote',tabela:'lotes',dados_depois:{item:pendLoteId.nome,cx,val}});
+}
+
+async function verLotes(itemId,nome){
+  var {data:lotes}=await db.from('lotes').select('*,fornecedores(nome)').eq('item_id',itemId).order('criado_em',{ascending:false});
+  var html='<div class="mbox"><h3>Lotes — '+nome+'</h3>';
+  if(!lotes||!lotes.length) html+='<div class="empty"><div class="es">Nenhum lote registrado</div></div>';
+  else html+=lotes.map(function(l){
+    var sc=l.status==='aprovado'?'lote-aprovado':l.status==='pendente'?'lote-pendente':'lote-rejeitado';
+    return'<div style="padding:12px 0;border-bottom:1px solid var(--c7)">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
+        +'<div style="font-weight:700;font-size:13px">'+(l.numero_lote||'Sem lote')+' · Venc: '+fd(l.validade)+'</div>'
+        +'<span class="lote-badge '+sc+'">'+l.status.toUpperCase()+'</span></div>'
+      +'<div style="font-size:11px;color:var(--c3)">'+l.quantidade_cx+' cx × '+l.amp_por_caixa+' amp = '+l.quantidade_cx*l.amp_por_caixa+' amp · Disp: '+Math.max(0,l.quantidade_cx*l.amp_por_caixa-l.usado_base)+' amp</div>'
+      +'<div style="font-size:11px;color:var(--c3)">'+(l.fornecedores?l.fornecedores.nome:'—')+' · '+(l.preco_total>0?fBRL(l.preco_total)+' total':'Sem valor')+' · '+fdt(l.criado_em)+'</div>'
+      +(isAdmin()&&l.status==='pendente'?'<div style="display:flex;gap:6px;margin-top:8px"><button class="btn btn-ok btn-xs" onclick="aprovarLote(\''+l.id+'\')">✓ Aprovar</button><button class="btn btn-del btn-xs" onclick="rejeitarLote(\''+l.id+'\')">✕ Rejeitar</button></div>':'')
+    +'</div>';
+  }).join('');
+  html+='<div class="ma"><button class="btn btn-gh" onclick="fechar(\'modal-lotes\')">Fechar</button></div></div>';
+  var wrap=document.getElementById('modal-lotes');
+  if(!wrap){wrap=document.createElement('div');wrap.id='modal-lotes';wrap.className='mwrap';document.body.appendChild(wrap);}
+  wrap.innerHTML=html;wrap.classList.add('on');
+}
+async function aprovarLote(id){
+  await db.from('lotes').update({status:'aprovado',aprovado_por:USER.id,aprovado_em:new Date().toISOString()}).eq('id',id);
+  await db.from('auditoria').insert({usuario_id:USER.id,usuario_nome:PERFIL?PERFIL.nome:'',acao:'aprovou_lote',tabela:'lotes',registro_id:id});
+  flash();fechar('modal-lotes');renderMeds();renderDash();
+}
+async function rejeitarLote(id){
+  await db.from('lotes').update({status:'rejeitado'}).eq('id',id);
+  flash();fechar('modal-lotes');renderMeds();
+}
+
+// ── RETIRADA ─────────────────────────────────────────────────────────
+function abrirRet(tipo,id,nome,disp,unid){
+  pendRet={tipo,id,nome,disp,unid};
+  document.getElementById('ret-info').textContent=nome+' — Disponível: '+disp+' '+unid;
+  document.getElementById('rqty').value=1;document.getElementById('rqty').max=disp;
+  document.getElementById('rdata').value=today();document.getElementById('robs').value='';
+  document.getElementById('ret-msg').textContent='';
+  abrir('madret');
+}
+async function confirmarRet(){
+  if(!pendRet) return;
+  var qty=parseInt(document.getElementById('rqty').value)||0;
+  var obs=document.getElementById('robs').value.trim();
+  var data=document.getElementById('rdata').value;
+  var msg=document.getElementById('ret-msg');
+  if(qty<=0||qty>pendRet.disp){msg.style.color='var(--Rm)';msg.textContent='Quantidade inválida.';return;}
+  var ts=new Date().toISOString();
+  if(pendRet.tipo==='med'){
+    // Descontar do lote mais antigo aprovado
+    var {data:lotes}=await db.from('lotes').select('*').eq('item_id',pendRet.id).eq('status','aprovado').gt('disponivel_base',0).order('validade',{ascending:true});
+    var restante=qty;
+    for(var i=0;i<(lotes||[]).length&&restante>0;i++){
+      var l=lotes[i];
+      var desconto=Math.min(restante,l.disponivel_base);
+      await db.from('lotes').update({usado_base:l.usado_base+desconto}).eq('id',l.id);
+      restante-=desconto;
+    }
+    await db.from('movimentacoes').insert({item_id:pendRet.id,tipo:'saida',quantidade:qty,data,motivo:obs,responsavel_id:USER.id,responsavel_nome:PERFIL?PERFIL.nome:''});
+  } else if(pendRet.tipo==='tirz'){
+    await db.from('tirzepatida_frascos').update({ampolas_usadas:pendRet.usadas+qty}).eq('id',pendRet.id);
+    await db.from('tirzepatida_movimentacoes').insert({frasco_id:pendRet.id,tipo:'saida',quantidade:qty,data,motivo:obs,responsavel_id:USER.id,responsavel_nome:PERFIL?PERFIL.nome:''});
+  } else {
+    var {data:insItem}=await db.from('itens').select('*').eq('id',pendRet.id).single();
+    if(insItem) await db.from('itens').update({usado_total:insItem.usado_total+qty}).eq('id',pendRet.id);
+    await db.from('movimentacoes').insert({item_id:pendRet.id,tipo:'saida',quantidade:qty,data,motivo:obs,responsavel_id:USER.id,responsavel_nome:PERFIL?PERFIL.nome:''});
+  }
+  await db.from('auditoria').insert({usuario_id:USER.id,usuario_nome:PERFIL?PERFIL.nome:'',acao:'retirada',tabela:'movimentacoes',dados_depois:{item:pendRet.nome,qty,data,obs}});
+  fechar('madret');flash();
+  gerarPdfRet(pendRet,qty,obs,data,{nome:PERFIL?PERFIL.nome:''},ts);
+  renderMeds();renderTirz();renderDash();
+  pendRet=null;
+}
+
+// ── TIRZEPATIDA ──────────────────────────────────────────────────────
+async function renderTirz(){
+  var f=document.getElementById('tfilt')?document.getElementById('tfilt').value:'all';
+  var query=db.from('tirzepatida_frascos').select('*,fornecedores(nome)').order('validade');
+  if(f==='60') query=query.eq('mg',60);if(f==='90') query=query.eq('mg',90);
+  if(f==='venc'){var q2=new Date().toISOString().slice(0,10);query=query.lt('validade',q2);}
+  var {data:tirz}=await query;
+  if(!tirz) return;
+  var a60=0,a90=0,tvlr=0,venc=0;
+  tirz.forEach(function(t){if(t.mg==60)a60+=t.ampolas_disp;if(t.mg==90)a90+=t.ampolas_disp;tvlr+=t.preco_pago;if(st(t.validade)==='venc'||st(t.validade)==='crit')venc++;});
+  var ts=document.getElementById('tstats');
+  if(ts) ts.innerHTML=
+    '<div class="fc"><div class="fl">Ampolas 60mg</div><div class="fv" style="color:var(--Tm)">'+a60+'</div><div class="fs">'+tirz.filter(function(t){return t.mg==60;}).length+' frasco(s)</div></div>'
+    +'<div class="fc"><div class="fl">Ampolas 90mg</div><div class="fv" style="color:var(--Tm)">'+a90+'</div><div class="fs">'+tirz.filter(function(t){return t.mg==90;}).length+' frasco(s)</div></div>'
+    +'<div class="fc"><div class="fl">Total Investido</div><div class="fv">'+fBRL(tvlr)+'</div><div class="fs">'+tirz.length+' frasco(s)</div></div>'
+    +'<div class="fc"><div class="fl">Atenção / Vencidos</div><div class="fv" style="color:var(--Rm)">'+venc+'</div><div class="fs">verificar validade</div></div>';
+  var el=document.getElementById('tlist');
+  if(!el) return;
+  document.getElementById('etrz').style.display=tirz.length?'none':'block';
+  el.innerHTML='';
+  tirz.forEach(function(t){
+    var s=st(t.validade),cls=s==='venc'?'tv':s==='crit'?'tw':'';
+    var div=document.createElement('div');div.className='tcard '+cls;
+    div.innerHTML='<div class="tgrid">'
+      +'<div class="tc"><span class="mgp">'+t.mg+'mg</span></div>'
+      +'<div class="tc"><div style="font-size:14px;font-weight:700">'+t.fornecedores.nome+'</div><div style="font-size:11px;color:var(--c4);margin-top:2px">'+(t.numero_lote?'Lote: '+t.numero_lote:'—')+'</div>'+(t.observacoes?'<div style="font-size:11px;color:var(--c3);margin-top:2px">'+t.observacoes+'</div>':'')+'</div>'
+      +'<div class="tc">'+bdg(t.validade)+'<div style="font-size:11px;color:var(--c3);margin-top:5px">'+fd(t.validade)+'</div></div>'
+      +'<div class="tc"><div class="nm">'+(t.preco_pago>0?fBRL(t.preco_pago):'—')+'</div>'+(t.preco_pago>0&&t.ampolas_total>0?'<div class="lt">'+fBRL(t.preco_por_amp)+'/amp</div>':'')+'</div>'
+      +'<div class="tc"><div class="dc"><button class="db" onclick="adjTirz(\''+t.id+'\','+t.ampolas_usadas+',-1)">−</button><span class="dv" style="'+(t.ampolas_disp<=0?'color:var(--Rm)':'')+'">'+t.ampolas_disp+'</span><button class="db" onclick="adjTirz(\''+t.id+'\','+t.ampolas_usadas+',1)">+</button></div><div class="lt" style="margin-top:4px">ampolas disponíveis</div><button class="btn btn-xs btn-rd" style="margin-top:6px" onclick="abrirRet(\'tirz\',\''+t.id+'\',\'Tirzepatida '+t.mg+'mg\','+t.ampolas_disp+',\'amp\')">− Retirar c/ PDF</button></div>'
+      +'<div class="tc"><button class="btn btn-sm btn-del" onclick="rmTirz(\''+t.id+'\')">Remover</button></div>'
+      +'</div>';
+    el.appendChild(div);
+  });
+}
+async function adjTirz(id,usadas,delta){
+  var novoUsado=Math.max(0,usadas-delta);
+  await db.from('tirzepatida_frascos').update({ampolas_usadas:novoUsado,atualizado_em:new Date().toISOString()}).eq('id',id);
+  flash();renderTirz();
+}
+async function rmTirz(id){if(!confirm('Remover frasco?'))return;await db.from('tirzepatida_frascos').update({status:'descartado'}).eq('id',id);flash();renderTirz();}
+async function salvarTirz(){
+  var farm=document.getElementById('tfarm').value.trim(),val=document.getElementById('tval').value;
+  var msg=document.getElementById('tirz-msg');
+  if(!farm||!val){msg.style.color='var(--Rm)';msg.textContent='Preencha farmácia e vencimento.';return;}
+  var amp=parseInt(document.getElementById('tamp').value)||1;
+  var mg=parseInt(document.getElementById('tmg').value);
+  var valor=parseFloat(document.getElementById('tvalor').value)||0;
+  var {data:forn}=await db.from('fornecedores').select('id').eq('nome',farm).single();
+  var fornId=forn?forn.id:null;
+  if(!fornId){var {data:nf}=await db.from('fornecedores').insert({nome:farm,tipo:'farmacia'}).select('id').single();if(nf)fornId=nf.id;}
+  var {error}=await db.from('tirzepatida_frascos').insert({mg,fornecedor_id:fornId,numero_lote:document.getElementById('tlote').value.trim()||null,validade:val,ampolas_total:amp,ampolas_usadas:0,preco_pago:valor,observacoes:document.getElementById('tobs').value.trim()||null,criado_por:USER.id});
+  if(error){msg.style.color='var(--Rm)';msg.textContent='Erro ao salvar.';return;}
+  fechar('madtz');flash();renderTirz();
+  ['tfarm','tlote','tval','tvalor','tobs'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('tamp').value=1;
+}
+
+// ── INSUMOS ──────────────────────────────────────────────────────────
+var SCFG={insumos:{lbl:'Insumos Clínicos',ico:'🩺',cor:'var(--I)'},limpeza:{lbl:'Limpeza & Higiene',ico:'🧹',cor:'var(--G)'},conforto:{lbl:'Conforto & Recepção',ico:'☕',cor:'var(--W)'},escrit:{lbl:'Escritório',ico:'📋',cor:'var(--c2)'}};
+var SUGS={insumos:['Luva P','Luva M','Luva G','Luva GG','Seringa 3ml','Seringa 5ml','Seringa 10ml','Agulha 25x7','Agulha 40x12','Gaze estéril','Esparadrapo','Álcool 70%','Algodão','Scalp 23G','Cateter 20G','Atadura','Micropore'],limpeza:['Álcool gel','Detergente','Desinfetante','Água sanitária','Papel toalha','Papel higiênico','Saco de lixo P','Saco de lixo G','Esponja','Pano de chão'],conforto:['Café em pó','Cápsula de café','Açúcar','Adoçante','Copo descartável','Água mineral','Biscoito','Guardanapo','Chá'],escrit:['Papel A4','Caneta azul','Caneta preta','Grampeador','Clips','Pasta AZ','Fita adesiva','Etiqueta']};
+async function renderSetor(setor,cid){
+  var cfg=SCFG[setor];
+  var nomeSetor=cfg.lbl;
+  var {data:setorData}=await db.from('setores').select('id').eq('nome',nomeSetor).single();
+  if(!setorData) return;
+  var {data:lst}=await db.from('itens').select('*').eq('setor_id',setorData.id).eq('ativo',true);
+  lst=lst||[];
+  var lows=lst.filter(function(i){return i.usado_total>=(i.estoque_min||0);}).length;
+  var sugs=SUGS[setor].filter(function(s){return !lst.find(function(x){return x.nome.toLowerCase()===s.toLowerCase();});});
+  var h='<div class="sdiv"><div class="sdiv-t">'+cfg.lbl+'</div><div class="sdiv-l"></div></div>';
+  h+='<div class="shdr"><div class="sico" style="background:'+cfg.cor+'18;color:'+cfg.cor+'">'+cfg.ico+'</div>'
+    +'<div style="flex:1"><div class="snm">'+cfg.lbl+'</div><div class="sct">'+lst.length+' item(s)'+(lows>0?' · <strong style="color:var(--Rm)">'+lows+' abaixo do mínimo</strong>':'')+'</div></div>'
+    +'<button class="btn btn-gd btn-sm" onclick="addInsManual(\''+setor+'\',\''+setorData.id+'\',\''+cid+'\')">+ Adicionar item</button></div>';
+  if(sugs.length){
+    h+='<div style="margin-bottom:13px"><div style="font-size:8px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--c4);margin-bottom:7px">Sugestões rápidas</div><div class="sgrid">';
+    sugs.slice(0,12).forEach(function(s){h+='<div class="spill2" onclick="addSug(\''+setor+'\',\''+s+'\',\''+setorData.id+'\',\''+cid+'\')">+ '+s+'</div>';});
+    h+='</div></div>';
+  }
+  h+='<div style="display:grid;grid-template-columns:minmax(150px,2fr) 110px 70px 70px 80px 70px auto;gap:0;padding:7px 14px;background:var(--c7);border:1px solid var(--c6);border-radius:var(--rad);margin-bottom:7px">'
+    +'<div class="col-lbl">Item</div><div class="col-lbl" style="text-align:center">Quantidade</div><div class="col-lbl">Unidade</div><div class="col-lbl" style="text-align:center">Mínimo</div><div class="col-lbl" style="text-align:center">Ideal</div><div class="col-lbl" style="text-align:center">Status</div><div></div></div>';
+  lst.forEach(function(item){
+    var isLow=item.usado_total>=(item.estoque_min||0);
+    var disp=Math.max(0,(item.estoque_ideal||0)-item.usado_total);
+    h+='<div class="icard'+(isLow?' li':'')+'">'
+      +'<div class="ic"><input class="ini" value="'+item.nome+'" onchange="updIns(\''+item.id+'\',\'nome\',this.value)"></div>'
+      +'<div class="ic ctr"><div class="qc"><button class="qb" onclick="adjIns(\''+item.id+'\',\''+setor+'\',\''+cid+'\',-1)">−</button><span class="qv" style="'+(isLow?'color:var(--Rm)':'')+'">'+disp+'</span><button class="qb" onclick="adjIns(\''+item.id+'\',\''+setor+'\',\''+cid+'\',1)">+</button></div></div>'
+      +'<div class="ic"><input class="ie" value="'+(item.unidade||'un')+'" onchange="updIns(\''+item.id+'\',\'unidade\',this.value)" style="width:62px;font-size:12px"></div>'
+      +'<div class="ic ctr"><input class="ie ien" type="number" min="0" value="'+(item.estoque_min||0)+'" onchange="updIns(\''+item.id+'\',\'estoque_min\',+this.value)" style="font-size:13px"></div>'
+      +'<div class="ic ctr"><input class="ie ien" type="number" min="0" value="'+(item.estoque_ideal||0)+'" onchange="updIns(\''+item.id+'\',\'estoque_ideal\',+this.value)" style="font-size:13px"></div>'
+      +'<div class="ic ctr">'+(isLow?'<span class="badge bd" style="font-size:7px">Repor</span>':disp<=(item.estoque_ideal||0)?'<span class="badge bw" style="font-size:7px">Atenção</span>':'<span class="badge bs" style="font-size:7px">OK</span>')+'</div>'
+      +'<div class="ic" style="gap:4px;flex-direction:column">'
+        +'<button class="btn btn-xs btn-rd" onclick="abrirRet(\'ins\',\''+item.id+'\',\''+item.nome+'\','+disp+',\''+(item.unidade||'un')+'\')">− Retirar</button>'
+        +'<button class="btn btn-xs btn-del" onclick="rmIns(\''+item.id+'\',\''+setor+'\',\''+cid+'\')">×</button>'
+      +'</div></div>';
+  });
+  document.getElementById(cid).innerHTML=h;
+}
+async function addSug(setor,nome,setorId,cid){await db.from('itens').insert({nome,setor_id:setorId,estoque_min:2,estoque_ideal:10,amp_por_caixa:1});flash();renderSetor(setor,cid);}
+async function addInsManual(setor,setorId,cid){var n=prompt('Nome do item:');if(!n||!n.trim())return;await db.from('itens').insert({nome:n.trim(),setor_id:setorId,estoque_min:2,estoque_ideal:10,amp_por_caixa:1});flash();renderSetor(setor,cid);}
+async function updIns(id,field,val){var upd={};upd[field]=val;upd.atualizado_em=new Date().toISOString();await db.from('itens').update(upd).eq('id',id);flash();}
+async function adjIns(id,setor,cid,delta){var {data:item}=await db.from('itens').select('*').eq('id',id).single();if(!item)return;await db.from('itens').update({usado_total:Math.max(0,item.usado_total-delta),atualizado_em:new Date().toISOString()}).eq('id',id);flash();renderSetor(setor,cid);}
+async function rmIns(id,setor,cid){await db.from('itens').update({ativo:false}).eq('id',id);flash();renderSetor(setor,cid);}
+
+// ── NOTAS FISCAIS ────────────────────────────────────────────────────
+async function renderNFs(){
+  var {data:pend}=await db.from('lotes').select('*,itens(nome),fornecedores(nome)').eq('status','pendente').order('criado_em',{ascending:false});
+  var el=document.getElementById('nfs-pendentes');
+  if(!pend||!pend.length){el.innerHTML='<div class="empty"><div class="es">Nenhuma NF pendente</div></div>';return;}
+  el.innerHTML='<div class="hlist">'+pend.map(function(l){
+    return'<div class="hi"><div>'
+      +'<div class="hn">'+l.itens.nome+' <span class="badge lote-pendente" style="font-size:7px">Pendente</span></div>'
+      +'<div class="hd">'+(l.fornecedores?l.fornecedores.nome:'—')+' · '+l.quantidade_cx+' cx × '+l.amp_por_caixa+' amp · Val: '+fd(l.validade)+' · Enviado: '+fdt(l.criado_em)+'</div>'
+      +(l.preco_total>0?'<div class="hd">'+fBRL(l.preco_total)+' total · '+fBRL(l.preco_por_cx)+'/cx</div>':'')
+    +'</div><div class="hr" style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">'
+      +(isAdminOrCompras()?'<button class="btn btn-ok btn-sm" onclick="aprovarLote(\''+l.id+'\')">✓ Aprovar</button><button class="btn btn-del btn-sm" onclick="rejeitarLote(\''+l.id+'\')">✕ Rejeitar</button>':'<span style="font-size:10px;color:var(--c4)">Aguarda aprovação</span>')
+    +'</div></div>';
+  }).join('')+'</div>';
+  var {data:hist}=await db.from('lotes').select('*,itens(nome),fornecedores(nome)').in('status',['aprovado','rejeitado']).order('criado_em',{ascending:false}).limit(20);
+  var eh=document.getElementById('nfs-historico');
+  if(!hist||!hist.length){eh.innerHTML='<div class="empty"><div class="es">Nenhum histórico</div></div>';return;}
+  eh.innerHTML='<div class="hlist">'+hist.map(function(l){
+    var sc=l.status==='aprovado'?'lote-aprovado':'lote-rejeitado';
+    return'<div class="hi"><div><div class="hn">'+l.itens.nome+' <span class="badge '+sc+'" style="font-size:7px">'+l.status.toUpperCase()+'</span></div><div class="hd">'+(l.fornecedores?l.fornecedores.nome:'—')+' · '+fd(l.validade)+' · '+fdt(l.criado_em)+'</div></div><div class="hr"><div class="ha" style="color:var(--Gm)">'+(l.preco_total>0?fBRL(l.preco_total):'—')+'</div></div></div>';
+  }).join('')+'</div>';
+}
+
+// ── PEDIDOS ──────────────────────────────────────────────────────────
+// ── FINANCEIRO ───────────────────────────────────────────────────────
+async function renderFin(){
+  var {data:dash}=await db.from('dashboard').select('*').single();
+  var {data:meds}=await db.from('estoque_atual').select('*').eq('ativo',true).order('custo_estoque',{ascending:false});
+  var {data:tirz}=await db.from('tirzepatida_frascos').select('*,fornecedores(nome)');
+  var {data:compras}=await db.from('lotes').select('sum_valor:preco_total.sum()').eq('status','aprovado').single();
+  if(dash) document.getElementById('fcards').innerHTML=
+    '<div class="fc"><div class="fl">Valor do Estoque</div><div class="fv">'+fBRL(dash.valor_total_estoque)+'</div><div class="fs">'+(meds?meds.filter(function(m){return m.preco_medio_cx>0;}).length:0)+' itens com preço</div></div>'
+    +'<div class="fc"><div class="fl">Custo para Repor Ideal</div><div class="fv" style="color:var(--Wm)">'+fBRL((meds||[]).reduce(function(s,m){return s+(m.preco_medio_cx>0?Math.max(0,Math.ceil((m.estoque_ideal-m.disponivel)/m.amp_por_caixa)*m.preco_medio_cx):0);},0))+'</div><div class="fs">para atingir estoque ideal</div></div>'
+    +'<div class="fc"><div class="fl">Total em Tirzepatida</div><div class="fv" style="color:var(--Tm)">'+fBRL((tirz||[]).reduce(function(s,t){return s+t.preco_pago;},0))+'</div><div class="fs">'+(tirz?tirz.length:0)+' frasco(s)</div></div>'
+    +'<div class="fc"><div class="fl">Total Gasto em Compras</div><div class="fv">'+fBRL(compras?compras.sum_valor:0)+'</div><div class="fs">entradas aprovadas</div></div>';
+  if(meds) document.getElementById('ftbody').innerHTML=meds.map(function(m){
+    var cr=m.preco_medio_cx>0?Math.max(0,Math.ceil((m.estoque_ideal-m.disponivel)/m.amp_por_caixa)*m.preco_medio_cx):0;
+    return'<tr><td style="font-weight:700;font-size:13px">'+m.nome+'</td><td style="font-family:Cormorant Garamond,serif;font-size:16px">'+m.disponivel+'</td><td style="font-family:Cormorant Garamond,serif;font-size:16px">'+(m.estoque_ideal||'—')+'</td><td>'+(m.preco_medio_cx>0?fBRL(m.preco_medio_cx):'—')+'</td><td style="color:var(--Gm)">'+(m.custo_estoque>0?fBRL(m.custo_estoque):'—')+'</td><td style="color:'+(cr>0?'var(--Wm)':'var(--c4)')+';font-weight:600">'+(cr>0?fBRL(cr):'—')+'</td></tr>';
+  }).join('');
+  // Comparativo fornecedores
+  var {data:comp}=await db.from('comparativo_fornecedores').select('*');
+  if(comp&&comp.length){
+    document.getElementById('comp-forn').innerHTML='<table class="ftbl"><thead><tr><th>Medicamento</th><th>Fornecedor</th><th>Compras</th><th>Preço Médio/Cx</th><th>Menor Preço</th></tr></thead><tbody>'
+      +comp.map(function(c){return'<tr><td style="font-weight:700">'+c.item_nome+'</td><td>'+c.fornecedor+'</td><td style="text-align:center">'+c.total_compras+'</td><td>'+fBRL(c.preco_medio_cx)+'</td><td style="color:var(--Gm);font-weight:600">'+fBRL(c.menor_preco)+'</td></tr>';}).join('')+'</tbody></table>';
+  }
+}
+
+async function analisarFornecedores(){
+  var el=document.getElementById('ia-forn-txt');
+  el.textContent='Analisando...';
+  var {data:comp}=await db.from('comparativo_fornecedores').select('*');
+  if(!comp||!comp.length){el.textContent='Nenhum dado de fornecedor disponível ainda. Registre algumas compras primeiro.';return;}
+  var ctx=await buildContextoIA();
+  var prompt='Analise os dados de fornecedores e indique onde vale mais a pena comprar cada medicamento. Seja direto e prático. Máximo 3 parágrafos.';
+  try{
+    var resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,system:ctx+'\n\nComparativo de fornecedores:\n'+JSON.stringify(comp),messages:[{role:'user',content:prompt}]})});
+    var d=await resp.json();
+    el.textContent=(d.content&&d.content[0]&&d.content[0].text)||'Análise não disponível.';
+  }catch(e){el.textContent='Erro ao conectar à IA.';}
+}
+
+// ── HISTÓRICO ────────────────────────────────────────────────────────
+async function renderHist(){
+  var hs=document.getElementById('hset')?document.getElementById('hset').value:'all';
+  var ht=document.getElementById('htip')?document.getElementById('htip').value:'all';
+  var query=db.from('movimentacoes').select('*,itens(nome,setores(nome))').order('criado_em',{ascending:false}).limit(50);
+  if(ht==='saida') query=query.eq('tipo','saida');
+  if(ht==='entrada') query=query.eq('tipo','entrada');
+  var {data:hist}=await query;
+  hist=hist||[];
+  if(hs!=='all') hist=hist.filter(function(h){return h.itens&&h.itens.setores&&h.itens.setores.nome===hs;});
+  var el=document.getElementById('hlist');
+  if(!hist.length){el.innerHTML='<div class="empty"><div class="et">Sem registros</div></div>';return;}
+  el.innerHTML=hist.map(function(h){
+    var isSaida=h.tipo==='saida';
+    return'<div class="hi"><div><div class="hn">'+(h.itens?h.itens.nome:'—')+' <span class="badge '+(isSaida?'bd':'bs')+'" style="font-size:7px">'+(isSaida?'SAÍDA':'ENTRADA')+'</span></div>'
+      +'<div class="hd">'+fbr(h.data)+' · '+(h.motivo||'—')+'</div>'
+      +(h.responsavel_nome?'<div class="hu">Por: '+h.responsavel_nome+'</div>':'')
+      +(h.itens&&h.itens.setores?'<span class="tag">'+h.itens.setores.nome+'</span>':'')
+    +'</div><div class="hr"><div class="ha" style="color:'+(isSaida?'var(--Rm)':'var(--Gm)')+';font-size:20px">'+(isSaida?'−':'+')+h.quantidade+'</div><div style="font-size:9px;color:var(--c4)">'+(isSaida?'retirado':'adicionado')+'</div></div></div>';
+  }).join('');
+}
+
+// ── USUÁRIOS ─────────────────────────────────────────────────────────
+async function renderUsuarios(){
+  var {data:users}=await db.from('perfis').select('*').order('criado_em');
+  var el=document.getElementById('usuarios-lista');
+  if(!users||!users.length){el.innerHTML='<div class="empty"><div class="es">Nenhum usuário</div></div>';return;}
+  el.innerHTML='<div class="hlist">'+users.map(function(u){
+    var cor=u.nivel==='administrador'?'var(--gold)':u.nivel==='compras'?'var(--Im)':'var(--Gm)';
+    return'<div class="hi"><div><div class="hn">'+u.nome+'</div><div class="hd">'+u.email+' · Cadastrado: '+fbr(u.criado_em)+'</div></div>'
+      +'<div class="hr"><span style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:'+cor+'">'+u.nivel+'</span></div></div>';
+  }).join('')+'</div>';
+}
+async function convidarUsuario(){
+  var email=document.getElementById('usr-email').value.trim();
+  var nome=document.getElementById('usr-nome').value.trim();
+  var nivel=document.getElementById('usr-nivel').value;
+  var msg=document.getElementById('usr-msg');
+  if(!email||!nome){msg.style.color='var(--Rm)';msg.textContent='Preencha todos os campos.';return;}
+  // Criar usuário via Supabase Admin (invite)
+  var {data,error}=await db.auth.admin?db.auth.admin.inviteUserByEmail(email):{error:{message:'Use o painel do Supabase para convidar'}};
+  if(error){
+    msg.style.color='var(--Rm)';
+    msg.textContent='Para convidar usuários, acesse o painel do Supabase > Authentication > Users > Invite User. Depois ajuste o nível de acesso aqui.';
+    return;
+  }
+  msg.style.color='var(--Gm)';msg.textContent='Convite enviado para '+email;
+}
+
+// ── PDF RETIRADA ─────────────────────────────────────────────────────
+function gerarPdfRet(ret,qty,obs,data,user,ts){
+  var tstr=new Date(ts).toLocaleString('pt-BR');
+  var w=window.open('','_blank','width=700,height=650');if(!w)return;
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Retirada</title>'
+  +'<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Georgia,serif;color:#2c2824;padding:50px;font-size:13px}'
+  +'.hdr{border-bottom:3px solid #a8843e;padding-bottom:18px;margin-bottom:26px}.cn{font-size:24px;letter-spacing:5px;text-transform:uppercase;font-weight:normal}'
+  +'.cs{font-size:9px;letter-spacing:4px;text-transform:uppercase;color:#9a8f84;margin-top:4px}'
+  +'.stamp{display:inline-block;border:2px solid #a8843e;padding:7px 16px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#a8843e;margin-bottom:18px;border-radius:3px}'
+  +'.dt{font-size:17px;letter-spacing:3px;text-transform:uppercase;margin-bottom:22px;padding:12px 0;border-bottom:1px solid #e4ddd6}'
+  +'.fl{display:flex;gap:14px;margin-bottom:15px}.flb{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#9a8f84;min-width:140px}'
+  +'.flv{font-size:14px;font-weight:bold;border-bottom:1px solid #e4ddd6;flex:1;padding-bottom:4px}'
+  +'.ob{border:1px solid #e4ddd6;border-radius:4px;padding:12px;min-height:70px;margin-top:4px}'
+  +'.sig{margin-top:50px;display:grid;grid-template-columns:1fr 1fr;gap:40px}'
+  +'.sl{border-top:1px solid #2c2824;margin-top:38px;padding-top:7px;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#9a8f84;text-align:center}'
+  +'.ft{margin-top:44px;padding-top:14px;border-top:1px solid #e4ddd6;font-size:9px;color:#9a8f84;text-align:center}</style></head><body>'
+  +'<div class="hdr"><div class="cn">Luisa Costa</div><div class="cs">Clínica Médica — Gestão de Estoque</div></div>'
+  +'<div class="stamp">Termo de Retirada de Material</div>'
+  +'<div class="dt">Comprovante de Retirada</div>'
+  +'<div class="fl"><div class="flb">Medicamento / Item</div><div class="flv">'+ret.nome+'</div></div>'
+  +'<div class="fl"><div class="flb">Quantidade retirada</div><div class="flv">'+qty+' '+ret.unid+'</div></div>'
+  +'<div class="fl"><div class="flb">Data da retirada</div><div class="flv">'+fbr(data)+'</div></div>'
+  +'<div class="fl"><div class="flb">Hora do registro</div><div class="flv">'+tstr+'</div></div>'
+  +'<div class="fl"><div class="flb">Responsável</div><div class="flv">'+user.nome+'</div></div>'
+  +'<div style="margin-top:18px"><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#9a8f84;margin-bottom:7px">Motivo / Observação</div>'
+  +'<div class="ob">'+(obs||'—')+'</div></div>'
+  +'<div class="sig"><div><div class="sl">Assinatura do Responsável</div></div><div><div class="sl">Assinatura da Gestão</div></div></div>'
+  +'<div class="ft">Gerado em '+tstr+' · Clínica Luisa Costa</div>'
+  +'<script>window.onload=function(){window.print();}<\/script></body></html>');
+  w.document.close();
+}
+
+// ── EDITAR / EXCLUIR MEDICAMENTO ─────────────────────────────────────
+function abrirEditar(id,nome,unit,apx,min,ideal){
+  document.getElementById('edit-id').value=id;
+  document.getElementById('edit-nome').value=nome;
+  document.getElementById('edit-unit').value=unit||'caixas';
+  document.getElementById('edit-apx').value=apx||1;
+  document.getElementById('edit-min').value=min||0;
+  document.getElementById('edit-ideal').value=ideal||0;
+  document.getElementById('edit-msg').textContent='';
+  abrir('madedit');
+}
+async function confirmarEdicao(){
+  var id=document.getElementById('edit-id').value;
+  var msg=document.getElementById('edit-msg');
+  var {error}=await db.from('itens').update({
+    nome:document.getElementById('edit-nome').value.trim(),
+    unidade:document.getElementById('edit-unit').value,
+    amp_por_caixa:parseInt(document.getElementById('edit-apx').value)||1,
+    estoque_min:parseInt(document.getElementById('edit-min').value)||0,
+    estoque_ideal:parseInt(document.getElementById('edit-ideal').value)||0,
+    atualizado_em:new Date().toISOString()
+  }).eq('id',id);
+  if(error){msg.style.color='var(--Rm)';msg.textContent='Erro ao salvar.';return;}
+  fechar('madedit');flash();renderMeds();
+}
+async function excluirItem(id,nome){
+  if(!confirm('Excluir "'+nome+'"? Esta ação não pode ser desfeita.'))return;
+  await db.from('itens').update({ativo:false,atualizado_em:new Date().toISOString()}).eq('id',id);
+  flash();renderMeds();
+}
+
+// ── SALVAR MEDICAMENTO (com lote inicial) ────────────────────────────
+async function salvarMed(){
+  var nome=document.getElementById('an').value.trim();
+  var msg=document.getElementById('med-msg');
+  if(!nome){msg.style.color='var(--Rm)';msg.textContent='Informe o nome.';return;}
+  var {data:item,error}=await db.from('itens').insert({
+    nome,unidade:document.getElementById('au').value,
+    amp_por_caixa:parseInt(document.getElementById('ax').value)||1,
+    estoque_min:parseInt(document.getElementById('am').value)||0,
+    estoque_ideal:parseInt(document.getElementById('ai').value)||50,
+    setor_id:document.getElementById('asetor').value,ativo:true
+  }).select('id').single();
+  if(error){msg.style.color='var(--Rm)';msg.textContent='Erro ao salvar.';return;}
+  var cx=parseInt(document.getElementById('acx').value)||0;
+  var val=document.getElementById('aval').value;
+  var apx=parseInt(document.getElementById('ax').value)||1;
+  var valor=parseFloat(document.getElementById('avalor').value)||0;
+  if(cx>0&&val&&item){
+    await db.from('lotes').insert({
+      item_id:item.id,validade:val,quantidade_cx:cx,amp_por_caixa:apx,
+      preco_total:valor,status:'aprovado',aprovado_por:USER.id,
+      aprovado_em:new Date().toISOString(),criado_por:USER.id
+    });
+  }
+  fechar('madmed');flash();renderMeds();
+  ['an','aval','avalor'].forEach(function(i){document.getElementById(i).value='';});
+  document.getElementById('acx').value=0;
+}
+
+// ── IMPLANTES HORMONAIS ──────────────────────────────────────────────
+async function renderImpl(){
+  var f=document.getElementById('ifilt')?document.getElementById('ifilt').value:'all';
+  var query=db.from('tirzepatida_frascos').select('*,fornecedores(nome)').eq('mg',0).eq('status','ativo').order('validade');
+  if(f==='venc') query=query.lt('validade',today());
+  if(f==='crit'){var d30=new Date();d30.setDate(d30.getDate()+30);query=query.lte('validade',d30.toISOString().slice(0,10)).gte('validade',today());}
+  var {data:impl}=await query;
+  impl=impl||[];
+  if(f==='testosterona') impl=impl.filter(function(i){return(i.observacoes||'').toLowerCase().includes('testosterona');});
+  if(f==='estradiol')    impl=impl.filter(function(i){return(i.observacoes||'').toLowerCase().includes('estradiol');});
+  var total=impl.reduce(function(s,i){return s+i.ampolas_disp;},0);
+  var tvlr=impl.reduce(function(s,i){return s+i.preco_pago;},0);
+  var venc=impl.filter(function(i){var s=st(i.validade);return s==='venc'||s==='crit';}).length;
+  var is=document.getElementById('istats');
+  if(is) is.innerHTML=
+    '<div class="fc"><div class="fl">Total de Lotes</div><div class="fv" style="color:var(--Pm)">'+impl.length+'</div><div class="fs">lotes ativos</div></div>'
+    +'<div class="fc"><div class="fl">Unidades Disponíveis</div><div class="fv" style="color:var(--Pm)">'+total+'</div><div class="fs">implantes</div></div>'
+    +'<div class="fc"><div class="fl">Total Investido</div><div class="fv">'+fBRL(tvlr)+'</div><div class="fs">'+impl.length+' lote(s)</div></div>'
+    +'<div class="fc"><div class="fl">Atenção / Vencidos</div><div class="fv" style="color:var(--Rm)">'+venc+'</div><div class="fs">verificar validade</div></div>';
+  var el=document.getElementById('ilist'); if(!el) return;
+  document.getElementById('eimpl').style.display=impl.length?'none':'block';
+  el.innerHTML=impl.map(function(t){
+    var s=st(t.validade),cls=s==='venc'?'iv':s==='crit'?'iw':'iok';
+    var obs=t.observacoes||'Implante';
+    var nomeEsc=obs.replace(/['"]/g,'');
+    return'<div class="impl-card '+cls+'">'
+      +'<div class="impl-grid">'
+        +'<div class="tc"><span style="display:inline-flex;align-items:center;justify-content:center;background:var(--Pbg);color:var(--P);border:1.5px solid var(--Pbr);border-radius:var(--rad);font-size:13px;font-weight:700;padding:5px 12px">'+obs+'</span></div>'
+        +'<div class="tc"><div style="font-size:14px;font-weight:700">'+(t.fornecedores?t.fornecedores.nome:'—')+'</div><div style="font-size:11px;color:var(--c4);margin-top:2px">'+(t.numero_lote?'Lote: '+t.numero_lote:'—')+'</div></div>'
+        +'<div class="tc">'+bdg(t.validade)+'<div style="font-size:11px;color:var(--c3);margin-top:4px">'+fd(t.validade)+'</div></div>'
+        +'<div class="tc"><div style="font-family:Cormorant Garamond,serif;font-size:18px;font-weight:500">'+(t.preco_pago>0?fBRL(t.preco_pago):'—')+'</div>'+(t.preco_pago>0&&t.ampolas_total>0?'<div class="lt">'+fBRL(t.preco_por_amp)+'/un</div>':'')+'</div>'
+        +'<div class="tc"><div class="dc"><button class="db" onclick="adjImpl(\''+t.id+'\','+t.ampolas_usadas+',-1)">−</button><span class="dv" style="'+(t.ampolas_disp<=0?'color:var(--Rm)':'')+'">'+t.ampolas_disp+'</span><button class="db" onclick="adjImpl(\''+t.id+'\','+t.ampolas_usadas+',1)">+</button></div><div class="lt" style="margin-top:4px">unidades disp.</div>'
+          +'<button class="btn btn-xs btn-rd" style="margin-top:6px" onclick="abrirRet(\'impl\',\''+t.id+'\',\''+nomeEsc+'\','+t.ampolas_disp+',\'un\','+t.ampolas_usadas+')">− Retirar c/ PDF</button></div>'
+        +'<div class="tc" style="gap:5px;flex-direction:column">'+( isAdmin()?'<button class="btn btn-del btn-sm" onclick="rmImpl(\''+t.id+'\')">Remover</button>':'')+'</div>'
+      +'</div></div>';
+  }).join('');
+}
+async function adjImpl(id,usadas,delta){
+  await db.from('tirzepatida_frascos').update({ampolas_usadas:Math.max(0,usadas-delta),atualizado_em:new Date().toISOString()}).eq('id',id);
+  flash();renderImpl();
+}
+async function rmImpl(id){if(!confirm('Remover lote?'))return;await db.from('tirzepatida_frascos').update({status:'descartado'}).eq('id',id);flash();renderImpl();}
+async function salvarImpl(){
+  var tipo=document.getElementById('impl-tipo').value;
+  var dose=document.getElementById('impl-dose').value;
+  var farm=document.getElementById('impl-farm').value.trim();
+  var val=document.getElementById('impl-val').value;
+  var msg=document.getElementById('impl-msg');
+  if(!val){msg.style.color='var(--Rm)';msg.textContent='Informe a validade.';return;}
+  var qtd=parseInt(document.getElementById('impl-qtd').value)||1;
+  var valor=parseFloat(document.getElementById('impl-valor').value)||0;
+  var fornId=null;
+  if(farm){
+    var {data:forn}=await db.from('fornecedores').select('id').eq('nome',farm).single();
+    if(forn) fornId=forn.id;
+    else{var {data:nf}=await db.from('fornecedores').insert({nome:farm,tipo:'farmacia'}).select('id').single();if(nf)fornId=nf.id;}
+  }
+  var tipoCompleto=tipo+(dose?' '+dose+'mg':'');
+  var {error}=await db.from('tirzepatida_frascos').insert({
+    mg:0,fornecedor_id:fornId,numero_lote:document.getElementById('impl-lote').value.trim()||null,
+    validade:val,ampolas_total:qtd,ampolas_usadas:0,preco_pago:valor,
+    observacoes:tipoCompleto,criado_por:USER.id,status:'ativo'
+  });
+  if(error){msg.style.color='var(--Rm)';msg.textContent='Erro ao salvar: '+error.message;return;}
+  fechar('madimpl');flash();renderImpl();
+  ['impl-farm','impl-lote','impl-val','impl-valor','impl-obs','impl-dose'].forEach(function(i){document.getElementById(i).value='';});
+  document.getElementById('impl-qtd').value=1;
+}
+
+// ── OUTROS INSUMOS (Limpeza, Conforto, Escritório) ───────────────────
+async function renderOutros(){
+  var setores=['Limpeza','Conforto','Escritório'];
+  var ids=['outros-lmp','outros-cnf','outros-esc'];
+  for(var i=0;i<setores.length;i++){
+    await renderSetor(setores[i],ids[i]);
+  }
+}
+
+// ── PEDIDOS REFORMULADO ──────────────────────────────────────────────
+var pedAlerts=[];
+async function renderPedidos(){
+  var {data:meds}=await db.from('estoque_atual').select('*').eq('ativo',true);
+  pedAlerts=[];
+  (meds||[]).forEach(function(m){
+    if(m.status_estoque==='critico'||m.status_validade==='vencido'||m.status_validade==='critico'){
+      var cr=m.preco_medio_cx>0?Math.max(0,Math.ceil(((m.estoque_ideal||0)-m.disponivel)/(m.amp_por_caixa||1))*m.preco_medio_cx):0;
+      pedAlerts.push({oid:'med'+m.id,nome:m.nome,disp:m.disponivel,min:m.estoque_min||0,ideal:m.estoque_ideal||0,custo:Math.max(0,cr),urg:m.status_validade==='vencido'||m.status_estoque==='critico',setor:m.setor,qtdSug:Math.max(1,Math.ceil(((m.estoque_ideal||0)-m.disponivel)/(m.amp_por_caixa||1)))});
+    }
+  });
+  var setoresIns=['Insumos Clínicos','Limpeza','Conforto','Escritório'];
+  for(var j=0;j<setoresIns.length;j++){
+    var sId=SETORES_DB[setoresIns[j]];if(!sId)continue;
+    var {data:lst}=await db.from('itens').select('*').eq('setor_id',sId).eq('ativo',true);
+    (lst||[]).forEach(function(item){
+      var disp=Math.max(0,(item.estoque_ideal||0)-(item.usado_total||0));
+      if(disp<=(item.estoque_min||0)){
+        pedAlerts.push({oid:item.id,nome:item.nome,disp:disp,min:item.estoque_min||0,ideal:item.estoque_ideal||0,custo:0,urg:true,setor:setoresIns[j],qtdSug:Math.max(1,(item.estoque_ideal||10)-disp)});
+      }
+    });
+  }
+  renderPedList();
+}
+function renderPedList(){
+  var el=document.getElementById('pled');if(!el)return;
+  var footer=document.getElementById('ped-footer');
+  if(!pedAlerts.length){
+    el.innerHTML='<div class="empty"><div class="et">Estoque em ordem</div><div class="es">Nenhum item crítico</div></div>';
+    if(footer) footer.style.display='none';return;
+  }
+  if(footer) footer.style.display='flex';
+  var setorMap={};
+  pedAlerts.forEach(function(a){if(!setorMap[a.setor])setorMap[a.setor]=[];setorMap[a.setor].push(a);});
+  var html='';
+  Object.keys(setorMap).forEach(function(setor){
+    var items=setorMap[setor];
+    html+='<div style="background:#fff;border:1px solid var(--c6);border-radius:var(--rad);margin-bottom:12px;overflow:hidden;box-shadow:var(--sh1)">'
+      +'<div style="display:flex;align-items:center;gap:12px;padding:10px 15px;background:var(--c8);border-bottom:1px solid var(--c6)">'
+        +'<div style="font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--c2)">'+setor+'</div>'
+        +'<div style="font-size:10px;color:var(--c4);margin-left:auto">'+items.length+' item(s)</div>'
+      +'</div>'
+      +'<div style="display:grid;grid-template-columns:28px minmax(150px,2fr) 85px 65px 65px 100px 90px;padding:7px 14px;background:var(--c7);border-bottom:1px solid var(--c7)">'
+        +'<div style="font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--c4)"></div>'
+        +'<div style="font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--c4)">Item</div>'
+        +'<div style="font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--c4);text-align:center">Urgência</div>'
+        +'<div style="font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--c4);text-align:center">Disp.</div>'
+        +'<div style="font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--c4);text-align:center">Qtd.</div>'
+        +'<div style="font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--c4)">Observação</div>'
+        +'<div style="font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--c4);text-align:center">Custo</div>'
+      +'</div>';
+    items.forEach(function(a){
+      html+='<div style="display:grid;grid-template-columns:28px minmax(150px,2fr) 85px 65px 65px 100px 90px;align-items:center;border-bottom:1px solid var(--c7)">'
+        +'<div style="padding:10px 12px;text-align:center"><input type="checkbox" class="pchk" checked data-oid="'+a.oid+'" data-nome="'+a.nome+'" data-disp="'+a.disp+'" data-min="'+a.min+'" data-ideal="'+a.ideal+'" data-custo="'+a.custo.toFixed(2)+'" data-urg="'+(a.urg?'1':'0')+'" style="width:15px;height:15px;accent-color:var(--gold);cursor:pointer" onchange="atualizarTotalPed()"></div>'
+        +'<div style="padding:10px 12px"><div style="font-size:13px;font-weight:700;color:var(--c)">'+a.nome+'</div><div style="font-size:9px;color:var(--c4);margin-top:2px">Disp: '+a.disp+' · Ideal: '+a.ideal+'</div></div>'
+        +'<div style="padding:10px 12px;text-align:center">'+(a.urg?'<span class="badge bd" style="font-size:7px">Urgente</span>':'<span class="badge bw" style="font-size:7px">Repor</span>')+'</div>'
+        +'<div style="padding:10px 12px;text-align:center;font-family:Cormorant Garamond,serif;font-size:18px;font-weight:500;color:'+(a.disp<=a.min?'var(--Rm)':'var(--c)')+'">'+a.disp+'</div>'
+        +'<div style="padding:6px 8px;text-align:center"><input type="number" id="pqtd-'+a.oid+'" value="'+( a.qtdSug||1)+'" min="1" style="width:55px;text-align:center;padding:6px;border:1.5px solid var(--c5);border-radius:5px;font-family:Raleway,sans-serif;font-size:13px;font-weight:700;color:var(--c);outline:none;background:var(--c8)" onfocus="this.style.borderColor=\'var(--gold)\';this.style.background=\'#fff\'" onblur="this.style.borderColor=\'var(--c5)\';this.style.background=\'var(--c8)\'" onchange="atualizarTotalPed()"></div>'
+        +'<div style="padding:6px 8px"><input type="text" id="po-'+a.oid+'" placeholder="Observação..." style="width:100%;padding:6px 8px;border:1.5px solid var(--c5);border-radius:5px;font-family:Raleway,sans-serif;font-size:11px;color:var(--c);outline:none;background:var(--c8)" onfocus="this.style.borderColor=\'var(--gold)\';this.style.background=\'#fff\'" onblur="this.style.borderColor=\'var(--c5)\';this.style.background=\'var(--c8)\'"></div>'
+        +'<div style="padding:10px 12px;text-align:center;font-size:13px;font-weight:700;color:var(--Wm)">'+(a.custo>0?fBRL(a.custo):'—')+'</div>'
+      +'</div>';
+    });
+    html+='</div>';
+  });
+  el.innerHTML=html;
+  atualizarTotalPed();
+}
+function atualizarTotalPed(){
+  var cbs=document.querySelectorAll('.pchk:checked');
+  var tot=0;
+  cbs.forEach(function(cb){tot+=parseFloat(cb.dataset.custo)||0;});
+  var totEl=document.getElementById('ptot');
+  var cntEl=document.getElementById('ped-count');
+  if(totEl) totEl.innerHTML=tot>0?'Custo total estimado: <strong style="color:var(--Wm)">'+fBRL(tot)+'</strong>':'Itens sem preço cadastrado — custo não calculado';
+  if(cntEl) cntEl.textContent=cbs.length+' item(s) selecionado(s)';
+}
+function selTodos(){document.querySelectorAll('.pchk').forEach(function(cb){cb.checked=true;});atualizarTotalPed();}
+async function analisarPedidoIA(){
+  var iaBox=document.getElementById('ped-ia-box');
+  var iaTxt=document.getElementById('ped-ia-txt');
+  if(!iaBox||!iaTxt) return;
+  iaBox.style.display='block';
+  iaTxt.textContent='Analisando estoque e priorizando itens...';
+  try{
+    var ctx=await buildContextoIA();
+    var itens=pedAlerts.map(function(a){return a.nome+' (disp:'+a.disp+', ideal:'+a.ideal+', urgente:'+(a.urg?'sim':'não')+')';}).join(', ');
+    var resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:500,system:ctx,
+        messages:[{role:'user',content:'Analise os itens críticos e sugira a ordem de prioridade para reposição. Seja direto e prático. Itens: '+itens}]})
+    });
+    var d=await resp.json();
+    if(d.error) throw new Error(d.error.message);
+    iaTxt.textContent=(d.content&&d.content[0]&&d.content[0].text)||'Análise não disponível.';
+  }catch(e){iaTxt.textContent='Erro ao conectar à IA: '+e.message;}
+}
+
+// ── PDF PEDIDO REFORMULADO ───────────────────────────────────────────
+function pdfPedido(){
+  var cbs=document.querySelectorAll('.pchk:checked');
+  if(!cbs.length){alert('Selecione ao menos um item.');return;}
+  var itens=[],tot=0;
+  cbs.forEach(function(cb){
+    var d=cb.dataset,c=parseFloat(d.custo||0);tot+=c;
+    var qtd=document.getElementById('pqtd-'+d.oid)?parseInt(document.getElementById('pqtd-'+d.oid).value)||1:1;
+    var obs=document.getElementById('po-'+d.oid)?document.getElementById('po-'+d.oid).value:'';
+    itens.push({nome:d.nome,disp:d.disp,min:d.min,ideal:d.ideal,custo:c,obs:obs,urg:d.urg==='1',qtd:qtd});
+  });
+  var tstr=new Date().toLocaleString('pt-BR');
+  var w=window.open('','_blank','width=800,height=700');if(!w)return;
+  var rows=itens.map(function(it){
+    return'<tr><td><strong>'+it.nome+'</strong>'+(it.urg?'<span style="background:#fdf0f0;color:#7a2e2e;border:1px solid #e0b4b4;border-radius:20px;font-size:8px;padding:2px 7px;margin-left:6px">Urgente</span>':'')+(it.obs?'<div style="font-size:11px;color:#6e6560;font-style:italic;margin-top:3px">Obs: '+it.obs+'</div>':'')+'</td>'
+      +'<td style="text-align:center">'+it.disp+'</td><td style="text-align:center">'+it.min+'</td><td style="text-align:center">'+it.ideal+'</td>'
+      +'<td style="text-align:center;font-weight:700">'+it.qtd+'</td>'
+      +'<td>'+(it.custo>0?fBRL(it.custo):'—')+'</td></tr>';
+  }).join('');
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Pedido de Orçamento</title>'
+  +'<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Georgia,serif;color:#2c2824;padding:50px;font-size:13px}'
+  +'.hdr{border-bottom:3px solid #a8843e;padding-bottom:18px;margin-bottom:26px;display:flex;justify-content:space-between;align-items:flex-end}'
+  +'.cn{font-size:22px;letter-spacing:5px;text-transform:uppercase;font-weight:normal}'
+  +'.stamp{display:inline-block;border:2px solid #a8843e;padding:6px 14px;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#a8843e;margin-bottom:16px;border-radius:3px}'
+  +'table{width:100%;border-collapse:collapse;margin-top:14px}'
+  +'th{background:#2c2824;color:#faf8f5;padding:9px 12px;font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:normal;text-align:left}'
+  +'td{padding:10px 12px;border-bottom:1px solid #e4ddd6;font-size:12px;vertical-align:top}'
+  +'.tr td{background:#f8f5f1;font-weight:bold;border-top:2px solid #a8843e}'
+  +'.aviso{margin:16px 0;padding:11px 14px;border:1px solid #e4ddd6;border-radius:4px;font-size:11px;color:#6e6560}'
+  +'.campo{margin-top:14px;padding:10px 14px;border:1px dashed #c8bdb2;border-radius:4px;font-size:11px;color:#6e6560}'
+  +'.sig{margin-top:32px;display:grid;grid-template-columns:1fr 1fr;gap:40px}'
+  +'.sl{border-top:1px solid #2c2824;margin-top:32px;padding-top:6px;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#9a8f84;text-align:center}'
+  +'.ft{margin-top:24px;padding-top:10px;border-top:1px solid #e4ddd6;font-size:9px;color:#9a8f84;text-align:center}'
+  +'</style></head><body>'
+  +'<div class="hdr"><div><div class="cn">Luisa Costa</div><div style="font-size:9px;letter-spacing:4px;text-transform:uppercase;color:#9a8f84;margin-top:4px">Clínica Médica — Solicitação de Orçamento</div></div>'
+  +'<div style="text-align:right"><div style="font-size:15px;letter-spacing:3px;text-transform:uppercase;margin-bottom:3px">Pedido de Orçamento</div>'
+  +'<div style="font-size:10px;color:#9a8f84">Emitido em '+tstr+'</div></div></div>'
+  +'<div class="stamp">Solicitação de Cotação de Preços</div>'
+  +'<div class="aviso">Solicitamos cotação dos itens abaixo. Por favor, informar preço unitário, prazo de entrega e condições de pagamento.</div>'
+  +'<table><thead><tr><th>Item / Medicamento</th><th style="text-align:center">Disponível</th><th style="text-align:center">Mínimo</th><th style="text-align:center">Ideal</th><th style="text-align:center">Qtd. Solicitada</th><th>Custo Est.</th></tr></thead>'
+  +'<tbody>'+rows+'<tr class="tr"><td colspan="5" style="text-align:right">Custo Total Estimado</td><td>'+fBRL(tot)+'</td></tr></tbody></table>'
+  +'<div class="campo">Farmácia: _________________________ &nbsp;&nbsp;&nbsp; Data da Cotação: _________________ &nbsp;&nbsp;&nbsp; Validade da Proposta: _____________</div>'
+  +'<div class="sig"><div><div class="sl">Responsável — Clínica Luisa Costa</div></div><div><div class="sl">Farmácia / Fornecedor</div></div></div>'
+  +'<div class="ft">Clínica Luisa Costa · Gestão de Estoque · '+tstr+'</div>'
+  +'<script>window.onload=function(){window.print();}<\/script></body></html>');
+  w.document.close();
+}
+
+// ── IA CHAT CORRIGIDO ────────────────────────────────────────────────
+async function enviarChat(){
+  var inp=document.getElementById('chat-inp');
+  var txt=inp.value.trim();if(!txt)return;
+  inp.value='';addMsg('user',txt);
+  var el=document.getElementById('chat-area');
+  var div=document.createElement('div');div.className='chat-msg ai';div.id='typing-ind';
+  div.innerHTML='<div class="chat-av">LC</div><div class="chat-bubble"><div class="typing"><span></span><span></span><span></span></div></div>';
+  el.appendChild(div);el.scrollTop=el.scrollHeight;
+  try{
+    var ctx=await buildContextoIA();
+    var resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:700,system:ctx,
+        messages:[{role:'user',content:txt}]})
+    });
+    var d=await resp.json();
+    var ti=document.getElementById('typing-ind');if(ti)ti.remove();
+    if(d.error) throw new Error(d.error.message);
+    addMsg('ai',(d.content&&d.content[0]&&d.content[0].text)||'Não consegui processar.');
+  }catch(e){
+    var ti2=document.getElementById('typing-ind');if(ti2)ti2.remove();
+    addMsg('ai','Erro ao conectar à IA: '+e.message+'. Verifique sua conexão com o Supabase.');
+  }
+}
+function addMsg(role,text){
+  var el=document.getElementById('chat-area');
+  var div=document.createElement('div');div.className='chat-msg '+role;
+  div.innerHTML='<div class="chat-av">'+(role==='ai'?'LC':'Eu')+'</div><div class="chat-bubble">'+text.replace(/\n/g,'<br>')+'</div>';
+  el.appendChild(div);el.scrollTop=el.scrollHeight;
+}
+function enviarSug(el){document.getElementById('chat-inp').value=el.textContent.trim();enviarChat();}
+</script>
+</body>
+</html>
