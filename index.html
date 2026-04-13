@@ -989,7 +989,7 @@ async function renderDash(){
     d.innerHTML='<div class="sl">'+lbl+'</div>'+valHtml+'<div class="sh">'+hint+'</div>';
     return d;
   }
-  if(isAdmin()){dcEl.appendChild(mkDC('tot','Valor total em estoque',Math.round(totalGeral).toLocaleString('pt-BR'),'meds · tirz · implantes',true,'var(--gold)'));}
+  if(isAdmin()){dcEl.appendChild(mkDC('tot','Valor total em estoque',Math.round(totalGeralD).toLocaleString('pt-BR'),'meds · tirz · implantes',true,'var(--gold)'));}
   dcEl.appendChild(mkDC('venc','Vencidos',dash.itens_vencidos,'retirar imediatamente',false,'var(--Rm)'));
   dcEl.appendChild(mkDC('atc','Vencendo',dash.itens_vencendo,'próximos 30 dias',false,'var(--Wm)'));
   dcEl.appendChild(mkDC('low','Est. mínimo',dash.itens_estoque_minimo,'itens abaixo',false,'var(--Rm)'));
@@ -1284,8 +1284,11 @@ async function renderTirz(){
       +'<div class="tc">'+bdg(t.validade)+'<div style="font-size:11px;color:var(--c3);margin-top:5px">'+fd(t.validade)+'</div></div>'
       +(isAdmin()?'<div class="tc"><div class="nm">'+(t.preco_pago>0?fBRL(t.preco_pago):'—')+'</div>'+(t.preco_pago>0&&t.ampolas_total>0?'<div class="lt">'+fBRL(t.preco_por_amp)+'/amp</div>':'')+'</div>':'<div class="tc"></div>')
       +'<div class="tc"><div class="dc"><button class="db" onclick="adjTirz(\''+t.id+'\','+t.ampolas_usadas+',-1)">−</button><span class="dv" style="'+(t.ampolas_disp<=0?'color:var(--Rm)':'')+'">'+t.ampolas_disp+'</span><button class="db" onclick="adjTirz(\''+t.id+'\','+t.ampolas_usadas+',1)">+</button></div><div class="lt" style="margin-top:4px">ampolas disponíveis</div><button class="btn btn-xs btn-rd" style="margin-top:6px" onclick="abrirRet(\'tirz\',\''+t.id+'\',\'Tirzepatida '+t.mg+'mg\','+t.ampolas_disp+',\'amp\')">− Retirar c/ PDF</button></div>'
-      +'<div class="tc"><button class="btn btn-sm btn-del" onclick="rmTirz(\''+t.id+'\')">Remover</button></div>'
-      +'</div>';
+      +'<div class="tc" style="gap:5px;flex-direction:column">'
+        +(isAdmin()?'<button class="btn btn-xs btn-edit" onclick="abrirEditarTirz(\''+t.id+'\')">✏ Editar</button>':'')
+        +(isAdmin()?'<button class="btn btn-xs btn-del" onclick="rmTirz(\''+t.id+'\')">🗑 Remover</button>':'')
+      +'</div>'
+    +'</div>';
     el.appendChild(div);
   });
 }
@@ -1888,13 +1891,34 @@ async function renderImpl(){
       +'</div>'
       +'<div class="lt" style="margin-top:4px">unidades disp.</div>'
       +'<button class="btn btn-xs btn-rd" style="margin-top:6px" onclick="abrirRet(\'ins\',\''+tid+'\',\''+nomeEsc+'\','+tdisp+',\'un\')">− Retirar</button></div>'
-      +(isAdmin()?'<div class="tc"><button class="btn btn-del btn-sm" onclick="rmImpl(\''+tid+'\')">Remover</button></div>':'<div class="tc"></div>')
+      +'<div class="tc" style="gap:5px;flex-direction:column">'
+        +(isAdmin()?'<button class="btn btn-xs btn-edit" onclick="abrirEditarImpl(\''+tid+'\')">✏ Editar</button>':'')
+        +(isAdmin()?'<button class="btn btn-xs btn-del" onclick="rmImpl(\''+tid+'\')">🗑 Remover</button>':'')
+      +'</div>'
     +'</div>';
     el.appendChild(div);
   });
 }
 async function adjImpl(id,usadas,delta){await db.from('tirzepatida_frascos').update({ampolas_usadas:Math.max(0,usadas-delta),atualizado_em:new Date().toISOString()}).eq('id',id);flash();renderImpl();}
 async function rmImpl(id){if(!confirm('Remover lote?'))return;await db.from('tirzepatida_frascos').update({status:'descartado'}).eq('id',id);flash();renderImpl();}
+function abrirEditarImpl(id){
+  db.from('tirzepatida_frascos').select('*,fornecedores(nome)').eq('id',id).single().then(function(r){
+    if(!r.data) return;
+    var t=r.data;
+    document.getElementById('editz-id').value=id;
+    document.getElementById('editz-mg').value=0;
+    var nmEl=document.getElementById('editz-obs');if(nmEl)nmEl.value=t.observacoes||'';
+    document.getElementById('editz-farm').value=t.fornecedores?t.fornecedores.nome:'';
+    document.getElementById('editz-lote').value=t.numero_lote||'';
+    document.getElementById('editz-val').value=t.validade||'';
+    document.getElementById('editz-min').value=t.estoque_min_ampolas||0;
+    var eideal=document.getElementById('editz-ideal');if(eideal)eideal.value=t.estoque_ideal_ampolas||0;
+    document.getElementById('editz-valor').value=t.preco_pago||0;
+    document.getElementById('editz-amp').value=t.ampolas_total||1;
+    document.getElementById('editz-msg').textContent='';
+    abrir('madedittz');
+  });
+}
 async function salvarImpl(){
   var tipo=document.getElementById('impl-tipo').value.trim();
   var dose=document.getElementById('impl-dose').value;
