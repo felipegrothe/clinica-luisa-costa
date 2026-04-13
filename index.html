@@ -1799,7 +1799,7 @@ async function salvarMed(){
 }
 
 // ── EDITAR MED ───────────────────────────────────────────────────────
-function abrirEditar(id,nome,unit,apx,min,ideal){
+async function abrirEditar(id,nome,unit,apx,min,ideal){
   document.getElementById('edit-id').value=id;
   document.getElementById('edit-nome').value=nome;
   document.getElementById('edit-unit').value=unit||'caixas';
