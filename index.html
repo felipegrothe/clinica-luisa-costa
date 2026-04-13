@@ -617,9 +617,18 @@ body{font-family:'Raleway',sans-serif;background:var(--c8);color:var(--c);min-he
     Se já tem estoque em mãos, preencha abaixo para criar o primeiro lote automaticamente.
   </div>
   <div class="fg3">
-    <div class="frow"><label>Qtd. caixas iniciais</label><input type="number" id="acx" min="0" value="0" placeholder="0"></div>
+    <div class="frow"><label>Qtd. caixas iniciais</label><input type="number" id="acx" min="0" value="0" placeholder="0" oninput="calcMedTotal()"></div>
     <div class="frow"><label>Validade</label><input type="date" id="aval"></div>
-    <div class="frow"><label>Valor total (R$)</label><input type="number" id="avalor" min="0" step="0.01" placeholder="0,00"></div>
+    <div class="frow"><label>Amp. por caixa (conf. acima)</label><div id="acx-info" style="font-size:11px;color:var(--c4);padding:8px 0">preencha amp/cx acima</div></div>
+  </div>
+  <div style="background:var(--c8);border:1px solid var(--c6);border-radius:var(--rad);padding:12px 14px;margin-bottom:10px">
+    <div style="font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--c3);margin-bottom:8px">Valor do Estoque Inicial</div>
+    <div class="fg3">
+      <div class="frow"><label>Valor por ampola (R$)</label><input type="number" id="avalamp" min="0" step="0.01" placeholder="0,00" oninput="calcMedTotal()"></div>
+      <div class="frow"><label>Valor por caixa (R$)</label><input type="number" id="avalporcx" min="0" step="0.01" placeholder="0,00" oninput="calcMedTotalDaCx()"></div>
+      <div class="frow"><label>Valor total calculado</label><div id="avalor-calc" style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:500;color:var(--gold);padding:8px 0">—</div></div>
+    </div>
+    <input type="hidden" id="avalor" value="0">
   </div>
   <div class="ma">
     <button class="btn btn-gh" onclick="fechar('madmed')">Cancelar</button>
@@ -708,7 +717,7 @@ body{font-family:'Raleway',sans-serif;background:var(--c8);color:var(--c);min-he
   <h3>Novo Frasco — Tirzepatida</h3>
   <div class="fg2">
     <div class="frow"><label>Apresentação (mg)</label><select id="tmg"><option value="60">60 mg</option><option value="90">90 mg</option></select></div>
-    <div class="frow"><label>Número de ampolas</label><input type="number" id="tamp" min="1" value="1"></div>
+    <div class="frow"><label>Número de ampolas</label><input type="number" id="tamp" min="1" value="1" onchange="calcTirzTotal()"></div>
   </div>
   <div class="fg2">
     <div class="frow"><label>Farmácia</label><input type="text" id="tfarm" placeholder="Nome da farmácia"></div>
@@ -716,7 +725,15 @@ body{font-family:'Raleway',sans-serif;background:var(--c8);color:var(--c);min-he
   </div>
   <div class="fg2">
     <div class="frow"><label>Vencimento</label><input type="date" id="tval"></div>
-    <div class="frow"><label>Valor pago (R$)</label><input type="number" id="tvalor" min="0" step="0.01" placeholder="0,00"></div>
+    <div class="frow"><label>Estoque mínimo (ampolas)</label><input type="number" id="tmin" min="0" value="0" placeholder="0"></div>
+  </div>
+  <div style="background:var(--c8);border:1px solid var(--c6);border-radius:var(--rad);padding:12px 14px;margin-bottom:12px">
+    <div style="font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--c3);margin-bottom:8px">Valor</div>
+    <div class="fg3">
+      <div class="frow"><label>Valor por ampola (R$)</label><input type="number" id="tvalamp" min="0" step="0.01" placeholder="0,00" oninput="calcTirzTotal()"></div>
+      <div class="frow"><label>Valor total (R$)</label><input type="number" id="tvalor" min="0" step="0.01" placeholder="0,00" oninput="calcTirzAmp()"></div>
+      <div class="frow"><label>Preço/amp calculado</label><div id="tvalamp-calc" style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:500;color:var(--gold);padding:8px 0">—</div></div>
+    </div>
   </div>
   <div class="frow"><label>Observação</label><input type="text" id="tobs" placeholder="Paciente, protocolo..."></div>
   <div class="ma">
@@ -724,6 +741,33 @@ body{font-family:'Raleway',sans-serif;background:var(--c8);color:var(--c);min-he
     <button class="btn btn-tl" onclick="salvarTirz()">Salvar Frasco</button>
   </div>
   <div id="tirz-msg" class="fmsg" style="margin-top:8px"></div>
+</div></div>
+
+<div class="mwrap" id="madedittz"><div class="mbox">
+  <h3>Editar Frasco — Tirzepatida</h3>
+  <input type="hidden" id="editz-id">
+  <div class="fg2">
+    <div class="frow"><label>Apresentação (mg)</label><select id="editz-mg"><option value="60">60 mg</option><option value="90">90 mg</option></select></div>
+    <div class="frow"><label>Total de ampolas</label><input type="number" id="editz-amp" min="1"></div>
+  </div>
+  <div class="fg2">
+    <div class="frow"><label>Farmácia</label><input type="text" id="editz-farm"></div>
+    <div class="frow"><label>Lote</label><input type="text" id="editz-lote"></div>
+  </div>
+  <div class="fg2">
+    <div class="frow"><label>Vencimento</label><input type="date" id="editz-val"></div>
+    <div class="frow"><label>Estoque mínimo (ampolas)</label><input type="number" id="editz-min" min="0"></div>
+  </div>
+  <div class="fg2">
+    <div class="frow"><label>Valor total (R$)</label><input type="number" id="editz-valor" min="0" step="0.01"></div>
+    <div class="frow"><label>Observação</label><input type="text" id="editz-obs"></div>
+  </div>
+  <div class="ma">
+    <button class="btn btn-gh" onclick="fechar('madedittz')">Cancelar</button>
+    <button class="btn btn-rd btn-sm" onclick="excluirTirz()">🗑 Excluir</button>
+    <button class="btn btn-tl" onclick="confirmarEdicaoTirz()">Salvar Alterações</button>
+  </div>
+  <div id="editz-msg" class="fmsg" style="margin-top:8px"></div>
 </div></div>
 
 <div class="mwrap" id="madret"><div class="mbox">
@@ -742,9 +786,10 @@ body{font-family:'Raleway',sans-serif;background:var(--c8);color:var(--c);min-he
 </div></div>
 
 <div class="mwrap" id="madusr"><div class="mbox">
-  <h3>Convidar Usuário</h3>
-  <div class="frow"><label>Email</label><input type="email" id="usr-email" placeholder="email@clinica.com.br"></div>
+  <h3>Criar Usuário</h3>
   <div class="frow"><label>Nome completo</label><input type="text" id="usr-nome" placeholder="Nome do colaborador"></div>
+  <div class="frow"><label>Email</label><input type="email" id="usr-email" placeholder="email@clinica.com.br"></div>
+  <div class="frow"><label>Senha temporária</label><input type="password" id="usr-senha" placeholder="Mínimo 6 caracteres"></div>
   <div class="frow"><label>Nível de acesso</label>
     <select id="usr-nivel">
       <option value="colaborador">Colaborador Clínico — estoque e retiradas</option>
@@ -754,7 +799,7 @@ body{font-family:'Raleway',sans-serif;background:var(--c8);color:var(--c);min-he
   </div>
   <div class="ma">
     <button class="btn btn-gh" onclick="fechar('madusr')">Cancelar</button>
-    <button class="btn btn-gd" onclick="convidarUsuario()">Enviar Convite</button>
+    <button class="btn btn-gd" onclick="criarUsuario()">Criar Usuário</button>
   </div>
   <div id="usr-msg" class="fmsg" style="margin-top:8px"></div>
 </div></div>
@@ -827,11 +872,15 @@ async function fazerLogin(){
 async function iniciarApp(user){
   USER=user;
   var {data:perfil}=await db.from('perfis').select('*').eq('id',user.id).single();
+  if(perfil&&perfil.ativo===false){
+    var err=document.getElementById('login-err');
+    if(err)err.textContent='Acesso desativado. Contate o administrador.';
+    await db.auth.signOut();return;
+  }
   PERFIL=perfil;
   NIVEL=perfil?perfil.nivel:'colaborador';
   document.getElementById('user-nome').textContent=perfil?perfil.nome:user.email;
   document.getElementById('user-nivel').textContent=NIVEL;
-  // Ocultar abas por nível
   if(!isAdmin()){
     document.querySelectorAll('.admin-only').forEach(function(el){el.classList.add('hidden');});
   }
@@ -1448,24 +1497,52 @@ async function renderUsuarios(){
   if(!users||!users.length){el.innerHTML='<div class="empty"><div class="es">Nenhum usuário</div></div>';return;}
   el.innerHTML='<div class="hlist">'+users.map(function(u){
     var cor=u.nivel==='administrador'?'var(--gold)':u.nivel==='compras'?'var(--Im)':'var(--Gm)';
-    return'<div class="hi"><div><div class="hn">'+u.nome+'</div><div class="hd">'+u.email+' · Cadastrado: '+fbr(u.criado_em)+'</div></div>'
-      +'<div class="hr"><span style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:'+cor+'">'+u.nivel+'</span></div></div>';
+    var nomeEsc=(u.nome||'').replace(/['"]/g,'');
+    var emailEsc=(u.email||'').replace(/['"]/g,'');
+    return'<div class="hi"><div>'
+      +'<div class="hn">'+u.nome+'</div>'
+      +'<div class="hd">'+u.email+' · Cadastrado: '+fbr(u.criado_em)+'</div>'
+      +(isAdmin()?'<div style="display:flex;gap:6px;margin-top:6px">'
+        +'<select style="font-size:10px;padding:3px 6px;border:1px solid var(--c5);border-radius:4px;background:#fff" onchange="mudarNivel(''+u.id+'',this.value)">'
+          +'<option value="colaborador"'+(u.nivel==='colaborador'?' selected':'')+'>Colaborador</option>'
+          +'<option value="compras"'+(u.nivel==='compras'?' selected':'')+'>Compras</option>'
+          +'<option value="administrador"'+(u.nivel==='administrador'?' selected':'')+'>Administrador</option>'
+        +'</select>'
+        +'<button class="btn btn-xs btn-del" onclick="desativarUsuario(''+u.id+'',''+nomeEsc+'')">Desativar</button>'
+      +'</div>':'')
+    +'</div>'
+    +'<div class="hr"><span style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:'+cor+'">'+u.nivel+'</span></div></div>';
   }).join('')+'</div>';
 }
-async function convidarUsuario(){
+async function mudarNivel(id,nivel){
+  await db.from('perfis').update({nivel}).eq('id',id);
+  flash();renderUsuarios();
+}
+async function desativarUsuario(id,nome){
+  if(!confirm('Desativar acesso de "'+nome+'"? O usuário não conseguirá mais fazer login.'))return;
+  await db.from('perfis').update({ativo:false}).eq('id',id);
+  flash();renderUsuarios();
+}
+async function criarUsuario(){
   var email=document.getElementById('usr-email').value.trim();
   var nome=document.getElementById('usr-nome').value.trim();
+  var senha=document.getElementById('usr-senha').value;
   var nivel=document.getElementById('usr-nivel').value;
   var msg=document.getElementById('usr-msg');
-  if(!email||!nome){msg.style.color='var(--Rm)';msg.textContent='Preencha todos os campos.';return;}
-  // Criar usuário via Supabase Admin (invite)
-  var {data,error}=await db.auth.admin?db.auth.admin.inviteUserByEmail(email):{error:{message:'Use o painel do Supabase para convidar'}};
-  if(error){
-    msg.style.color='var(--Rm)';
-    msg.textContent='Para convidar usuários, acesse o painel do Supabase > Authentication > Users > Invite User. Depois ajuste o nível de acesso aqui.';
-    return;
-  }
-  msg.style.color='var(--Gm)';msg.textContent='Convite enviado para '+email;
+  if(!email||!nome||!senha){msg.style.color='var(--Rm)';msg.textContent='Preencha todos os campos.';return;}
+  if(senha.length<6){msg.style.color='var(--Rm)';msg.textContent='Senha deve ter ao menos 6 caracteres.';return;}
+  msg.style.color='var(--c4)';msg.textContent='Criando usuário...';
+  // Criar via Edge Function (usa service role key no servidor)
+  var resp=await fetch(SUPA_URL+'/functions/v1/ai-proxy',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPA_KEY},
+    body:JSON.stringify({action:'create_user',email,password:senha,nome,nivel})
+  });
+  var d=await resp.json();
+  if(d.error){msg.style.color='var(--Rm)';msg.textContent='Erro: '+d.error;return;}
+  msg.style.color='var(--Gm)';msg.textContent='Usuário criado com sucesso!';
+  setTimeout(function(){fechar('madusr');renderUsuarios();},1500);
+  ['usr-email','usr-nome','usr-senha'].forEach(function(i){document.getElementById(i).value='';});
 }
 
 // ── PDF RETIRADA ─────────────────────────────────────────────────────
@@ -1540,6 +1617,26 @@ function addMsg(role,text){
 function enviarSug(el){document.getElementById('chat-inp').value=el.textContent.trim();enviarChat();}
 
 // ── SALVAR MED ───────────────────────────────────────────────────────
+function calcMedTotal(){
+  var cx=parseFloat(document.getElementById('acx').value)||0;
+  var apx=parseFloat(document.getElementById('ax').value)||1;
+  var vamp=parseFloat(document.getElementById('avalamp').value)||0;
+  var total=cx*apx*vamp;
+  document.getElementById('avalor').value=total.toFixed(2);
+  document.getElementById('avalporcx').value=(apx*vamp).toFixed(2);
+  document.getElementById('avalor-calc').textContent=total>0?fBRL(total):'—';
+  document.getElementById('acx-info').textContent=cx>0?(cx+' cx × '+apx+' amp = '+(cx*apx)+' amp'):'preencha amp/cx acima';
+}
+function calcMedTotalDaCx(){
+  var cx=parseFloat(document.getElementById('acx').value)||0;
+  var apx=parseFloat(document.getElementById('ax').value)||1;
+  var vcx=parseFloat(document.getElementById('avalporcx').value)||0;
+  var total=cx*vcx;
+  var vamp=apx>0?vcx/apx:0;
+  document.getElementById('avalamp').value=vamp.toFixed(2);
+  document.getElementById('avalor').value=total.toFixed(2);
+  document.getElementById('avalor-calc').textContent=total>0?fBRL(total):'—';
+}
 async function salvarMed(){
   var nome=document.getElementById('an').value.trim();
   var msg=document.getElementById('med-msg');
