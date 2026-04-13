@@ -995,6 +995,56 @@ async function renderDash(){
   dcEl.appendChild(mkDC('low','Est. mínimo',dash.itens_estoque_minimo,'itens abaixo',false,'var(--Rm)'));
   var nc=mkDC('','NFs pendentes',dash.nfs_pendentes_aprovacao,'aprovação',false,'var(--Wm)');
   nc.style.cursor='pointer';nc.onclick=function(){tab('nfs');};dcEl.appendChild(nc);
+
+  // Barras de estoque por medicamento
+  var barsEl=document.getElementById('dash-bars');
+  if(barsEl){
+    if(!meds||!meds.length){
+      barsEl.innerHTML='<div style="font-size:11px;color:var(--c4);padding:10px 0">Sem dados de estoque</div>';
+    } else {
+      barsEl.innerHTML=meds.map(function(m){
+        var pct=maxDisp>0?Math.round((m.disponivel/maxDisp)*100):0;
+        var cor=m.status_estoque==='critico'?'var(--Rm)':m.status_validade==='critico'||m.status_validade==='atencao'?'var(--Wm)':'var(--gold)';
+        return'<div class="bar-row"><div class="bar-lbl">'+m.nome+'</div>'
+          +'<div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:'+cor+'"></div></div>'
+          +'<div class="bar-val">'+m.disponivel+'</div></div>';
+      }).join('');
+    }
+  }
+
+  // Alertas urgentes
+  var {data:alertas}=await db.from('alertas_validade').select('*').limit(5);
+  var ae=document.getElementById('dash-alertas');
+  if(ae){
+    ae.innerHTML=(alertas&&alertas.length)?alertas.map(function(a){
+      return'<div class="alert-item"><span class="alert-nm">'+a.item_nome+'</span>'+bdg(a.validade)+'</div>';
+    }).join(''):'<div style="font-size:11px;color:var(--Gm);font-weight:600;padding:6px 0">Nenhum alerta crítico ✓</div>';
+  }
+
+  // Tirzepatida & Implantes
+  var tAmp=(tirzDash||[]).reduce(function(s,t){return s+t.ampolas_disp;},0);
+  var tVal=(tirzDash||[]).reduce(function(s,t){return s+t.preco_pago;},0);
+  var iAmp=(implDash||[]).reduce(function(s,i){return s+i.ampolas_disp;},0);
+  var iVal=(implDash||[]).reduce(function(s,i){return s+i.preco_pago;},0);
+  var tEl=document.getElementById('dash-tirz');
+  if(tEl){
+    tEl.innerHTML=
+      '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:0.5px solid var(--c7)">'
+        +'<div><div style="font-size:13px;font-weight:600;color:var(--c)">Tirzepatida</div>'
+        +'<div style="font-size:11px;color:var(--c4);margin-top:2px">'+(tirzDash?tirzDash.length:0)+' frasco(s)</div></div>'
+        +'<div style="text-align:right">'
+          +'<div style="font-family:Cormorant Garamond,serif;font-size:20px;font-weight:500;color:var(--Tm)">'+tAmp+' amp</div>'
+          +(isAdmin()?'<div style="font-size:11px;color:var(--c4)">'+fBRL(tVal)+' investido</div>':'')
+        +'</div></div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">'
+        +'<div><div style="font-size:13px;font-weight:600;color:var(--c)">Implantes</div>'
+        +'<div style="font-size:11px;color:var(--c4);margin-top:2px">'+(implDash?implDash.length:0)+' lote(s)</div></div>'
+        +'<div style="text-align:right">'
+          +'<div style="font-family:Cormorant Garamond,serif;font-size:20px;font-weight:500;color:var(--Pm)">'+iAmp+' un</div>'
+          +(isAdmin()?'<div style="font-size:11px;color:var(--c4)">'+fBRL(iVal)+' investido</div>':'')
+        +'</div></div>';
+  }
+
   gerarResumoDash(dash);
 }
 
