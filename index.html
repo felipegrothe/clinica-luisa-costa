@@ -1496,63 +1496,301 @@ function gerarPdfRet(ret,qty,obs,data,user,ts){
   +'<div class="ob">'+(obs||'—')+'</div></div>'
   +'<div class="sig"><div><div class="sl">Assinatura do Responsável</div></div><div><div class="sl">Assinatura da Gestão</div></div></div>'
   +'<div class="ft">Gerado em '+tstr+' · Clínica Luisa Costa</div>'
-  +'<script>window.onload=function(){window.print();}<\/script>
+  +'<script>window.onload=function(){window.print();}<\/script></body></html>');
+  w.document.close();
+}
+
+// ── IA CONTEXTO ──────────────────────────────────────────────────────
+async function buildContextoIA(){
+  var {data:meds}=await db.from('estoque_atual').select('*').eq('ativo',true);
+  var {data:tirz}=await db.from('tirzepatida_frascos').select('*,fornecedores(nome)').eq('status','ativo').neq('mg',0);
+  var {data:impl}=await db.from('tirzepatida_frascos').select('*').eq('status','ativo').eq('mg',0);
+  var ctx='Você é o assistente de estoque da Clínica Luisa Costa. Responda SEMPRE em português brasileiro. Seja direto e profissional.\n\n=== ESTOQUE ===\nData: '+new Date().toLocaleDateString('pt-BR')+'\n';
+  (meds||[]).forEach(function(m){ctx+=m.nome+': '+m.disponivel+' disp, val '+fd(m.proxima_validade)+', mín '+m.estoque_min+', ideal '+(m.estoque_ideal||'—')+(m.preco_medio_cx>0?', R$'+m.preco_medio_cx+'/cx':'')+', '+m.status_validade+'/'+m.status_estoque+'\n';});
+  if(tirz&&tirz.length){ctx+='\nTIRZEPATIDA:\n';tirz.forEach(function(t){ctx+=t.mg+'mg - '+(t.fornecedores?t.fornecedores.nome:'—')+' - '+t.ampolas_disp+' amp - val '+fd(t.validade)+'\n';});}
+  if(impl&&impl.length){ctx+='\nIMPLANTES:\n';impl.forEach(function(i){ctx+=(i.observacoes||'Implante')+' - '+i.ampolas_disp+' un - val '+fd(i.validade)+'\n';});}
+  return ctx;
+}
+
+// ── IA CHAT ──────────────────────────────────────────────────────────
+async function enviarChat(){
+  var inp=document.getElementById('chat-inp');
+  var txt=inp.value.trim();if(!txt)return;
+  inp.value='';addMsg('user',txt);
+  var el=document.getElementById('chat-area');
+  var div=document.createElement('div');div.className='chat-msg ai';div.id='typing-ind';
+  div.innerHTML='<div class="chat-av">LC</div><div class="chat-bubble"><div class="typing"><span></span><span></span><span></span></div></div>';
+  el.appendChild(div);el.scrollTop=el.scrollHeight;
+  try{
+    var ctx=await buildContextoIA();
+    var respTxt=await callIA(ctx,txt,700);
+    var ti=document.getElementById('typing-ind');if(ti)ti.remove();
+    addMsg('ai',respTxt||'Não consegui processar.');
+  }catch(e){
+    var ti2=document.getElementById('typing-ind');if(ti2)ti2.remove();
+    addMsg('ai','Erro ao conectar à IA: '+e.message);
+  }
+}
+function addMsg(role,text){
+  var el=document.getElementById('chat-area');
+  var div=document.createElement('div');div.className='chat-msg '+role;
+  div.innerHTML='<div class="chat-av">'+(role==='ai'?'LC':'Eu')+'</div><div class="chat-bubble">'+text.replace(/\n/g,'<br>')+'</div>';
+  el.appendChild(div);el.scrollTop=el.scrollHeight;
+}
+function enviarSug(el){document.getElementById('chat-inp').value=el.textContent.trim();enviarChat();}
+
+// ── SALVAR MED ───────────────────────────────────────────────────────
+async function salvarMed(){
+  var nome=document.getElementById('an').value.trim();
+  var msg=document.getElementById('med-msg');
+  if(!nome){msg.style.color='var(--Rm)';msg.textContent='Informe o nome.';return;}
+  var {data:item,error}=await db.from('itens').insert({
+    nome,unidade:document.getElementById('au').value,
+    amp_por_caixa:parseInt(document.getElementById('ax').value)||1,
+    estoque_min:parseInt(document.getElementById('am').value)||0,
+    estoque_ideal:parseInt(document.getElementById('ai').value)||50,
+    setor_id:document.getElementById('asetor').value,ativo:true
+  }).select('id').single();
+  if(error){msg.style.color='var(--Rm)';msg.textContent='Erro ao salvar.';return;}
+  var cx=parseInt(document.getElementById('acx').value)||0;
+  var val=document.getElementById('aval').value;
+  var apx=parseInt(document.getElementById('ax').value)||1;
+  var valor=parseFloat(document.getElementById('avalor').value)||0;
+  if(cx>0&&val&&item){
+    await db.from('lotes').insert({item_id:item.id,validade:val,quantidade_cx:cx,amp_por_caixa:apx,preco_total:valor,status:'aprovado',aprovado_por:USER.id,aprovado_em:new Date().toISOString(),criado_por:USER.id});
+  }
+  fechar('madmed');flash();renderMeds();
+  ['an','aval','avalor'].forEach(function(i){document.getElementById(i).value='';});
+  document.getElementById('acx').value=0;
+}
+
+// ── EDITAR MED ───────────────────────────────────────────────────────
+function abrirEditar(id,nome,unit,apx,min,ideal){
+  document.getElementById('edit-id').value=id;
+  document.getElementById('edit-nome').value=nome;
+  document.getElementById('edit-unit').value=unit||'caixas';
+  document.getElementById('edit-apx').value=apx||1;
+  document.getElementById('edit-min').value=min||0;
+  document.getElementById('edit-ideal').value=ideal||0;
+  document.getElementById('edit-msg').textContent='';
+  abrir('madedit');
+}
+async function confirmarEdicao(){
+  var id=document.getElementById('edit-id').value;
+  var msg=document.getElementById('edit-msg');
+  var {error}=await db.from('itens').update({nome:document.getElementById('edit-nome').value.trim(),unidade:document.getElementById('edit-unit').value,amp_por_caixa:parseInt(document.getElementById('edit-apx').value)||1,estoque_min:parseInt(document.getElementById('edit-min').value)||0,estoque_ideal:parseInt(document.getElementById('edit-ideal').value)||0,atualizado_em:new Date().toISOString()}).eq('id',id);
+  if(error){msg.style.color='var(--Rm)';msg.textContent='Erro ao salvar.';return;}
+  fechar('madedit');flash();renderMeds();
+}
+async function excluirItem(id,nome){
+  if(!confirm('Excluir "'+nome+'"? Esta ação não pode ser desfeita.'))return;
+  await db.from('itens').update({ativo:false,atualizado_em:new Date().toISOString()}).eq('id',id);
+  flash();renderMeds();
+}
+
+// ── IMPLANTES ─────────────────────────────────────────────────────────
+async function renderImpl(){
+  var f=document.getElementById('ifilt')?document.getElementById('ifilt').value:'all';
+  var query=db.from('tirzepatida_frascos').select('*,fornecedores(nome)').eq('mg',0).eq('status','ativo').order('validade');
+  if(f==='venc') query=query.lt('validade',today());
+  if(f==='crit'){var d30=new Date();d30.setDate(d30.getDate()+30);query=query.lte('validade',d30.toISOString().slice(0,10)).gte('validade',today());}
+  var {data:impl}=await query;
+  impl=impl||[];
+  if(f==='testosterona') impl=impl.filter(function(i){return(i.observacoes||'').toLowerCase().includes('testosterona');});
+  if(f==='estradiol')    impl=impl.filter(function(i){return(i.observacoes||'').toLowerCase().includes('estradiol');});
+  var total=impl.reduce(function(s,i){return s+i.ampolas_disp;},0);
+  var tvlr=impl.reduce(function(s,i){return s+i.preco_pago;},0);
+  var venc=impl.filter(function(i){var sv=st(i.validade);return sv==='venc'||sv==='crit';}).length;
+  var is=document.getElementById('istats');
+  if(is) is.innerHTML='<div class="fc"><div class="fl">Total de Lotes</div><div class="fv" style="color:var(--Pm)">'+impl.length+'</div><div class="fs">lotes ativos</div></div>'+'<div class="fc"><div class="fl">Unidades Disponíveis</div><div class="fv" style="color:var(--Pm)">'+total+'</div><div class="fs">implantes</div></div>'+'<div class="fc"><div class="fl">Total Investido</div><div class="fv">'+fBRL(tvlr)+'</div><div class="fs">'+impl.length+' lote(s)</div></div>'+'<div class="fc"><div class="fl">Atenção / Vencidos</div><div class="fv" style="color:var(--Rm)">'+venc+'</div><div class="fs">verificar validade</div></div>';
+  var el=document.getElementById('ilist'); if(!el) return;
+  document.getElementById('eimpl').style.display=impl.length?'none':'block';
+  el.innerHTML=impl.map(function(t){
+    var sv=st(t.validade),cls=sv==='venc'?'iv':sv==='crit'?'iw':'iok';
+    var obs=t.observacoes||'Implante';
+    var nomeEsc=obs.replace(/['"]/g,'');
+    return'<div class="impl-card '+cls+'"><div class="impl-grid">'
+      +'<div class="tc"><span style="display:inline-flex;align-items:center;justify-content:center;background:var(--Pbg);color:var(--P);border:1.5px solid var(--Pbr);border-radius:var(--rad);font-size:13px;font-weight:700;padding:5px 12px">'+obs+'</span></div>'
+      +'<div class="tc"><div style="font-size:14px;font-weight:700">'+(t.fornecedores?t.fornecedores.nome:'—')+'</div><div style="font-size:11px;color:var(--c4);margin-top:2px">'+(t.numero_lote?'Lote: '+t.numero_lote:'—')+'</div></div>'
+      +'<div class="tc">'+bdg(t.validade)+'<div style="font-size:11px;color:var(--c3);margin-top:4px">'+fd(t.validade)+'</div></div>'
+      +'<div class="tc"><div style="font-family:Cormorant Garamond,serif;font-size:18px;font-weight:500">'+(t.preco_pago>0?fBRL(t.preco_pago):'—')+'</div>'+(t.preco_pago>0&&t.ampolas_total>0?'<div class="lt">'+fBRL(t.preco_por_amp)+'/un</div>':'')+'</div>'
+      +'<div class="tc"><div class="dc"><button class="db" onclick="adjImpl(''+t.id+'','+t.ampolas_usadas+',-1)">−</button><span class="dv" style="'+(t.ampolas_disp<=0?'color:var(--Rm)':'')+'">'+t.ampolas_disp+'</span><button class="db" onclick="adjImpl(''+t.id+'','+t.ampolas_usadas+',1)">+</button></div><div class="lt" style="margin-top:4px">unidades disp.</div><button class="btn btn-xs btn-rd" style="margin-top:6px" onclick="abrirRet('ins',''+t.id+'',''+nomeEsc+'','+t.ampolas_disp+','un')">− Retirar</button></div>'
+      +'<div class="tc">'+(isAdmin()?'<button class="btn btn-del btn-sm" onclick="rmImpl(''+t.id+'')">Remover</button>':'')+'</div>'
+    +'</div></div>';
+  }).join('');
+}
+async function adjImpl(id,usadas,delta){await db.from('tirzepatida_frascos').update({ampolas_usadas:Math.max(0,usadas-delta),atualizado_em:new Date().toISOString()}).eq('id',id);flash();renderImpl();}
+async function rmImpl(id){if(!confirm('Remover lote?'))return;await db.from('tirzepatida_frascos').update({status:'descartado'}).eq('id',id);flash();renderImpl();}
+async function salvarImpl(){
+  var tipo=document.getElementById('impl-tipo').value.trim();
+  var dose=document.getElementById('impl-dose').value;
+  var farm=document.getElementById('impl-farm').value.trim();
+  var val=document.getElementById('impl-val').value;
+  var msg=document.getElementById('impl-msg');
+  if(!tipo){msg.style.color='var(--Rm)';msg.textContent='Informe o nome do implante.';return;}
+  if(!val){msg.style.color='var(--Rm)';msg.textContent='Informe a validade.';return;}
+  var qtd=parseInt(document.getElementById('impl-qtd').value)||1;
+  var valor=parseFloat(document.getElementById('impl-valor').value)||0;
+  var fornId=null;
+  if(farm){var {data:forn}=await db.from('fornecedores').select('id').eq('nome',farm).single();if(forn)fornId=forn.id;else{var {data:nf}=await db.from('fornecedores').insert({nome:farm,tipo:'farmacia'}).select('id').single();if(nf)fornId=nf.id;}}
+  var tipoCompleto=tipo+(dose?' '+dose+'mg':'');
+  var {error}=await db.from('tirzepatida_frascos').insert({mg:0,fornecedor_id:fornId,numero_lote:document.getElementById('impl-lote').value.trim()||null,validade:val,ampolas_total:qtd,ampolas_usadas:0,preco_pago:valor,observacoes:tipoCompleto,criado_por:USER.id,status:'ativo'});
+  if(error){msg.style.color='var(--Rm)';msg.textContent='Erro: '+error.message;return;}
+  fechar('madimpl');flash();renderImpl();
+  ['impl-farm','impl-lote','impl-val','impl-valor','impl-obs','impl-dose','impl-tipo'].forEach(function(i){document.getElementById(i).value='';});
+  document.getElementById('impl-qtd').value=1;
+}
+
+// ── OUTROS INSUMOS ───────────────────────────────────────────────────
+async function renderOutros(){
+  var setores=['Limpeza','Conforto','Escritório'];
+  var ids=['outros-lmp','outros-cnf','outros-esc'];
+  for(var i=0;i<setores.length;i++) await renderSetor(setores[i],ids[i]);
+}
+
+// ── PEDIDOS ──────────────────────────────────────────────────────────
+var pedAlerts=[];
+async function renderPedidos(){
+  var {data:meds}=await db.from('estoque_atual').select('*').eq('ativo',true);
+  pedAlerts=[];
+  (meds||[]).forEach(function(m){
+    if(m.status_estoque==='critico'||m.status_validade==='vencido'||m.status_validade==='critico'){
+      var cr=m.preco_medio_cx>0?Math.max(0,Math.ceil(((m.estoque_ideal||0)-m.disponivel)/(m.amp_por_caixa||1))*m.preco_medio_cx):0;
+      pedAlerts.push({oid:'med'+m.id,nome:m.nome,disp:m.disponivel,min:m.estoque_min||0,ideal:m.estoque_ideal||0,custo:Math.max(0,cr),urg:m.status_validade==='vencido'||m.status_estoque==='critico',setor:m.setor,qtdSug:Math.max(1,Math.ceil(((m.estoque_ideal||0)-m.disponivel)/(m.amp_por_caixa||1)))});
+    }
+  });
+  var setoresIns=['Insumos Clínicos','Limpeza','Conforto','Escritório'];
+  for(var j=0;j<setoresIns.length;j++){
+    var sId=SETORES_DB[setoresIns[j]];if(!sId)continue;
+    var {data:lst}=await db.from('itens').select('*').eq('setor_id',sId).eq('ativo',true);
+    (lst||[]).forEach(function(item){
+      var disp=Math.max(0,(item.estoque_ideal||0)-(item.usado_total||0));
+      if(disp<=(item.estoque_min||0)) pedAlerts.push({oid:item.id,nome:item.nome,disp:disp,min:item.estoque_min||0,ideal:item.estoque_ideal||0,custo:0,urg:true,setor:setoresIns[j],qtdSug:Math.max(1,(item.estoque_ideal||10)-disp)});
+    });
+  }
+  renderPedList();
+}
+function renderPedList(){
+  var el=document.getElementById('pled');if(!el)return;
+  var footer=document.getElementById('ped-footer');
+  if(!pedAlerts.length){el.innerHTML='<div class="empty"><div class="et">Estoque em ordem</div><div class="es">Nenhum item crítico</div></div>';if(footer)footer.style.display='none';return;}
+  if(footer)footer.style.display='flex';
+  var setorMap={};
+  pedAlerts.forEach(function(a){if(!setorMap[a.setor])setorMap[a.setor]=[];setorMap[a.setor].push(a);});
+  var html='';
+  Object.keys(setorMap).forEach(function(setor){
+    var items=setorMap[setor];
+    html+='<div style="background:#fff;border:1px solid var(--c6);border-radius:var(--rad);margin-bottom:12px;overflow:hidden;box-shadow:var(--sh1)">'
+      +'<div style="display:flex;align-items:center;gap:12px;padding:10px 15px;background:var(--c8);border-bottom:1px solid var(--c6)"><div style="font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--c2)">'+setor+'</div><div style="font-size:10px;color:var(--c4);margin-left:auto">'+items.length+' item(s)</div></div>'
+      +'<div style="display:grid;grid-template-columns:28px minmax(150px,2fr) 85px 65px 65px 100px 90px;padding:7px 14px;background:var(--c7);border-bottom:1px solid var(--c7)"><div></div><div style="font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--c4)">Item</div><div style="font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--c4);text-align:center">Urgência</div><div style="font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--c4);text-align:center">Disp.</div><div style="font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--c4);text-align:center">Qtd.</div><div style="font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--c4)">Observação</div><div style="font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--c4);text-align:center">Custo</div></div>';
+    items.forEach(function(a){
+      html+='<div style="display:grid;grid-template-columns:28px minmax(150px,2fr) 85px 65px 65px 100px 90px;align-items:center;border-bottom:1px solid var(--c7)">'
+        +'<div style="padding:10px 12px;text-align:center"><input type="checkbox" class="pchk" checked data-oid="'+a.oid+'" data-nome="'+a.nome+'" data-disp="'+a.disp+'" data-min="'+a.min+'" data-ideal="'+a.ideal+'" data-custo="'+a.custo.toFixed(2)+'" data-urg="'+(a.urg?'1':'0')+'" style="width:15px;height:15px;accent-color:var(--gold);cursor:pointer" onchange="atualizarTotalPed()"></div>'
+        +'<div style="padding:10px 12px"><div style="font-size:13px;font-weight:700;color:var(--c)">'+a.nome+'</div><div style="font-size:9px;color:var(--c4);margin-top:2px">Disp: '+a.disp+' · Ideal: '+a.ideal+'</div></div>'
+        +'<div style="padding:10px 12px;text-align:center">'+(a.urg?'<span class="badge bd" style="font-size:7px">Urgente</span>':'<span class="badge bw" style="font-size:7px">Repor</span>')+'</div>'
+        +'<div style="padding:10px 12px;text-align:center;font-family:Cormorant Garamond,serif;font-size:18px;font-weight:500;color:'+(a.disp<=a.min?'var(--Rm)':'var(--c)')+'">'+a.disp+'</div>'
+        +'<div style="padding:6px 8px;text-align:center"><input type="number" id="pqtd-'+a.oid+'" value="'+(a.qtdSug||1)+'" min="1" style="width:55px;text-align:center;padding:6px;border:1.5px solid var(--c5);border-radius:5px;font-family:Raleway,sans-serif;font-size:13px;font-weight:700;color:var(--c);outline:none;background:var(--c8)" onchange="atualizarTotalPed()"></div>'
+        +'<div style="padding:6px 8px"><input type="text" id="po-'+a.oid+'" placeholder="Observação..." style="width:100%;padding:6px 8px;border:1.5px solid var(--c5);border-radius:5px;font-family:Raleway,sans-serif;font-size:11px;color:var(--c);outline:none;background:var(--c8)"></div>'
+        +'<div style="padding:10px 12px;text-align:center;font-size:13px;font-weight:700;color:var(--Wm)">'+(a.custo>0?fBRL(a.custo):'—')+'</div>'
+      +'</div>';
+    });
+    html+='</div>';
+  });
+  el.innerHTML=html;
+  atualizarTotalPed();
+}
+function atualizarTotalPed(){
+  var cbs=document.querySelectorAll('.pchk:checked');
+  var tot=0;cbs.forEach(function(cb){tot+=parseFloat(cb.dataset.custo)||0;});
+  var totEl=document.getElementById('ptot');var cntEl=document.getElementById('ped-count');
+  if(totEl) totEl.innerHTML=tot>0?'Custo total estimado: <strong style="color:var(--Wm)">'+fBRL(tot)+'</strong>':'Itens sem preço cadastrado';
+  if(cntEl) cntEl.textContent=cbs.length+' item(s) selecionado(s)';
+}
+function selTodos(){document.querySelectorAll('.pchk').forEach(function(cb){cb.checked=true;});atualizarTotalPed();}
+async function analisarPedidoIA(){
+  var iaBox=document.getElementById('ped-ia-box');var iaTxt=document.getElementById('ped-ia-txt');
+  if(!iaBox||!iaTxt)return;
+  iaBox.style.display='block';iaTxt.textContent='Analisando...';
+  try{
+    var ctx=await buildContextoIA();
+    var itens=pedAlerts.map(function(a){return a.nome+' (disp:'+a.disp+',ideal:'+a.ideal+',urgente:'+(a.urg?'sim':'não')+')';}).join(', ');
+    var txt3=await callIA(ctx,'Analise os itens críticos e sugira a ordem de prioridade para reposição. Seja direto e prático. Itens: '+itens,500);
+    iaTxt.textContent=txt3||'Análise não disponível.';
+  }catch(e){iaTxt.textContent='Erro ao conectar à IA: '+e.message;}
+}
+function pdfPedido(){
+  var cbs=document.querySelectorAll('.pchk:checked');
+  if(!cbs.length){alert('Selecione ao menos um item.');return;}
+  var itens=[],tot=0;
+  cbs.forEach(function(cb){
+    var d=cb.dataset,c=parseFloat(d.custo||0);tot+=c;
+    var qtd=document.getElementById('pqtd-'+d.oid)?parseInt(document.getElementById('pqtd-'+d.oid).value)||1:1;
+    var obs=document.getElementById('po-'+d.oid)?document.getElementById('po-'+d.oid).value:'';
+    itens.push({nome:d.nome,disp:d.disp,min:d.min,ideal:d.ideal,custo:c,obs:obs,urg:d.urg==='1',qtd:qtd});
+  });
+  var tstr=new Date().toLocaleString('pt-BR');
+  var w=window.open('','_blank','width=800,height=700');if(!w)return;
+  var rows=itens.map(function(it){return'<tr><td><strong>'+it.nome+'</strong>'+(it.urg?'<span style="background:#fdf0f0;color:#7a2e2e;border:1px solid #e0b4b4;border-radius:20px;font-size:8px;padding:2px 7px;margin-left:6px">Urgente</span>':'')+(it.obs?'<div style="font-size:11px;color:#6e6560;font-style:italic;margin-top:3px">Obs: '+it.obs+'</div>':'')+'</td><td style="text-align:center">'+it.disp+'</td><td style="text-align:center">'+it.min+'</td><td style="text-align:center">'+it.ideal+'</td><td style="text-align:center;font-weight:700">'+it.qtd+'</td><td>'+(it.custo>0?fBRL(it.custo):'—')+'</td></tr>';}).join('');
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Pedido de Orçamento</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Georgia,serif;color:#2c2824;padding:50px;font-size:13px}.hdr{border-bottom:3px solid #a8843e;padding-bottom:18px;margin-bottom:26px;display:flex;justify-content:space-between;align-items:flex-end}.cn{font-size:22px;letter-spacing:5px;text-transform:uppercase;font-weight:normal}table{width:100%;border-collapse:collapse;margin-top:14px}th{background:#2c2824;color:#faf8f5;padding:9px 12px;font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:normal;text-align:left}td{padding:10px 12px;border-bottom:1px solid #e4ddd6;font-size:12px;vertical-align:top}.tr td{background:#f8f5f1;font-weight:bold;border-top:2px solid #a8843e}.sig{margin-top:32px;display:grid;grid-template-columns:1fr 1fr;gap:40px}.sl{border-top:1px solid #2c2824;margin-top:32px;padding-top:6px;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#9a8f84;text-align:center}.ft{margin-top:24px;padding-top:10px;border-top:1px solid #e4ddd6;font-size:9px;color:#9a8f84;text-align:center}</style></head><body>'
+    +'<div class="hdr"><div><div class="cn">Luisa Costa</div><div style="font-size:9px;letter-spacing:4px;text-transform:uppercase;color:#9a8f84;margin-top:4px">Clínica Médica — Solicitação de Orçamento</div></div><div style="text-align:right"><div style="font-size:15px;letter-spacing:3px;text-transform:uppercase;margin-bottom:3px">Pedido de Orçamento</div><div style="font-size:10px;color:#9a8f84">Emitido em '+tstr+'</div></div></div>'
+    +'<table><thead><tr><th>Item</th><th style="text-align:center">Disponível</th><th style="text-align:center">Mínimo</th><th style="text-align:center">Ideal</th><th style="text-align:center">Qtd. Solicitada</th><th>Custo Est.</th></tr></thead>'
+    +'<tbody>'+rows+'<tr class="tr"><td colspan="5" style="text-align:right">Custo Total Estimado</td><td>'+fBRL(tot)+'</td></tr></tbody></table>'
+    +'<div style="margin-top:14px;padding:10px 14px;border:1px dashed #c8bdb2;border-radius:4px;font-size:11px;color:#6e6560">Farmácia: _________________________ &nbsp;&nbsp;&nbsp; Data da Cotação: _________________ &nbsp;&nbsp;&nbsp; Validade da Proposta: _____________</div>'
+    +'<div class="sig"><div><div class="sl">Responsável — Clínica Luisa Costa</div></div><div><div class="sl">Farmácia / Fornecedor</div></div></div>'
+    +'<div class="ft">Clínica Luisa Costa · Gestão de Estoque · '+tstr+'</div>'
+    +'<script>window.onload=function(){window.print();}<\/script></body></html>');
+  w.document.close();
+}
+
+// ── SALVAR INSUMO (modal) ────────────────────────────────────────────
+var _insCtx={setor:'',setorId:'',cid:''};
+function addInsManual(setor,setorId,cid){
+  _insCtx={setor,setorId,cid};
+  document.getElementById('ins-nome').value='';
+  document.getElementById('ins-unit').value='un';
+  document.getElementById('ins-min').value='2';
+  document.getElementById('ins-ideal').value='10';
+  document.getElementById('ins-msg').textContent='';
+  abrir('madins');
+}
+async function salvarIns(){
+  var nome=document.getElementById('ins-nome').value.trim();
+  var msg=document.getElementById('ins-msg');
+  if(!nome){msg.style.color='var(--Rm)';msg.textContent='Informe o nome.';return;}
+  var {error}=await db.from('itens').insert({nome,setor_id:_insCtx.setorId,unidade:document.getElementById('ins-unit').value||'un',estoque_min:parseInt(document.getElementById('ins-min').value)||2,estoque_ideal:parseInt(document.getElementById('ins-ideal').value)||10,amp_por_caixa:1,ativo:true});
+  if(error){msg.style.color='var(--Rm)';msg.textContent='Erro ao salvar.';return;}
+  fechar('madins');flash();renderSetor(_insCtx.setor,_insCtx.cid);
+}
+</script>
+
 <div class="mwrap" id="madins"><div class="mbox">
   <h3>Adicionar Item</h3>
   <div class="frow"><label>Nome do item</label><input type="text" id="ins-nome" placeholder="Ex: Luva cirúrgica, Café em pó..."></div>
   <div class="fg3">
-    <div class="frow"><label>Unidade</label>
-      <select id="ins-unit">
-        <option value="un">unidades</option>
-        <option value="cx">caixas</option>
-        <option value="pct">pacotes</option>
-        <option value="L">litros</option>
-        <option value="kg">kg</option>
-        <option value="rolo">rolos</option>
-      </select>
-    </div>
+    <div class="frow"><label>Unidade</label><select id="ins-unit"><option value="un">unidades</option><option value="cx">caixas</option><option value="pct">pacotes</option><option value="L">litros</option><option value="kg">kg</option><option value="rolo">rolos</option></select></div>
     <div class="frow"><label>Estoque mínimo</label><input type="number" id="ins-min" min="0" value="2"></div>
     <div class="frow"><label>Estoque ideal</label><input type="number" id="ins-ideal" min="0" value="10"></div>
   </div>
-  <div class="ma">
-    <button class="btn btn-gh" onclick="fechar('madins')">Cancelar</button>
-    <button class="btn btn-gd" onclick="salvarIns()">Adicionar</button>
-  </div>
+  <div class="ma"><button class="btn btn-gh" onclick="fechar('madins')">Cancelar</button><button class="btn btn-gd" onclick="salvarIns()">Adicionar</button></div>
   <div id="ins-msg" class="fmsg" style="margin-top:8px"></div>
 </div></div>
+
 <div class="mwrap" id="madnf"><div class="mbox">
   <h3>Nova Entrada / Nota Fiscal</h3>
-  <div class="frow"><label>Medicamento / Item</label>
-    <select id="nf-item-sel" onchange="onNFItemSel(this.value)">
-      <option value="">Selecione...</option>
-    </select>
-  </div>
-  <div class="fg2">
-    <div class="frow"><label>Validade</label><input type="date" id="nf-lval"></div>
-    <div class="frow"><label>Número do lote</label><input type="text" id="nf-llote" placeholder="LOT-2025-001"></div>
-  </div>
-  <div class="fg3">
-    <div class="frow"><label>Qtd. caixas</label><input type="number" id="nf-lcx" min="1" value="1"></div>
-    <div class="frow"><label>Amp. por caixa</label><input type="number" id="nf-lapx" min="1" value="1"></div>
-    <div class="frow"><label>Valor total (R$)</label><input type="number" id="nf-lvalor" min="0" step="0.01" placeholder="0,00"></div>
-  </div>
+  <div class="frow"><label>Medicamento / Item</label><select id="nf-item-sel" onchange="onNFItemSel(this.value)"><option value="">Selecione...</option></select></div>
+  <div class="fg2"><div class="frow"><label>Validade</label><input type="date" id="nf-lval"></div><div class="frow"><label>Número do lote</label><input type="text" id="nf-llote" placeholder="LOT-2025-001"></div></div>
+  <div class="fg3"><div class="frow"><label>Qtd. caixas</label><input type="number" id="nf-lcx" min="1" value="1"></div><div class="frow"><label>Amp. por caixa</label><input type="number" id="nf-lapx" min="1" value="1"></div><div class="frow"><label>Valor total (R$)</label><input type="number" id="nf-lvalor" min="0" step="0.01" placeholder="0,00"></div></div>
   <div class="frow"><label>Farmácia / Fornecedor</label><input type="text" id="nf-lfarm" placeholder="Nome da farmácia"></div>
-  <div class="frow">
-    <label>Nota Fiscal (PDF ou imagem) — opcional</label>
-    <div style="border:1.5px dashed var(--c5);border-radius:var(--rad);padding:14px;text-align:center;cursor:pointer;background:var(--c8);transition:.2s" onclick="document.getElementById('nf-upload').click()" id="nf-drop-area">
+  <div class="frow"><label>Nota Fiscal (PDF ou imagem) — opcional</label>
+    <div style="border:1.5px dashed var(--c5);border-radius:var(--rad);padding:14px;text-align:center;cursor:pointer;background:var(--c8)" onclick="document.getElementById('nf-upload').click()" id="nf-drop-area">
       <div style="font-size:20px;margin-bottom:4px">📎</div>
       <div style="font-size:11px;color:var(--c4)">Clique para anexar o PDF ou imagem da NF</div>
       <div style="font-size:10px;color:var(--gold);font-weight:700;margin-top:4px" id="nf-file-name">Nenhum arquivo selecionado</div>
     </div>
     <input type="file" id="nf-upload" accept=".pdf,image/*" style="display:none" onchange="onNFUpload(this)">
   </div>
-  <div style="background:var(--Wbg);border:1px solid var(--Wbr);border-radius:var(--rad);padding:10px 14px;font-size:11px;color:var(--W);margin-bottom:4px">
-    ⚠ Este lote ficará <strong>pendente de aprovação</strong> pelo administrador antes de entrar no estoque.
-  </div>
-  <div class="ma">
-    <button class="btn btn-gh" onclick="fechar('madnf')">Cancelar</button>
-    <button class="btn btn-gd" onclick="salvarNF()">Enviar para Aprovação</button>
-  </div>
+  <div style="background:var(--Wbg);border:1px solid var(--Wbr);border-radius:var(--rad);padding:10px 14px;font-size:11px;color:var(--W);margin-bottom:4px">⚠ Este lote ficará <strong>pendente de aprovação</strong> pelo administrador antes de entrar no estoque.</div>
+  <div class="ma"><button class="btn btn-gh" onclick="fechar('madnf')">Cancelar</button><button class="btn btn-gd" onclick="salvarNF()">Enviar para Aprovação</button></div>
   <div id="nf-msg" class="fmsg" style="margin-top:8px"></div>
 </div></div>
 </body>
