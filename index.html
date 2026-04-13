@@ -1495,24 +1495,31 @@ async function renderUsuarios(){
   var {data:users}=await db.from('perfis').select('*').order('criado_em');
   var el=document.getElementById('usuarios-lista');
   if(!users||!users.length){el.innerHTML='<div class="empty"><div class="es">Nenhum usuário</div></div>';return;}
-  el.innerHTML='<div class="hlist">'+users.map(function(u){
+  var wrap=document.createElement('div');wrap.className='hlist';
+  (users||[]).forEach(function(u){
     var cor=u.nivel==='administrador'?'var(--gold)':u.nivel==='compras'?'var(--Im)':'var(--Gm)';
-    var nomeEsc=(u.nome||'').replace(/['"]/g,'');
-    var emailEsc=(u.email||'').replace(/['"]/g,'');
-    return'<div class="hi"><div>'
-      +'<div class="hn">'+u.nome+'</div>'
-      +'<div class="hd">'+u.email+' · Cadastrado: '+fbr(u.criado_em)+'</div>'
-      +(isAdmin()?'<div style="display:flex;gap:6px;margin-top:6px">'
-        +'<select style="font-size:10px;padding:3px 6px;border:1px solid var(--c5);border-radius:4px;background:#fff" onchange="mudarNivel(''+u.id+'',this.value)">'
-          +'<option value="colaborador"'+(u.nivel==='colaborador'?' selected':'')+'>Colaborador</option>'
-          +'<option value="compras"'+(u.nivel==='compras'?' selected':'')+'>Compras</option>'
-          +'<option value="administrador"'+(u.nivel==='administrador'?' selected':'')+'>Administrador</option>'
-        +'</select>'
-        +'<button class="btn btn-xs btn-del" onclick="desativarUsuario(''+u.id+'',''+nomeEsc+'')">Desativar</button>'
-      +'</div>':'')
-    +'</div>'
-    +'<div class="hr"><span style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:'+cor+'">'+u.nivel+'</span></div></div>';
-  }).join('')+'</div>';
+    var uid=u.id, unome=u.nome||'', uemail=u.email||'';
+    var div=document.createElement('div');div.className='hi';
+    var left=document.createElement('div');
+    left.innerHTML='<div class="hn">'+unome+'</div><div class="hd">'+uemail+' · Cadastrado: '+fbr(u.criado_em)+'</div>';
+    if(isAdmin()){
+      var acoes=document.createElement('div');acoes.style.cssText='display:flex;gap:6px;margin-top:6px';
+      var sel=document.createElement('select');
+      sel.style.cssText='font-size:10px;padding:3px 6px;border:1px solid var(--c5);border-radius:4px;background:#fff';
+      ['colaborador','compras','administrador'].forEach(function(n){
+        var opt=document.createElement('option');opt.value=n;opt.textContent=n.charAt(0).toUpperCase()+n.slice(1);
+        if(u.nivel===n)opt.selected=true;sel.appendChild(opt);
+      });
+      sel.onchange=function(){mudarNivel(uid,this.value);};
+      var btnDes=document.createElement('button');btnDes.className='btn btn-xs btn-del';btnDes.textContent='Desativar';
+      btnDes.onclick=function(){desativarUsuario(uid,unome);};
+      acoes.appendChild(sel);acoes.appendChild(btnDes);left.appendChild(acoes);
+    }
+    var right=document.createElement('div');right.className='hr';
+    right.innerHTML='<span style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:'+cor+'">'+u.nivel+'</span>';
+    div.appendChild(left);div.appendChild(right);wrap.appendChild(div);
+  });
+  el.innerHTML='';el.appendChild(wrap);
 }
 async function mudarNivel(id,nivel){
   await db.from('perfis').update({nivel}).eq('id',id);
