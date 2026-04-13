@@ -496,7 +496,7 @@ body{font-family:'Raleway',sans-serif;background:var(--c8);color:var(--c);min-he
   <!-- NOTAS FISCAIS -->
   <div id="pg-nfs" class="pg">
     <div class="sdiv"><div class="sdiv-t">Notas Fiscais Pendentes de Aprovação</div><div class="sdiv-l"></div>
-      <button class="btn btn-gd btn-sm" onclick="abrir('madlote-nf')">+ Nova Entrada</button>
+      <button class="btn btn-gd btn-sm" onclick="abrirNFUpload()">+ Nova Entrada / NF</button>
     </div>
     <div id="nfs-pendentes"></div>
     <div class="sdiv" style="margin-top:20px"><div class="sdiv-t">Histórico de NFs</div><div class="sdiv-l"></div></div>
@@ -763,6 +763,16 @@ body{font-family:'Raleway',sans-serif;background:var(--c8);color:var(--c);min-he
 // ── SUPABASE ─────────────────────────────────────────────────────────
 const SUPA_URL  = 'https://eeianweavbnrikzqquxq.supabase.co';
 const SUPA_KEY  = 'sb_publishable_RWouef1R4SySi3PyBxq0lQ_AEEpGHly';
+const AI_PROXY  = SUPA_URL+'/functions/v1/ai-proxy';
+async function callIA(system,message,max_tokens){
+  max_tokens=max_tokens||700;
+  var resp=await fetch(AI_PROXY,{method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPA_KEY},
+    body:JSON.stringify({system,message,max_tokens})});
+  var d=await resp.json();
+  if(d.error) throw new Error(d.error.message||JSON.stringify(d.error));
+  return d.content&&d.content[0]&&d.content[0].text?d.content[0].text:'';
+}
 const { createClient } = supabase;
 const db = createClient(SUPA_URL, SUPA_KEY);
 
@@ -917,14 +927,8 @@ async function gerarResumoDash(dash){
   if(!el) return;
   try{
     var ctx=await buildContextoIA();
-    var resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:280,system:ctx,
-        messages:[{role:'user',content:'Gere um resumo executivo do estoque em 2 frases diretas. Destaque o que é mais urgente hoje.'}]})
-    });
-    var d=await resp.json();
-    if(d.error) throw new Error(d.error.message);
-    el.textContent=(d.content&&d.content[0]&&d.content[0].text)||'Estoque carregado.';
+    var txt=await callIA(ctx,'Gere um resumo executivo do estoque em 2 frases diretas. Destaque o que é mais urgente hoje.',280);
+    el.textContent=txt||'Estoque carregado.';
   }catch(e){
     el.textContent='Estoque avaliado em '+fBRL(dash.valor_total_estoque)+'.'+(dash.itens_vencidos>0?' '+dash.itens_vencidos+' item(s) vencido(s) precisam de atenção imediata.':'')+(dash.itens_estoque_minimo>0?' '+dash.itens_estoque_minimo+' item(s) abaixo do estoque mínimo.':' Tudo dentro do prazo.');
   }
@@ -980,9 +984,9 @@ async function renderMeds(){
         +'<div class="mc" style="gap:5px;flex-direction:column;justify-content:center;padding:10px 12px">'
           +'<button class="btn btn-gd btn-sm" onclick="abrirLote(\''+m.id+'\',\''+nomeEsc+'\','+m.amp_por_caixa+')">+ Entrada</button>'
           +'<button class="btn btn-rd btn-sm" onclick="abrirRet(\'med\',\''+m.id+'\',\''+nomeEsc+'\','+m.disponivel+',\'amp\')">− Retirar</button>'
-          +(isAdmin()?'<div style="display:flex;gap:4px;margin-top:3px">'
-            +'<button class="btn btn-xs" style="background:#fff;border-color:var(--c5);color:var(--c2);flex:1;white-space:nowrap" onclick="abrirEditar(\''+m.id+'\',\''+nomeEsc+'\',\''+m.unidade+'\','+m.amp_por_caixa+','+(m.estoque_min||0)+','+(m.estoque_ideal||0)+')">✏ Editar</button>'
-            +'<button class="btn btn-xs btn-del" style="flex-shrink:0;padding:4px 8px" onclick="excluirItem(\''+m.id+'\',\''+nomeEsc+'\')">🗑</button>'
+          +(isAdmin()?'<div style="display:flex;gap:4px;margin-top:3px;width:100%">'
+            +'<button class="btn btn-xs" style="background:#fff;border-color:var(--c5);color:var(--c2);flex:1;font-size:7.5px;padding:4px 6px" onclick="abrirEditar(\''+m.id+'\',\''+nomeEsc+'\',\''+m.unidade+'\','+m.amp_por_caixa+','+(m.estoque_min||0)+','+(m.estoque_ideal||0)+')">✏ Editar</button>'
+            +'<button class="btn btn-xs btn-del" style="font-size:7.5px;padding:4px 8px" onclick="excluirItem(\''+m.id+'\',\''+nomeEsc+'\')">🗑</button>'
           +'</div>':'')
         +'</div>'
       +'</div>'
@@ -1225,6 +1229,55 @@ async function salvarTirz(){
 }
 
 // ── NF UPLOAD ────────────────────────────────────────────────────────
+function abrirNFUpload(){
+  // Abre o modal de lote com primeiro item disponível ou genérico
+  var sel=document.getElementById('nf-item-sel');
+  if(sel) sel.innerHTML='<option value="">Selecione o medicamento...</option>';
+  db.from('itens').select('id,nome').eq('ativo',true).order('nome').then(function(r){
+    if(r.data&&sel){
+      r.data.forEach(function(i){
+        var opt=document.createElement('option');opt.value=i.id;opt.textContent=i.nome;sel.appendChild(opt);
+      });
+    }
+  });
+  document.getElementById('nf-file-name').textContent='Nenhum arquivo selecionado';
+  document.getElementById('nf-drop-area').style.borderColor='var(--c5)';
+  document.getElementById('nf-drop-area').style.background='var(--c8)';
+  abrir('madnf');
+}
+function onNFItemSel(id){
+  if(!id) return;
+  db.from('itens').select('amp_por_caixa').eq('id',id).single().then(function(r){
+    if(r.data) document.getElementById('nf-lapx').value=r.data.amp_por_caixa||1;
+  });
+}
+async function salvarNF(){
+  var itemId=document.getElementById('nf-item-sel').value;
+  var val=document.getElementById('nf-lval').value;
+  var msg=document.getElementById('nf-msg');
+  if(!itemId){msg.style.color='var(--Rm)';msg.textContent='Selecione o medicamento.';return;}
+  if(!val){msg.style.color='var(--Rm)';msg.textContent='Informe a validade.';return;}
+  var cx=parseInt(document.getElementById('nf-lcx').value)||1;
+  var apx=parseInt(document.getElementById('nf-lapx').value)||1;
+  var valor=parseFloat(document.getElementById('nf-lvalor').value)||0;
+  var farm=document.getElementById('nf-lfarm').value.trim();
+  var fornId=null;
+  if(farm){
+    var {data:forn}=await db.from('fornecedores').select('id').eq('nome',farm).single();
+    if(forn) fornId=forn.id;
+    else{var {data:nfn}=await db.from('fornecedores').insert({nome:farm,tipo:'farmacia'}).select('id').single();if(nfn)fornId=nfn.id;}
+  }
+  var {error}=await db.from('lotes').insert({
+    item_id:itemId,numero_lote:document.getElementById('nf-llote').value.trim()||null,
+    validade:val,quantidade_cx:cx,amp_por_caixa:apx,preco_total:valor,
+    fornecedor_id:fornId,status:'pendente',criado_por:USER.id
+  });
+  if(error){msg.style.color='var(--Rm)';msg.textContent='Erro ao salvar: '+error.message;return;}
+  fechar('madnf');flash();renderNFs();
+  ['nf-lval','nf-llote','nf-lfarm','nf-lvalor'].forEach(function(i){document.getElementById(i).value='';});
+  document.getElementById('nf-lcx').value=1;
+  document.getElementById('nf-file-name').textContent='Nenhum arquivo selecionado';
+}
 function onNFUpload(input){
   var f=input.files[0];
   if(!f) return;
@@ -1361,10 +1414,8 @@ async function analisarFornecedores(){
   var ctx=await buildContextoIA();
   var prompt='Analise os dados de fornecedores e indique onde vale mais a pena comprar cada medicamento. Seja direto e prático. Máximo 3 parágrafos.';
   try{
-    var resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,system:ctx+'\n\nComparativo de fornecedores:\n'+JSON.stringify(comp),messages:[{role:'user',content:prompt}]})});
-    var d=await resp.json();
-    el.textContent=(d.content&&d.content[0]&&d.content[0].text)||'Análise não disponível.';
+    var txt2=await callIA(ctx+'\n\nComparativo de fornecedores:\n'+JSON.stringify(comp),prompt,400);
+    el.textContent=txt2||'Análise não disponível.';
   }catch(e){el.textContent='Erro ao conectar à IA.';}
 }
 
@@ -1445,7 +1496,66 @@ function gerarPdfRet(ret,qty,obs,data,user,ts){
   +'<div class="ob">'+(obs||'—')+'</div></div>'
   +'<div class="sig"><div><div class="sl">Assinatura do Responsável</div></div><div><div class="sl">Assinatura da Gestão</div></div></div>'
   +'<div class="ft">Gerado em '+tstr+' · Clínica Luisa Costa</div>'
-  +'<script>window.onload=function(){window.print();}<\/script></body></html>');
+  +'<script>window.onload=function(){window.print();}<\/script>
+<div class="mwrap" id="madins"><div class="mbox">
+  <h3>Adicionar Item</h3>
+  <div class="frow"><label>Nome do item</label><input type="text" id="ins-nome" placeholder="Ex: Luva cirúrgica, Café em pó..."></div>
+  <div class="fg3">
+    <div class="frow"><label>Unidade</label>
+      <select id="ins-unit">
+        <option value="un">unidades</option>
+        <option value="cx">caixas</option>
+        <option value="pct">pacotes</option>
+        <option value="L">litros</option>
+        <option value="kg">kg</option>
+        <option value="rolo">rolos</option>
+      </select>
+    </div>
+    <div class="frow"><label>Estoque mínimo</label><input type="number" id="ins-min" min="0" value="2"></div>
+    <div class="frow"><label>Estoque ideal</label><input type="number" id="ins-ideal" min="0" value="10"></div>
+  </div>
+  <div class="ma">
+    <button class="btn btn-gh" onclick="fechar('madins')">Cancelar</button>
+    <button class="btn btn-gd" onclick="salvarIns()">Adicionar</button>
+  </div>
+  <div id="ins-msg" class="fmsg" style="margin-top:8px"></div>
+</div></div>
+<div class="mwrap" id="madnf"><div class="mbox">
+  <h3>Nova Entrada / Nota Fiscal</h3>
+  <div class="frow"><label>Medicamento / Item</label>
+    <select id="nf-item-sel" onchange="onNFItemSel(this.value)">
+      <option value="">Selecione...</option>
+    </select>
+  </div>
+  <div class="fg2">
+    <div class="frow"><label>Validade</label><input type="date" id="nf-lval"></div>
+    <div class="frow"><label>Número do lote</label><input type="text" id="nf-llote" placeholder="LOT-2025-001"></div>
+  </div>
+  <div class="fg3">
+    <div class="frow"><label>Qtd. caixas</label><input type="number" id="nf-lcx" min="1" value="1"></div>
+    <div class="frow"><label>Amp. por caixa</label><input type="number" id="nf-lapx" min="1" value="1"></div>
+    <div class="frow"><label>Valor total (R$)</label><input type="number" id="nf-lvalor" min="0" step="0.01" placeholder="0,00"></div>
+  </div>
+  <div class="frow"><label>Farmácia / Fornecedor</label><input type="text" id="nf-lfarm" placeholder="Nome da farmácia"></div>
+  <div class="frow">
+    <label>Nota Fiscal (PDF ou imagem) — opcional</label>
+    <div style="border:1.5px dashed var(--c5);border-radius:var(--rad);padding:14px;text-align:center;cursor:pointer;background:var(--c8);transition:.2s" onclick="document.getElementById('nf-upload').click()" id="nf-drop-area">
+      <div style="font-size:20px;margin-bottom:4px">📎</div>
+      <div style="font-size:11px;color:var(--c4)">Clique para anexar o PDF ou imagem da NF</div>
+      <div style="font-size:10px;color:var(--gold);font-weight:700;margin-top:4px" id="nf-file-name">Nenhum arquivo selecionado</div>
+    </div>
+    <input type="file" id="nf-upload" accept=".pdf,image/*" style="display:none" onchange="onNFUpload(this)">
+  </div>
+  <div style="background:var(--Wbg);border:1px solid var(--Wbr);border-radius:var(--rad);padding:10px 14px;font-size:11px;color:var(--W);margin-bottom:4px">
+    ⚠ Este lote ficará <strong>pendente de aprovação</strong> pelo administrador antes de entrar no estoque.
+  </div>
+  <div class="ma">
+    <button class="btn btn-gh" onclick="fechar('madnf')">Cancelar</button>
+    <button class="btn btn-gd" onclick="salvarNF()">Enviar para Aprovação</button>
+  </div>
+  <div id="nf-msg" class="fmsg" style="margin-top:8px"></div>
+</div></div>
+</body></html>');
   w.document.close();
 }
 
@@ -1712,14 +1822,8 @@ async function analisarPedidoIA(){
   try{
     var ctx=await buildContextoIA();
     var itens=pedAlerts.map(function(a){return a.nome+' (disp:'+a.disp+', ideal:'+a.ideal+', urgente:'+(a.urg?'sim':'não')+')';}).join(', ');
-    var resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:500,system:ctx,
-        messages:[{role:'user',content:'Analise os itens críticos e sugira a ordem de prioridade para reposição. Seja direto e prático. Itens: '+itens}]})
-    });
-    var d=await resp.json();
-    if(d.error) throw new Error(d.error.message);
-    iaTxt.textContent=(d.content&&d.content[0]&&d.content[0].text)||'Análise não disponível.';
+    var txt3=await callIA(ctx,'Analise os itens críticos e sugira a ordem de prioridade para reposição. Seja direto e prático. Itens: '+itens,500);
+    iaTxt.textContent=txt3||'Análise não disponível.';
   }catch(e){iaTxt.textContent='Erro ao conectar à IA: '+e.message;}
 }
 
@@ -1767,7 +1871,66 @@ function pdfPedido(){
   +'<div class="campo">Farmácia: _________________________ &nbsp;&nbsp;&nbsp; Data da Cotação: _________________ &nbsp;&nbsp;&nbsp; Validade da Proposta: _____________</div>'
   +'<div class="sig"><div><div class="sl">Responsável — Clínica Luisa Costa</div></div><div><div class="sl">Farmácia / Fornecedor</div></div></div>'
   +'<div class="ft">Clínica Luisa Costa · Gestão de Estoque · '+tstr+'</div>'
-  +'<script>window.onload=function(){window.print();}<\/script></body></html>');
+  +'<script>window.onload=function(){window.print();}<\/script>
+<div class="mwrap" id="madins"><div class="mbox">
+  <h3>Adicionar Item</h3>
+  <div class="frow"><label>Nome do item</label><input type="text" id="ins-nome" placeholder="Ex: Luva cirúrgica, Café em pó..."></div>
+  <div class="fg3">
+    <div class="frow"><label>Unidade</label>
+      <select id="ins-unit">
+        <option value="un">unidades</option>
+        <option value="cx">caixas</option>
+        <option value="pct">pacotes</option>
+        <option value="L">litros</option>
+        <option value="kg">kg</option>
+        <option value="rolo">rolos</option>
+      </select>
+    </div>
+    <div class="frow"><label>Estoque mínimo</label><input type="number" id="ins-min" min="0" value="2"></div>
+    <div class="frow"><label>Estoque ideal</label><input type="number" id="ins-ideal" min="0" value="10"></div>
+  </div>
+  <div class="ma">
+    <button class="btn btn-gh" onclick="fechar('madins')">Cancelar</button>
+    <button class="btn btn-gd" onclick="salvarIns()">Adicionar</button>
+  </div>
+  <div id="ins-msg" class="fmsg" style="margin-top:8px"></div>
+</div></div>
+<div class="mwrap" id="madnf"><div class="mbox">
+  <h3>Nova Entrada / Nota Fiscal</h3>
+  <div class="frow"><label>Medicamento / Item</label>
+    <select id="nf-item-sel" onchange="onNFItemSel(this.value)">
+      <option value="">Selecione...</option>
+    </select>
+  </div>
+  <div class="fg2">
+    <div class="frow"><label>Validade</label><input type="date" id="nf-lval"></div>
+    <div class="frow"><label>Número do lote</label><input type="text" id="nf-llote" placeholder="LOT-2025-001"></div>
+  </div>
+  <div class="fg3">
+    <div class="frow"><label>Qtd. caixas</label><input type="number" id="nf-lcx" min="1" value="1"></div>
+    <div class="frow"><label>Amp. por caixa</label><input type="number" id="nf-lapx" min="1" value="1"></div>
+    <div class="frow"><label>Valor total (R$)</label><input type="number" id="nf-lvalor" min="0" step="0.01" placeholder="0,00"></div>
+  </div>
+  <div class="frow"><label>Farmácia / Fornecedor</label><input type="text" id="nf-lfarm" placeholder="Nome da farmácia"></div>
+  <div class="frow">
+    <label>Nota Fiscal (PDF ou imagem) — opcional</label>
+    <div style="border:1.5px dashed var(--c5);border-radius:var(--rad);padding:14px;text-align:center;cursor:pointer;background:var(--c8);transition:.2s" onclick="document.getElementById('nf-upload').click()" id="nf-drop-area">
+      <div style="font-size:20px;margin-bottom:4px">📎</div>
+      <div style="font-size:11px;color:var(--c4)">Clique para anexar o PDF ou imagem da NF</div>
+      <div style="font-size:10px;color:var(--gold);font-weight:700;margin-top:4px" id="nf-file-name">Nenhum arquivo selecionado</div>
+    </div>
+    <input type="file" id="nf-upload" accept=".pdf,image/*" style="display:none" onchange="onNFUpload(this)">
+  </div>
+  <div style="background:var(--Wbg);border:1px solid var(--Wbr);border-radius:var(--rad);padding:10px 14px;font-size:11px;color:var(--W);margin-bottom:4px">
+    ⚠ Este lote ficará <strong>pendente de aprovação</strong> pelo administrador antes de entrar no estoque.
+  </div>
+  <div class="ma">
+    <button class="btn btn-gh" onclick="fechar('madnf')">Cancelar</button>
+    <button class="btn btn-gd" onclick="salvarNF()">Enviar para Aprovação</button>
+  </div>
+  <div id="nf-msg" class="fmsg" style="margin-top:8px"></div>
+</div></div>
+</body></html>');
   w.document.close();
 }
 
@@ -1782,15 +1945,9 @@ async function enviarChat(){
   el.appendChild(div);el.scrollTop=el.scrollHeight;
   try{
     var ctx=await buildContextoIA();
-    var resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:700,system:ctx,
-        messages:[{role:'user',content:txt}]})
-    });
-    var d=await resp.json();
+    var respTxt=await callIA(ctx,txt,700);
     var ti=document.getElementById('typing-ind');if(ti)ti.remove();
-    if(d.error) throw new Error(d.error.message);
-    addMsg('ai',(d.content&&d.content[0]&&d.content[0].text)||'Não consegui processar.');
+    addMsg('ai',respTxt||'Não consegui processar.');
   }catch(e){
     var ti2=document.getElementById('typing-ind');if(ti2)ti2.remove();
     addMsg('ai','Erro ao conectar à IA: '+e.message+'. Verifique sua conexão com o Supabase.');
@@ -1804,5 +1961,64 @@ function addMsg(role,text){
 }
 function enviarSug(el){document.getElementById('chat-inp').value=el.textContent.trim();enviarChat();}
 </script>
+
+<div class="mwrap" id="madins"><div class="mbox">
+  <h3>Adicionar Item</h3>
+  <div class="frow"><label>Nome do item</label><input type="text" id="ins-nome" placeholder="Ex: Luva cirúrgica, Café em pó..."></div>
+  <div class="fg3">
+    <div class="frow"><label>Unidade</label>
+      <select id="ins-unit">
+        <option value="un">unidades</option>
+        <option value="cx">caixas</option>
+        <option value="pct">pacotes</option>
+        <option value="L">litros</option>
+        <option value="kg">kg</option>
+        <option value="rolo">rolos</option>
+      </select>
+    </div>
+    <div class="frow"><label>Estoque mínimo</label><input type="number" id="ins-min" min="0" value="2"></div>
+    <div class="frow"><label>Estoque ideal</label><input type="number" id="ins-ideal" min="0" value="10"></div>
+  </div>
+  <div class="ma">
+    <button class="btn btn-gh" onclick="fechar('madins')">Cancelar</button>
+    <button class="btn btn-gd" onclick="salvarIns()">Adicionar</button>
+  </div>
+  <div id="ins-msg" class="fmsg" style="margin-top:8px"></div>
+</div></div>
+<div class="mwrap" id="madnf"><div class="mbox">
+  <h3>Nova Entrada / Nota Fiscal</h3>
+  <div class="frow"><label>Medicamento / Item</label>
+    <select id="nf-item-sel" onchange="onNFItemSel(this.value)">
+      <option value="">Selecione...</option>
+    </select>
+  </div>
+  <div class="fg2">
+    <div class="frow"><label>Validade</label><input type="date" id="nf-lval"></div>
+    <div class="frow"><label>Número do lote</label><input type="text" id="nf-llote" placeholder="LOT-2025-001"></div>
+  </div>
+  <div class="fg3">
+    <div class="frow"><label>Qtd. caixas</label><input type="number" id="nf-lcx" min="1" value="1"></div>
+    <div class="frow"><label>Amp. por caixa</label><input type="number" id="nf-lapx" min="1" value="1"></div>
+    <div class="frow"><label>Valor total (R$)</label><input type="number" id="nf-lvalor" min="0" step="0.01" placeholder="0,00"></div>
+  </div>
+  <div class="frow"><label>Farmácia / Fornecedor</label><input type="text" id="nf-lfarm" placeholder="Nome da farmácia"></div>
+  <div class="frow">
+    <label>Nota Fiscal (PDF ou imagem) — opcional</label>
+    <div style="border:1.5px dashed var(--c5);border-radius:var(--rad);padding:14px;text-align:center;cursor:pointer;background:var(--c8);transition:.2s" onclick="document.getElementById('nf-upload').click()" id="nf-drop-area">
+      <div style="font-size:20px;margin-bottom:4px">📎</div>
+      <div style="font-size:11px;color:var(--c4)">Clique para anexar o PDF ou imagem da NF</div>
+      <div style="font-size:10px;color:var(--gold);font-weight:700;margin-top:4px" id="nf-file-name">Nenhum arquivo selecionado</div>
+    </div>
+    <input type="file" id="nf-upload" accept=".pdf,image/*" style="display:none" onchange="onNFUpload(this)">
+  </div>
+  <div style="background:var(--Wbg);border:1px solid var(--Wbr);border-radius:var(--rad);padding:10px 14px;font-size:11px;color:var(--W);margin-bottom:4px">
+    ⚠ Este lote ficará <strong>pendente de aprovação</strong> pelo administrador antes de entrar no estoque.
+  </div>
+  <div class="ma">
+    <button class="btn btn-gh" onclick="fechar('madnf')">Cancelar</button>
+    <button class="btn btn-gd" onclick="salvarNF()">Enviar para Aprovação</button>
+  </div>
+  <div id="nf-msg" class="fmsg" style="margin-top:8px"></div>
+</div></div>
 </body>
 </html>
