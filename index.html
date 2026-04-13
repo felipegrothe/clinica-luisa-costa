@@ -1605,19 +1605,30 @@ async function renderImpl(){
   if(is) is.innerHTML='<div class="fc"><div class="fl">Total de Lotes</div><div class="fv" style="color:var(--Pm)">'+impl.length+'</div><div class="fs">lotes ativos</div></div>'+'<div class="fc"><div class="fl">Unidades Disponíveis</div><div class="fv" style="color:var(--Pm)">'+total+'</div><div class="fs">implantes</div></div>'+'<div class="fc"><div class="fl">Total Investido</div><div class="fv">'+fBRL(tvlr)+'</div><div class="fs">'+impl.length+' lote(s)</div></div>'+'<div class="fc"><div class="fl">Atenção / Vencidos</div><div class="fv" style="color:var(--Rm)">'+venc+'</div><div class="fs">verificar validade</div></div>';
   var el=document.getElementById('ilist'); if(!el) return;
   document.getElementById('eimpl').style.display=impl.length?'none':'block';
-  el.innerHTML=impl.map(function(t){
+  el.innerHTML='';
+  impl.forEach(function(t){
     var sv=st(t.validade),cls=sv==='venc'?'iv':sv==='crit'?'iw':'iok';
     var obs=t.observacoes||'Implante';
-    var nomeEsc=obs.replace(/['"]/g,'');
-    return'<div class="impl-card '+cls+'"><div class="impl-grid">'
+    var nomeEsc=(obs||'').replace(/['"]/g,'');
+    var tid=t.id, tus=t.ampolas_usadas, tdisp=t.ampolas_disp;
+    var div=document.createElement('div');
+    div.className='impl-card '+cls;
+    div.innerHTML='<div class="impl-grid">'
       +'<div class="tc"><span style="display:inline-flex;align-items:center;justify-content:center;background:var(--Pbg);color:var(--P);border:1.5px solid var(--Pbr);border-radius:var(--rad);font-size:13px;font-weight:700;padding:5px 12px">'+obs+'</span></div>'
       +'<div class="tc"><div style="font-size:14px;font-weight:700">'+(t.fornecedores?t.fornecedores.nome:'—')+'</div><div style="font-size:11px;color:var(--c4);margin-top:2px">'+(t.numero_lote?'Lote: '+t.numero_lote:'—')+'</div></div>'
       +'<div class="tc">'+bdg(t.validade)+'<div style="font-size:11px;color:var(--c3);margin-top:4px">'+fd(t.validade)+'</div></div>'
       +'<div class="tc"><div style="font-family:Cormorant Garamond,serif;font-size:18px;font-weight:500">'+(t.preco_pago>0?fBRL(t.preco_pago):'—')+'</div>'+(t.preco_pago>0&&t.ampolas_total>0?'<div class="lt">'+fBRL(t.preco_por_amp)+'/un</div>':'')+'</div>'
-      +'<div class="tc"><div class="dc"><button class="db" onclick="adjImpl(''+t.id+'','+t.ampolas_usadas+',-1)">−</button><span class="dv" style="'+(t.ampolas_disp<=0?'color:var(--Rm)':'')+'">'+t.ampolas_disp+'</span><button class="db" onclick="adjImpl(''+t.id+'','+t.ampolas_usadas+',1)">+</button></div><div class="lt" style="margin-top:4px">unidades disp.</div><button class="btn btn-xs btn-rd" style="margin-top:6px" onclick="abrirRet('ins',''+t.id+'',''+nomeEsc+'','+t.ampolas_disp+','un')">− Retirar</button></div>'
-      +'<div class="tc">'+(isAdmin()?'<button class="btn btn-del btn-sm" onclick="rmImpl(''+t.id+'')">Remover</button>':'')+'</div>'
-    +'</div></div>';
-  }).join('');
+      +'<div class="tc"><div class="dc">'
+        +'<button class="db" onclick="adjImpl(\''+tid+'\','+tus+',-1)">−</button>'
+        +'<span class="dv" style="'+(tdisp<=0?'color:var(--Rm)':'')+'">'+tdisp+'</span>'
+        +'<button class="db" onclick="adjImpl(\''+tid+'\','+tus+',1)">+</button>'
+      +'</div>'
+      +'<div class="lt" style="margin-top:4px">unidades disp.</div>'
+      +'<button class="btn btn-xs btn-rd" style="margin-top:6px" onclick="abrirRet(\'ins\',\''+tid+'\',\''+nomeEsc+'\','+tdisp+',\'un\')">− Retirar</button></div>'
+      +(isAdmin()?'<div class="tc"><button class="btn btn-del btn-sm" onclick="rmImpl(\''+tid+'\')">Remover</button></div>':'<div class="tc"></div>')
+    +'</div>';
+    el.appendChild(div);
+  });
 }
 async function adjImpl(id,usadas,delta){await db.from('tirzepatida_frascos').update({ampolas_usadas:Math.max(0,usadas-delta),atualizado_em:new Date().toISOString()}).eq('id',id);flash();renderImpl();}
 async function rmImpl(id){if(!confirm('Remover lote?'))return;await db.from('tirzepatida_frascos').update({status:'descartado'}).eq('id',id);flash();renderImpl();}
