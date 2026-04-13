@@ -857,6 +857,8 @@ function flash(){
 }
 function isAdmin(){ return NIVEL==='administrador'; }
 function isAdminOrCompras(){ return NIVEL==='administrador'||NIVEL==='compras'; }
+function showVal(val,fallback){ return isAdmin()?val:(fallback||'—'); }
+function showBRL(val){ return isAdmin()?fBRL(val):'—'; }
 
 // ── AUTH ─────────────────────────────────────────────────────────────
 async function fazerLogin(){
@@ -954,6 +956,8 @@ async function renderDash(){
   }
   // Alertas
   var {data:alertas}=await db.from('alertas_validade').select('*').limit(4);
+  // Filter out inactive items
+  alertas=(alertas||[]).filter(function(a){return a.ativo!==false;});
   var ae=document.getElementById('dash-alertas');
   if(ae){
     ae.innerHTML=(alertas&&alertas.length)?alertas.map(function(a){
@@ -962,19 +966,21 @@ async function renderDash(){
   }
   // Tirz - buscar direto do banco
   var {data:tirzDash}=await db.from('tirzepatida_frascos').select('ampolas_disp,preco_pago').eq('status','ativo').neq('mg',0);
-  var {data:implDash}=await db.from('tirzepatida_frascos').select('ampolas_disp').eq('status','ativo').eq('mg',0);
+  var {data:implDash}=await db.from('tirzepatida_frascos').select('ampolas_disp,preco_pago').eq('status','ativo').eq('mg',0);
   var tAmp=(tirzDash||[]).reduce(function(s,t){return s+t.ampolas_disp;},0);
   var tVal=(tirzDash||[]).reduce(function(s,t){return s+t.preco_pago;},0);
   var iAmp=(implDash||[]).reduce(function(s,i){return s+i.ampolas_disp;},0);
+  var iVal=(implDash||[]).reduce(function(s,i){return s+i.preco_pago;},0);
   var tEl=document.getElementById('dash-tirz');
   if(tEl){
     tEl.innerHTML='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:0.5px solid var(--c7)">'
       +'<span style="font-size:12px;font-weight:600">Tirzepatida</span>'
       +'<div style="text-align:right"><span style="font-family:Cormorant Garamond,serif;font-size:18px;font-weight:500;color:var(--Tm)">'+tAmp+' amp</span>'
-      +'<div style="font-size:10px;color:var(--c4)">'+fBRL(tVal)+' investido</div></div></div>'
-      +'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0">'
+      +(isAdmin()?'<div style="font-size:10px;color:var(--c4)">'+fBRL(tVal)+' investido</div>':'')+'</div></div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:0.5px solid var(--c7)">'
       +'<span style="font-size:12px;font-weight:600">Implantes</span>'
-      +'<span style="font-family:Cormorant Garamond,serif;font-size:18px;font-weight:500;color:var(--Pm)">'+iAmp+' un</span></div>';
+      +'<div style="text-align:right"><span style="font-family:Cormorant Garamond,serif;font-size:18px;font-weight:500;color:var(--Pm)">'+iAmp+' un</span>'
+      +(isAdmin()?'<div style="font-size:10px;color:var(--c4)">'+fBRL(iVal)+' investido</div>':'')+'</div></div>';
   }
   gerarResumoDash(dash);
 }
@@ -1060,14 +1066,14 @@ async function renderMeds(){
           +'</div>'
           +'<div class="lt">Mín: '+(m.estoque_min||0)+' · Ideal: '+(m.estoque_ideal||'—')+'</div>'
         +'</div>'
-        +'<div class="mc"><div class="col-lbl">Último Preço/Cx</div><div class="nm" style="margin-top:4px">'+(m.ultimo_preco_cx>0?fBRL(m.ultimo_preco_cx):'<span style="color:var(--c4)">—</span>')+'</div></div>'
-        +'<div class="mc"><div class="col-lbl">Preço Médio/Cx</div><div class="nm" style="margin-top:4px">'+(m.preco_medio_cx>0?fBRL(m.preco_medio_cx):'<span style="color:var(--c4)">—</span>')+'</div></div>'
-        +'<div class="mc"><div class="col-lbl">Custo Estoque</div><div class="nm" style="margin-top:4px;color:var(--Gm)">'+(m.custo_estoque>0?fBRL(m.custo_estoque):'—')+'</div></div>'
-        +'<div class="mc"><div class="col-lbl">Custo p/ Repor</div>'
+        +(isAdmin()?'<div class="mc"><div class="col-lbl">Último Preço/Cx</div><div class="nm" style="margin-top:4px">'+(m.ultimo_preco_cx>0?fBRL(m.ultimo_preco_cx):'<span style="color:var(--c4)">—</span>')+'</div></div>':'')
+        +(isAdmin()?'<div class="mc"><div class="col-lbl">Preço Médio/Cx</div><div class="nm" style="margin-top:4px">'+(m.preco_medio_cx>0?fBRL(m.preco_medio_cx):'<span style="color:var(--c4)">—</span>')+'</div></div>':'')
+        +(isAdmin()?'<div class="mc"><div class="col-lbl">Custo Estoque</div><div class="nm" style="margin-top:4px;color:var(--Gm)">'+(m.custo_estoque>0?fBRL(m.custo_estoque):'—')+'</div></div>':'')
+        +(isAdmin()?'<div class="mc"><div class="col-lbl">Custo p/ Repor</div>'
           +(m.preco_medio_cx>0&&m.disponivel<(m.estoque_ideal||0)
             ?'<div class="nm" style="margin-top:4px;color:var(--Wm)">'+fBRL(Math.ceil(((m.estoque_ideal||0)-m.disponivel)/(m.amp_por_caixa||1))*m.preco_medio_cx)+'</div>'
             :'<div class="nm" style="margin-top:4px;color:var(--c4)">—</div>')
-        +'</div>'
+        +'</div>':'')
         +'<div class="mc"><div class="col-lbl">Lotes</div><button class="btn btn-gh btn-xs" style="margin-top:5px" onclick="verLotes(\''+m.id+'\',\''+nomeEsc+'\')">Ver lotes</button></div>'
       +'</div>';
     c.appendChild(div);
@@ -1263,7 +1269,7 @@ async function renderTirz(){
       +'<div class="tc"><span class="mgp">'+t.mg+'mg</span></div>'
       +'<div class="tc"><div style="font-size:14px;font-weight:700">'+t.fornecedores.nome+'</div><div style="font-size:11px;color:var(--c4);margin-top:2px">'+(t.numero_lote?'Lote: '+t.numero_lote:'—')+'</div>'+(t.observacoes?'<div style="font-size:11px;color:var(--c3);margin-top:2px">'+t.observacoes+'</div>':'')+'</div>'
       +'<div class="tc">'+bdg(t.validade)+'<div style="font-size:11px;color:var(--c3);margin-top:5px">'+fd(t.validade)+'</div></div>'
-      +'<div class="tc"><div class="nm">'+(t.preco_pago>0?fBRL(t.preco_pago):'—')+'</div>'+(t.preco_pago>0&&t.ampolas_total>0?'<div class="lt">'+fBRL(t.preco_por_amp)+'/amp</div>':'')+'</div>'
+      +(isAdmin()?'<div class="tc"><div class="nm">'+(t.preco_pago>0?fBRL(t.preco_pago):'—')+'</div>'+(t.preco_pago>0&&t.ampolas_total>0?'<div class="lt">'+fBRL(t.preco_por_amp)+'/amp</div>':'')+'</div>':'<div class="tc"></div>')
       +'<div class="tc"><div class="dc"><button class="db" onclick="adjTirz(\''+t.id+'\','+t.ampolas_usadas+',-1)">−</button><span class="dv" style="'+(t.ampolas_disp<=0?'color:var(--Rm)':'')+'">'+t.ampolas_disp+'</span><button class="db" onclick="adjTirz(\''+t.id+'\','+t.ampolas_usadas+',1)">+</button></div><div class="lt" style="margin-top:4px">ampolas disponíveis</div><button class="btn btn-xs btn-rd" style="margin-top:6px" onclick="abrirRet(\'tirz\',\''+t.id+'\',\'Tirzepatida '+t.mg+'mg\','+t.ampolas_disp+',\'amp\')">− Retirar c/ PDF</button></div>'
       +'<div class="tc"><button class="btn btn-sm btn-del" onclick="rmTirz(\''+t.id+'\')">Remover</button></div>'
       +'</div>';
@@ -1307,20 +1313,28 @@ async function salvarTirz(){
 }
 
 // ── NF UPLOAD ────────────────────────────────────────────────────────
-function abrirNFUpload(){
-  // Abre o modal de lote com primeiro item disponível ou genérico
+async function abrirNFUpload(){
   var sel=document.getElementById('nf-item-sel');
-  if(sel) sel.innerHTML='<option value="">Selecione o medicamento...</option>';
-  db.from('itens').select('id,nome').eq('ativo',true).order('nome').then(function(r){
-    if(r.data&&sel){
-      r.data.forEach(function(i){
-        var opt=document.createElement('option');opt.value=i.id;opt.textContent=i.nome;sel.appendChild(opt);
-      });
-    }
+  if(sel){
+    sel.innerHTML='<option value="">Selecione o medicamento...</option>';
+    var {data:itens}=await db.from('itens').select('id,nome,setores(nome)').eq('ativo',true).order('nome');
+    (itens||[]).forEach(function(i){
+      var opt=document.createElement('option');
+      opt.value=i.id;
+      opt.textContent=i.nome+(i.setores?' ('+i.setores.nome+')':'');
+      sel.appendChild(opt);
+    });
+  }
+  // Reset fields
+  ['nf-lval','nf-llote','nf-lfarm','nf-lvalor'].forEach(function(id){
+    var el=document.getElementById(id);if(el)el.value='';
   });
-  document.getElementById('nf-file-name').textContent='Nenhum arquivo selecionado';
-  document.getElementById('nf-drop-area').style.borderColor='var(--c5)';
-  document.getElementById('nf-drop-area').style.background='var(--c8)';
+  var cx=document.getElementById('nf-lcx');if(cx)cx.value=1;
+  var apx=document.getElementById('nf-lapx');if(apx)apx.value=1;
+  var fn=document.getElementById('nf-file-name');if(fn)fn.textContent='Nenhum arquivo selecionado';
+  var da=document.getElementById('nf-drop-area');
+  if(da){da.style.borderColor='var(--c5)';da.style.background='var(--c8)';}
+  var msg=document.getElementById('nf-msg');if(msg)msg.textContent='';
   abrir('madnf');
 }
 function onNFItemSel(id){
@@ -1463,15 +1477,23 @@ async function renderNFs(){
 // ── PEDIDOS ──────────────────────────────────────────────────────────
 // ── FINANCEIRO ───────────────────────────────────────────────────────
 async function renderFin(){
-  var {data:dash}=await db.from('dashboard').select('*').single();
+  if(!isAdmin()){document.getElementById('pg-fin').innerHTML='<div class="empty"><div class="et">Acesso Restrito</div><div class="es">Apenas administradores</div></div>';return;}
   var {data:meds}=await db.from('estoque_atual').select('*').eq('ativo',true).order('custo_estoque',{ascending:false});
-  var {data:tirz}=await db.from('tirzepatida_frascos').select('*,fornecedores(nome)');
+  var {data:tirzFin}=await db.from('tirzepatida_frascos').select('preco_pago,ampolas_disp').eq('status','ativo').neq('mg',0);
+  var {data:implFin}=await db.from('tirzepatida_frascos').select('preco_pago,ampolas_disp').eq('status','ativo').eq('mg',0);
   var {data:compras}=await db.from('lotes').select('sum_valor:preco_total.sum()').eq('status','aprovado').single();
-  if(dash) document.getElementById('fcards').innerHTML=
-    '<div class="fc"><div class="fl">Valor do Estoque</div><div class="fv">'+fBRL(dash.valor_total_estoque)+'</div><div class="fs">'+(meds?meds.filter(function(m){return m.preco_medio_cx>0;}).length:0)+' itens com preço</div></div>'
-    +'<div class="fc"><div class="fl">Custo para Repor Ideal</div><div class="fv" style="color:var(--Wm)">'+fBRL((meds||[]).reduce(function(s,m){return s+(m.preco_medio_cx>0?Math.max(0,Math.ceil((m.estoque_ideal-m.disponivel)/m.amp_por_caixa)*m.preco_medio_cx):0);},0))+'</div><div class="fs">para atingir estoque ideal</div></div>'
-    +'<div class="fc"><div class="fl">Total em Tirzepatida</div><div class="fv" style="color:var(--Tm)">'+fBRL((tirz||[]).reduce(function(s,t){return s+t.preco_pago;},0))+'</div><div class="fs">'+(tirz?tirz.length:0)+' frasco(s)</div></div>'
-    +'<div class="fc"><div class="fl">Total Gasto em Compras</div><div class="fv">'+fBRL(compras?compras.sum_valor:0)+'</div><div class="fs">entradas aprovadas</div></div>';
+  var totalMeds=(meds||[]).reduce(function(s,m){return s+(m.custo_estoque||0);},0);
+  var totalTirz=(tirzFin||[]).reduce(function(s,t){return s+t.preco_pago;},0);
+  var totalImpl=(implFin||[]).reduce(function(s,i){return s+i.preco_pago;},0);
+  var totalGeral=totalMeds+totalTirz+totalImpl;
+  var custoRepor=(meds||[]).reduce(function(s,m){return s+(m.preco_medio_cx>0?Math.max(0,Math.ceil(((m.estoque_ideal||0)-m.disponivel)/(m.amp_por_caixa||1))*m.preco_medio_cx):0);},0);
+  document.getElementById('fcards').innerHTML=
+    '<div class="fc"><div class="fl">Valor Total em Estoque</div><div class="fv" style="color:var(--gold)">'+fBRL(totalGeral)+'</div><div class="fs">meds + tirz + implantes</div></div>'
+    +'<div class="fc"><div class="fl">Medicamentos</div><div class="fv">'+fBRL(totalMeds)+'</div><div class="fs">'+(meds?meds.filter(function(m){return m.custo_estoque>0;}).length:0)+' itens com valor</div></div>'
+    +'<div class="fc"><div class="fl">Tirzepatida</div><div class="fv" style="color:var(--Tm)">'+fBRL(totalTirz)+'</div><div class="fs">'+(tirzFin?tirzFin.length:0)+' frasco(s)</div></div>'
+    +'<div class="fc"><div class="fl">Implantes</div><div class="fv" style="color:var(--Pm)">'+fBRL(totalImpl)+'</div><div class="fs">'+(implFin?implFin.length:0)+' lote(s)</div></div>'
+    +'<div class="fc"><div class="fl">Custo para Repor Ideal</div><div class="fv" style="color:var(--Wm)">'+fBRL(custoRepor)+'</div><div class="fs">medicamentos</div></div>'
+    +'<div class="fc"><div class="fl">Total Gasto em Compras</div><div class="fv">'+fBRL(compras&&compras.sum_valor?compras.sum_valor:0)+'</div><div class="fs">entradas aprovadas</div></div>';
   if(meds) document.getElementById('ftbody').innerHTML=meds.map(function(m){
     var cr=m.preco_medio_cx>0?Math.max(0,Math.ceil((m.estoque_ideal-m.disponivel)/m.amp_por_caixa)*m.preco_medio_cx):0;
     return'<tr><td style="font-weight:700;font-size:13px">'+m.nome+'</td><td style="font-family:Cormorant Garamond,serif;font-size:16px">'+m.disponivel+'</td><td style="font-family:Cormorant Garamond,serif;font-size:16px">'+(m.estoque_ideal||'—')+'</td><td>'+(m.preco_medio_cx>0?fBRL(m.preco_medio_cx):'—')+'</td><td style="color:var(--Gm)">'+(m.custo_estoque>0?fBRL(m.custo_estoque):'—')+'</td><td style="color:'+(cr>0?'var(--Wm)':'var(--c4)')+';font-weight:600">'+(cr>0?fBRL(cr):'—')+'</td></tr>';
@@ -1513,7 +1535,7 @@ async function renderHist(){
     var isSaida=h.tipo==='saida';
     return'<div class="hi"><div><div class="hn">'+(h.itens?h.itens.nome:'—')+' <span class="badge '+(isSaida?'bd':'bs')+'" style="font-size:7px">'+(isSaida?'SAÍDA':'ENTRADA')+'</span></div>'
       +'<div class="hd">'+fbr(h.data)+' · '+(h.motivo||'—')+'</div>'
-      +(h.responsavel_nome?'<div class="hu">Por: '+h.responsavel_nome+'</div>':'')
+      +'<div class="hd" style="color:var(--gold);font-weight:600">👤 '+(h.responsavel_nome||'—')+'</div>'
       +(h.itens&&h.itens.setores?'<span class="tag">'+h.itens.setores.nome+'</span>':'')
     +'</div><div class="hr"><div class="ha" style="color:'+(isSaida?'var(--Rm)':'var(--Gm)')+';font-size:20px">'+(isSaida?'−':'+')+h.quantidade+'</div><div style="font-size:9px;color:var(--c4)">'+(isSaida?'retirado':'adicionado')+'</div></div></div>';
   }).join('');
@@ -1750,7 +1772,7 @@ async function renderImpl(){
       +'<div class="tc"><span style="display:inline-flex;align-items:center;justify-content:center;background:var(--Pbg);color:var(--P);border:1.5px solid var(--Pbr);border-radius:var(--rad);font-size:13px;font-weight:700;padding:5px 12px">'+obs+'</span></div>'
       +'<div class="tc"><div style="font-size:14px;font-weight:700">'+(t.fornecedores?t.fornecedores.nome:'—')+'</div><div style="font-size:11px;color:var(--c4);margin-top:2px">'+(t.numero_lote?'Lote: '+t.numero_lote:'—')+'</div></div>'
       +'<div class="tc">'+bdg(t.validade)+'<div style="font-size:11px;color:var(--c3);margin-top:4px">'+fd(t.validade)+'</div></div>'
-      +'<div class="tc"><div style="font-family:Cormorant Garamond,serif;font-size:18px;font-weight:500">'+(t.preco_pago>0?fBRL(t.preco_pago):'—')+'</div>'+(t.preco_pago>0&&t.ampolas_total>0?'<div class="lt">'+fBRL(t.preco_por_amp)+'/un</div>':'')+'</div>'
+      +(isAdmin()?'<div class="tc"><div style="font-family:Cormorant Garamond,serif;font-size:18px;font-weight:500">'+(t.preco_pago>0?fBRL(t.preco_pago):'—')+'</div>'+(t.preco_pago>0&&t.ampolas_total>0?'<div class="lt">'+fBRL(t.preco_por_amp)+'/un</div>':'')+'</div>':'<div class="tc"></div>')
       +'<div class="tc"><div class="dc">'
         +'<button class="db" onclick="adjImpl(\''+tid+'\','+tus+',-1)">−</button>'
         +'<span class="dv" style="'+(tdisp<=0?'color:var(--Rm)':'')+'">'+tdisp+'</span>'
@@ -1901,9 +1923,26 @@ async function salvarIns(){
   var nome=document.getElementById('ins-nome').value.trim();
   var msg=document.getElementById('ins-msg');
   if(!nome){msg.style.color='var(--Rm)';msg.textContent='Informe o nome.';return;}
-  var {error}=await db.from('itens').insert({nome,setor_id:_insCtx.setorId,unidade:document.getElementById('ins-unit').value||'un',estoque_min:parseInt(document.getElementById('ins-min').value)||2,estoque_ideal:parseInt(document.getElementById('ins-ideal').value)||10,amp_por_caixa:1,ativo:true});
+  var valor=parseFloat(document.getElementById('ins-valor').value)||0;
+  var forn=document.getElementById('ins-forn').value.trim();
+  var fornId=null;
+  if(forn){
+    var {data:fd}=await db.from('fornecedores').select('id').eq('nome',forn).single();
+    if(fd) fornId=fd.id;
+    else{var {data:nfd}=await db.from('fornecedores').insert({nome:forn,tipo:'outro'}).select('id').single();if(nfd)fornId=nfd.id;}
+  }
+  var {error}=await db.from('itens').insert({
+    nome,setor_id:_insCtx.setorId,
+    unidade:document.getElementById('ins-unit').value||'un',
+    estoque_min:parseInt(document.getElementById('ins-min').value)||2,
+    estoque_ideal:parseInt(document.getElementById('ins-ideal').value)||10,
+    amp_por_caixa:1,ativo:true,
+    preco_unitario:valor
+  });
   if(error){msg.style.color='var(--Rm)';msg.textContent='Erro ao salvar.';return;}
-  fechar('madins');flash();renderSetor(_insCtx.setor,_insCtx.cid);
+  fechar('madins');flash();
+  ['ins-nome','ins-forn','ins-valor'].forEach(function(i){document.getElementById(i).value='';});
+  renderSetor(_insCtx.setor,_insCtx.cid);
 }
 </script>
 
@@ -1914,6 +1953,10 @@ async function salvarIns(){
     <div class="frow"><label>Unidade</label><select id="ins-unit"><option value="un">unidades</option><option value="cx">caixas</option><option value="pct">pacotes</option><option value="L">litros</option><option value="kg">kg</option><option value="rolo">rolos</option></select></div>
     <div class="frow"><label>Estoque mínimo</label><input type="number" id="ins-min" min="0" value="2"></div>
     <div class="frow"><label>Estoque ideal</label><input type="number" id="ins-ideal" min="0" value="10"></div>
+  </div>
+  <div class="fg2">
+    <div class="frow"><label>Fornecedor</label><input type="text" id="ins-forn" placeholder="Nome do fornecedor"></div>
+    <div class="frow"><label>Valor unitário (R$)</label><input type="number" id="ins-valor" min="0" step="0.01" placeholder="0,00"></div>
   </div>
   <div class="ma"><button class="btn btn-gh" onclick="fechar('madins')">Cancelar</button><button class="btn btn-gd" onclick="salvarIns()">Adicionar</button></div>
   <div id="ins-msg" class="fmsg" style="margin-top:8px"></div>
