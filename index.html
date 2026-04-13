@@ -979,12 +979,22 @@ async function renderDash(){
   var totalImplD=(implDash||[]).reduce(function(s,i){return s+i.preco_pago;},0);
   var totalGeralD=totalMedsD+totalTirzD+totalImplD;
   var totalFmt=totalGeralD.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-  document.getElementById('dash-cards').innerHTML=
-    (isAdmin()?'<div class="sc tot"><div class="sl">Valor total em estoque</div><div class="dc-valrow"><span class="dc-cur">R$</span><span class="dc-val gold">'+totalFmt+'</span></div><div class="sh">meds · tirz · implantes</div></div>':'')
-    +'<div class="sc venc"><div class="sl">Vencidos</div><div class="dc-val red">'+dash.itens_vencidos+'</div><div class="sh">retirar imediatamente</div></div>'
-    +'<div class="sc atc"><div class="sl">Vencendo</div><div class="dc-val warn">'+dash.itens_vencendo+'</div><div class="sh">próximos 30 dias</div></div>'
-    +'<div class="sc low"><div class="sl">Est. mínimo</div><div class="dc-val red">'+dash.itens_estoque_minimo+'</div><div class="sh">itens abaixo</div></div>'
-    +'<div class="sc" style="border-bottom-color:var(--c5)" onclick="tab('nfs')"><div class="sl">NFs pendentes</div><div class="dc-val" style="color:var(--c3)">'+dash.nfs_pendentes_aprovacao+'</div><div class="sh">aprovação</div></div>';
+  var dcEl=document.getElementById('dash-cards');
+  dcEl.innerHTML='';
+  function mkDC(cls,lbl,val,hint,isVal,cor){
+    var d=document.createElement('div');d.className='sc '+cls;
+    var valHtml=isVal
+      ?'<div style="display:flex;align-items:baseline;gap:4px;margin:6px 0 4px"><span style="font-size:13px;font-weight:700;color:'+(cor||'var(--c)')+'">R$</span><span style="font-family:Cormorant Garamond,serif;font-size:28px;font-weight:500;line-height:1;color:'+(cor||'var(--c)')+'">'+val+'</span></div>'
+      :'<div style="font-family:Cormorant Garamond,serif;font-size:28px;font-weight:500;line-height:1;margin:6px 0 4px;color:'+(cor||'var(--c)')+'">'+val+'</div>';
+    d.innerHTML='<div class="sl">'+lbl+'</div>'+valHtml+'<div class="sh">'+hint+'</div>';
+    return d;
+  }
+  if(isAdmin()){dcEl.appendChild(mkDC('tot','Valor total em estoque',Math.round(totalGeral).toLocaleString('pt-BR'),'meds · tirz · implantes',true,'var(--gold)'));}
+  dcEl.appendChild(mkDC('venc','Vencidos',dash.itens_vencidos,'retirar imediatamente',false,'var(--Rm)'));
+  dcEl.appendChild(mkDC('atc','Vencendo',dash.itens_vencendo,'próximos 30 dias',false,'var(--Wm)'));
+  dcEl.appendChild(mkDC('low','Est. mínimo',dash.itens_estoque_minimo,'itens abaixo',false,'var(--Rm)'));
+  var nc=mkDC('','NFs pendentes',dash.nfs_pendentes_aprovacao,'aprovação',false,'var(--Wm)');
+  nc.style.cursor='pointer';nc.onclick=function(){tab('nfs');};dcEl.appendChild(nc);
   gerarResumoDash(dash);
 }
 
