@@ -650,15 +650,7 @@ body{font-family:'Raleway',sans-serif;background:var(--c8);color:var(--c);min-he
 <div class="mwrap" id="madimpl"><div class="mbox">
   <h3>Novo Lote — Implante Hormonal</h3>
   <div class="fg2">
-    <div class="frow"><label>Tipo de Hormônio</label>
-      <select id="impl-tipo">
-        <option value="Testosterona">Testosterona</option>
-        <option value="Estradiol">Estradiol</option>
-        <option value="Progesterona">Progesterona</option>
-        <option value="DHEA">DHEA</option>
-        <option value="Outro">Outro</option>
-      </select>
-    </div>
+    <div class="frow"><label>Nome do Implante</label><input type="text" id="impl-tipo" placeholder="Ex: Testosterona, Estradiol, DHEA..."></div>
     <div class="frow"><label>Dosagem (mg)</label><input type="number" id="impl-dose" min="1" placeholder="Ex: 100"></div>
   </div>
   <div class="fg2">
@@ -694,6 +686,14 @@ body{font-family:'Raleway',sans-serif;background:var(--c8);color:var(--c);min-he
   </div>
   <div class="frow"><label>Farmácia / Fornecedor</label><input type="text" id="lfarm" placeholder="Nome da farmácia"></div>
   <div class="frow"><label>Observação</label><input type="text" id="lobs" placeholder="Opcional"></div>
+  <div class="frow">
+    <label>Nota Fiscal (PDF) — opcional</label>
+    <div style="border:1.5px dashed var(--c5);border-radius:var(--rad);padding:12px;text-align:center;cursor:pointer;background:var(--c8);transition:.2s" onclick="document.getElementById('nf-upload').click()" id="nf-drop-area">
+      <div style="font-size:11px;color:var(--c4);margin-bottom:4px">📎 Clique para anexar o PDF da NF</div>
+      <div style="font-size:10px;color:var(--c5)" id="nf-file-name">Nenhum arquivo selecionado</div>
+    </div>
+    <input type="file" id="nf-upload" accept=".pdf,image/*" style="display:none" onchange="onNFUpload(this)">
+  </div>
   <div style="background:var(--Wbg);border:1px solid var(--Wbr);border-radius:var(--rad);padding:10px 14px;font-size:11px;color:var(--W);margin-bottom:4px">
     ⚠ Este lote ficará <strong>pendente de aprovação</strong> pelo administrador antes de entrar no estoque.
   </div>
@@ -980,9 +980,9 @@ async function renderMeds(){
         +'<div class="mc" style="gap:5px;flex-direction:column;justify-content:center;padding:10px 12px">'
           +'<button class="btn btn-gd btn-sm" onclick="abrirLote(\''+m.id+'\',\''+nomeEsc+'\','+m.amp_por_caixa+')">+ Entrada</button>'
           +'<button class="btn btn-rd btn-sm" onclick="abrirRet(\'med\',\''+m.id+'\',\''+nomeEsc+'\','+m.disponivel+',\'amp\')">− Retirar</button>'
-          +(isAdmin()?'<div style="display:flex;gap:4px;margin-top:2px">'
-            +'<button class="btn btn-xs" style="background:#fff;border-color:var(--c5);color:var(--c2);flex:1" onclick="abrirEditar(\''+m.id+'\',\''+nomeEsc+'\',\''+m.unidade+'\','+m.amp_por_caixa+','+(m.estoque_min||0)+','+(m.estoque_ideal||0)+')">✏ Editar</button>'
-            +'<button class="btn btn-xs btn-del" onclick="excluirItem(\''+m.id+'\',\''+nomeEsc+'\')">🗑</button>'
+          +(isAdmin()?'<div style="display:flex;gap:4px;margin-top:3px">'
+            +'<button class="btn btn-xs" style="background:#fff;border-color:var(--c5);color:var(--c2);flex:1;white-space:nowrap" onclick="abrirEditar(\''+m.id+'\',\''+nomeEsc+'\',\''+m.unidade+'\','+m.amp_por_caixa+','+(m.estoque_min||0)+','+(m.estoque_ideal||0)+')">✏ Editar</button>'
+            +'<button class="btn btn-xs btn-del" style="flex-shrink:0;padding:4px 8px" onclick="excluirItem(\''+m.id+'\',\''+nomeEsc+'\')">🗑</button>'
           +'</div>':'')
         +'</div>'
       +'</div>'
@@ -1224,42 +1224,78 @@ async function salvarTirz(){
   document.getElementById('tamp').value=1;
 }
 
+// ── NF UPLOAD ────────────────────────────────────────────────────────
+function onNFUpload(input){
+  var f=input.files[0];
+  if(!f) return;
+  document.getElementById('nf-file-name').textContent=f.name;
+  document.getElementById('nf-drop-area').style.borderColor='var(--gold)';
+  document.getElementById('nf-drop-area').style.background='var(--gold3)';
+}
+
 // ── INSUMOS ──────────────────────────────────────────────────────────
-var SCFG={insumos:{lbl:'Insumos Clínicos',ico:'🩺',cor:'var(--I)'},limpeza:{lbl:'Limpeza & Higiene',ico:'🧹',cor:'var(--G)'},conforto:{lbl:'Conforto & Recepção',ico:'☕',cor:'var(--W)'},escrit:{lbl:'Escritório',ico:'📋',cor:'var(--c2)'}};
-var SUGS={insumos:['Luva P','Luva M','Luva G','Luva GG','Seringa 3ml','Seringa 5ml','Seringa 10ml','Agulha 25x7','Agulha 40x12','Gaze estéril','Esparadrapo','Álcool 70%','Algodão','Scalp 23G','Cateter 20G','Atadura','Micropore'],limpeza:['Álcool gel','Detergente','Desinfetante','Água sanitária','Papel toalha','Papel higiênico','Saco de lixo P','Saco de lixo G','Esponja','Pano de chão'],conforto:['Café em pó','Cápsula de café','Açúcar','Adoçante','Copo descartável','Água mineral','Biscoito','Guardanapo','Chá'],escrit:['Papel A4','Caneta azul','Caneta preta','Grampeador','Clips','Pasta AZ','Fita adesiva','Etiqueta']};
+var SCFG={
+  'insumos':{lbl:'Insumos Clínicos',ico:'🩺',cor:'var(--I)'},
+  'Insumos Clínicos':{lbl:'Insumos Clínicos',ico:'🩺',cor:'var(--I)'},
+  'limpeza':{lbl:'Limpeza',ico:'🧹',cor:'var(--G)'},
+  'Limpeza':{lbl:'Limpeza',ico:'🧹',cor:'var(--G)'},
+  'conforto':{lbl:'Conforto',ico:'☕',cor:'var(--W)'},
+  'Conforto':{lbl:'Conforto',ico:'☕',cor:'var(--W)'},
+  'escrit':{lbl:'Escritório',ico:'📋',cor:'var(--c2)'},
+  'Escritório':{lbl:'Escritório',ico:'📋',cor:'var(--c2)'}
+};
+var SUGS={
+  'insumos':['Luva P','Luva M','Luva G','Luva GG','Seringa 3ml','Seringa 5ml','Seringa 10ml','Agulha 25x7','Agulha 40x12','Gaze estéril','Esparadrapo','Álcool 70%','Algodão','Scalp 23G','Cateter 20G','Atadura','Micropore'],
+  'Insumos Clínicos':['Luva P','Luva M','Luva G','Luva GG','Seringa 3ml','Seringa 5ml','Seringa 10ml','Agulha 25x7','Agulha 40x12','Gaze estéril','Esparadrapo','Álcool 70%','Algodão','Scalp 23G','Cateter 20G','Atadura','Micropore'],
+  'limpeza':['Álcool gel','Detergente','Desinfetante','Água sanitária','Papel toalha','Papel higiênico','Saco de lixo P','Saco de lixo G','Esponja','Pano de chão'],
+  'Limpeza':['Álcool gel','Detergente','Desinfetante','Água sanitária','Papel toalha','Papel higiênico','Saco de lixo P','Saco de lixo G','Esponja','Pano de chão'],
+  'conforto':['Café em pó','Cápsula de café','Açúcar','Adoçante','Copo descartável','Água mineral','Biscoito','Guardanapo','Chá'],
+  'Conforto':['Café em pó','Cápsula de café','Açúcar','Adoçante','Copo descartável','Água mineral','Biscoito','Guardanapo','Chá'],
+  'escrit':['Papel A4','Caneta azul','Caneta preta','Grampeador','Clips','Pasta AZ','Fita adesiva','Etiqueta'],
+  'Escritório':['Papel A4','Caneta azul','Caneta preta','Grampeador','Clips','Pasta AZ','Fita adesiva','Etiqueta']
+};
 async function renderSetor(setor,cid){
-  var cfg=SCFG[setor];
+  var cfg=SCFG[setor]; if(!cfg) return;
   var nomeSetor=cfg.lbl;
-  var {data:setorData}=await db.from('setores').select('id').eq('nome',nomeSetor).single();
-  if(!setorData) return;
-  var {data:lst}=await db.from('itens').select('*').eq('setor_id',setorData.id).eq('ativo',true);
+  var setorId=SETORES_DB[nomeSetor];
+  if(!setorId){await carregarSetores();setorId=SETORES_DB[nomeSetor];}
+  if(!setorId){
+    var el2=document.getElementById(cid);
+    if(el2) el2.innerHTML='<div class="empty"><div class="et">'+nomeSetor+'</div><div class="es">Setor não encontrado no banco</div></div>';
+    return;
+  }
+  var {data:lst}=await db.from('itens').select('*').eq('setor_id',setorId).eq('ativo',true);
   lst=lst||[];
-  var lows=lst.filter(function(i){return i.usado_total>=(i.estoque_min||0);}).length;
-  var sugs=SUGS[setor].filter(function(s){return !lst.find(function(x){return x.nome.toLowerCase()===s.toLowerCase();});});
-  var h='<div class="sdiv"><div class="sdiv-t">'+cfg.lbl+'</div><div class="sdiv-l"></div></div>';
-  h+='<div class="shdr"><div class="sico" style="background:'+cfg.cor+'18;color:'+cfg.cor+'">'+cfg.ico+'</div>'
+  var lows=lst.filter(function(i){return Math.max(0,(i.estoque_ideal||0)-(i.usado_total||0))<=(i.estoque_min||0);}).length;
+  var sugs=(SUGS[setor]||[]).filter(function(s){return !lst.find(function(x){return x.nome.toLowerCase()===s.toLowerCase();});});
+  var h='<div class="shdr"><div class="sico" style="background:'+cfg.cor+'18;color:'+cfg.cor+'">'+cfg.ico+'</div>'
     +'<div style="flex:1"><div class="snm">'+cfg.lbl+'</div><div class="sct">'+lst.length+' item(s)'+(lows>0?' · <strong style="color:var(--Rm)">'+lows+' abaixo do mínimo</strong>':'')+'</div></div>'
-    +'<button class="btn btn-gd btn-sm" onclick="addInsManual(\''+setor+'\',\''+setorData.id+'\',\''+cid+'\')">+ Adicionar item</button></div>';
+    +'<button class="btn btn-gd btn-sm" onclick="addInsManual(\''+setor+'\',\''+setorId+'\',\''+cid+'\')">+ Adicionar item</button></div>';
   if(sugs.length){
-    h+='<div style="margin-bottom:13px"><div style="font-size:8px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--c4);margin-bottom:7px">Sugestões rápidas</div><div class="sgrid">';
-    sugs.slice(0,12).forEach(function(s){h+='<div class="spill2" onclick="addSug(\''+setor+'\',\''+s+'\',\''+setorData.id+'\',\''+cid+'\')">+ '+s+'</div>';});
+    h+='<div style="margin-bottom:13px;padding:10px 14px;background:#fff;border:1px solid var(--c6);border-radius:var(--rad)"><div style="font-size:8px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--c4);margin-bottom:7px">Sugestões rápidas</div><div class="sgrid">';
+    sugs.slice(0,12).forEach(function(s){h+='<div class="spill2" onclick="addSug(\''+setor+'\',\''+s+'\',\''+setorId+'\',\''+cid+'\')">+ '+s+'</div>';});
     h+='</div></div>';
   }
-  h+='<div style="display:grid;grid-template-columns:minmax(150px,2fr) 110px 70px 70px 80px 70px auto;gap:0;padding:7px 14px;background:var(--c7);border:1px solid var(--c6);border-radius:var(--rad);margin-bottom:7px">'
-    +'<div class="col-lbl">Item</div><div class="col-lbl" style="text-align:center">Quantidade</div><div class="col-lbl">Unidade</div><div class="col-lbl" style="text-align:center">Mínimo</div><div class="col-lbl" style="text-align:center">Ideal</div><div class="col-lbl" style="text-align:center">Status</div><div></div></div>';
+  if(!lst.length){
+    h+='<div class="empty"><div class="et">Nenhum item</div><div class="es">Adicione usando o botão acima</div></div>';
+    document.getElementById(cid).innerHTML=h;return;
+  }
+  h+='<div style="display:grid;grid-template-columns:minmax(150px,2fr) 100px 70px 65px 65px 70px auto;gap:0;padding:7px 14px;background:var(--c7);border:1px solid var(--c6);border-radius:var(--rad);margin-bottom:7px">'
+    +'<div class="col-lbl">Item</div><div class="col-lbl" style="text-align:center">Qtd.</div><div class="col-lbl">Unidade</div><div class="col-lbl" style="text-align:center">Mínimo</div><div class="col-lbl" style="text-align:center">Ideal</div><div class="col-lbl" style="text-align:center">Status</div><div></div></div>';
   lst.forEach(function(item){
-    var isLow=item.usado_total>=(item.estoque_min||0);
-    var disp=Math.max(0,(item.estoque_ideal||0)-item.usado_total);
+    var disp=Math.max(0,(item.estoque_ideal||0)-(item.usado_total||0));
+    var isLow=disp<=(item.estoque_min||0);
+    var nomeEsc=(item.nome||'').replace(/['"]/g,'');
     h+='<div class="icard'+(isLow?' li':'')+'">'
       +'<div class="ic"><input class="ini" value="'+item.nome+'" onchange="updIns(\''+item.id+'\',\'nome\',this.value)"></div>'
       +'<div class="ic ctr"><div class="qc"><button class="qb" onclick="adjIns(\''+item.id+'\',\''+setor+'\',\''+cid+'\',-1)">−</button><span class="qv" style="'+(isLow?'color:var(--Rm)':'')+'">'+disp+'</span><button class="qb" onclick="adjIns(\''+item.id+'\',\''+setor+'\',\''+cid+'\',1)">+</button></div></div>'
       +'<div class="ic"><input class="ie" value="'+(item.unidade||'un')+'" onchange="updIns(\''+item.id+'\',\'unidade\',this.value)" style="width:62px;font-size:12px"></div>'
-      +'<div class="ic ctr"><input class="ie ien" type="number" min="0" value="'+(item.estoque_min||0)+'" onchange="updIns(\''+item.id+'\',\'estoque_min\',+this.value)" style="font-size:13px"></div>'
-      +'<div class="ic ctr"><input class="ie ien" type="number" min="0" value="'+(item.estoque_ideal||0)+'" onchange="updIns(\''+item.id+'\',\'estoque_ideal\',+this.value)" style="font-size:13px"></div>'
-      +'<div class="ic ctr">'+(isLow?'<span class="badge bd" style="font-size:7px">Repor</span>':disp<=(item.estoque_ideal||0)?'<span class="badge bw" style="font-size:7px">Atenção</span>':'<span class="badge bs" style="font-size:7px">OK</span>')+'</div>'
+      +'<div class="ic ctr"><input class="ie ien" type="number" min="0" value="'+(item.estoque_min||0)+'" onchange="updIns(\''+item.id+'\',\'estoque_min\',+this.value)" style="font-size:13px;width:50px"></div>'
+      +'<div class="ic ctr"><input class="ie ien" type="number" min="0" value="'+(item.estoque_ideal||0)+'" onchange="updIns(\''+item.id+'\',\'estoque_ideal\',+this.value)" style="font-size:13px;width:50px"></div>'
+      +'<div class="ic ctr">'+(isLow?'<span class="badge bd" style="font-size:7px">Repor</span>':disp<(item.estoque_ideal||0)?'<span class="badge bw" style="font-size:7px">Atenção</span>':'<span class="badge bs" style="font-size:7px">OK</span>')+'</div>'
       +'<div class="ic" style="gap:4px;flex-direction:column">'
-        +'<button class="btn btn-xs btn-rd" onclick="abrirRet(\'ins\',\''+item.id+'\',\''+item.nome+'\','+disp+',\''+(item.unidade||'un')+'\')">− Retirar</button>'
-        +'<button class="btn btn-xs btn-del" onclick="rmIns(\''+item.id+'\',\''+setor+'\',\''+cid+'\')">×</button>'
+        +'<button class="btn btn-xs btn-rd" onclick="abrirRet(\'ins\',\''+item.id+'\',\''+nomeEsc+'\','+disp+',\''+(item.unidade||'un')+'\')">− Retirar</button>'
+        +(isAdmin()?'<button class="btn btn-xs btn-del" onclick="rmIns(\''+item.id+'\',\''+setor+'\',\''+cid+'\')">Excluir</button>':'')
       +'</div></div>';
   });
   document.getElementById(cid).innerHTML=h;
@@ -1544,11 +1580,50 @@ async function salvarImpl(){
 
 // ── OUTROS INSUMOS (Limpeza, Conforto, Escritório) ───────────────────
 async function renderOutros(){
+  var c=document.getElementById('outros-c');
+  if(!c){
+    // Criar containers se não existirem
+    var pg=document.getElementById('pg-outros');
+    if(pg){
+      var sdiv=pg.querySelector('.sdiv');
+      if(!sdiv){
+        pg.innerHTML='<div class="sdiv"><div class="sdiv-t">Outros Insumos</div><div class="sdiv-l"></div></div>'
+          +'<div id="outros-lmp"></div><div id="outros-cnf"></div><div id="outros-esc"></div>';
+      }
+    }
+  }
   var setores=['Limpeza','Conforto','Escritório'];
   var ids=['outros-lmp','outros-cnf','outros-esc'];
   for(var i=0;i<setores.length;i++){
+    var el=document.getElementById(ids[i]);
+    if(!el){
+      var pg2=document.getElementById('pg-outros');
+      if(pg2){var d=document.createElement('div');d.id=ids[i];pg2.appendChild(d);}
+    }
     await renderSetor(setores[i],ids[i]);
   }
+}
+
+// ── IA — CONTEXTO ────────────────────────────────────────────────────
+async function buildContextoIA(){
+  var {data:meds}=await db.from('estoque_atual').select('*').eq('ativo',true);
+  var {data:tirz}=await db.from('tirzepatida_frascos').select('*,fornecedores(nome)').eq('status','ativo').neq('mg',0);
+  var {data:impl}=await db.from('tirzepatida_frascos').select('*').eq('status','ativo').eq('mg',0);
+  var ctx='Você é o assistente de estoque da Clínica Luisa Costa. Responda SEMPRE em português brasileiro. '
+    +'Seja direto e profissional. Use apenas os dados abaixo.\n\n=== ESTOQUE ===\n'
+    +'Data: '+new Date().toLocaleDateString('pt-BR')+'\n';
+  (meds||[]).forEach(function(m){
+    ctx+=m.nome+': '+m.disponivel+' unid. disp., val. '+fd(m.proxima_validade)+', mín: '+m.estoque_min+', ideal: '+(m.estoque_ideal||'—')+(m.preco_medio_cx>0?', preço médio: '+fBRL(m.preco_medio_cx)+'/cx':'')+', status: '+m.status_validade+'/'+m.status_estoque+'\n';
+  });
+  if(tirz&&tirz.length){
+    ctx+='\nTIRZEPATIDA:\n';
+    tirz.forEach(function(t){ctx+=t.mg+'mg - '+(t.fornecedores?t.fornecedores.nome:'—')+' - '+t.ampolas_disp+' amp - val. '+fd(t.validade)+'\n';});
+  }
+  if(impl&&impl.length){
+    ctx+='\nIMPLANTES HORMONAIS:\n';
+    impl.forEach(function(i){ctx+=(i.observacoes||'Implante')+' - '+i.ampolas_disp+' unid. - val. '+fd(i.validade)+'\n';});
+  }
+  return ctx;
 }
 
 // ── PEDIDOS REFORMULADO ──────────────────────────────────────────────
