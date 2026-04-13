@@ -764,7 +764,7 @@ body{font-family:'Raleway',sans-serif;background:var(--c8);color:var(--c);min-he
   </div>
   <div class="ma">
     <button class="btn btn-gh" onclick="fechar('madedittz')">Cancelar</button>
-    <button class="btn btn-rd btn-sm" onclick="excluirTirz()">🗑 Excluir</button>
+    <button class="btn btn-rd btn-sm" onclick="excluirTirz(document.getElementById('editz-id').value)">🗑 Excluir</button>
     <button class="btn btn-tl" onclick="confirmarEdicaoTirz()">Salvar Alterações</button>
   </div>
   <div id="editz-msg" class="fmsg" style="margin-top:8px"></div>
@@ -811,8 +811,10 @@ const SUPA_KEY  = 'sb_publishable_RWouef1R4SySi3PyBxq0lQ_AEEpGHly';
 const AI_PROXY  = SUPA_URL+'/functions/v1/ai-proxy';
 async function callIA(system,message,max_tokens){
   max_tokens=max_tokens||700;
+  var {data:{session}}=await db.auth.getSession();
+  var token=session?session.access_token:SUPA_KEY;
   var resp=await fetch(AI_PROXY,{method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPA_KEY},
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
     body:JSON.stringify({system,message,max_tokens})});
   var d=await resp.json();
   if(d.error) throw new Error(d.error.message||JSON.stringify(d.error));
@@ -958,15 +960,21 @@ async function renderDash(){
       return'<div class="alert-item"><span class="alert-nm">'+a.item_nome+'</span>'+bdg(a.validade)+'</div>';
     }).join(''):'<div style="font-size:11px;color:var(--Gm);font-weight:600;padding:6px 0">Nenhum alerta crítico ✓</div>';
   }
-  // Tirz
+  // Tirz - buscar direto do banco
+  var {data:tirzDash}=await db.from('tirzepatida_frascos').select('ampolas_disp,preco_pago').eq('status','ativo').neq('mg',0);
+  var {data:implDash}=await db.from('tirzepatida_frascos').select('ampolas_disp').eq('status','ativo').eq('mg',0);
+  var tAmp=(tirzDash||[]).reduce(function(s,t){return s+t.ampolas_disp;},0);
+  var tVal=(tirzDash||[]).reduce(function(s,t){return s+t.preco_pago;},0);
+  var iAmp=(implDash||[]).reduce(function(s,i){return s+i.ampolas_disp;},0);
   var tEl=document.getElementById('dash-tirz');
   if(tEl){
     tEl.innerHTML='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:0.5px solid var(--c7)">'
       +'<span style="font-size:12px;font-weight:600">Tirzepatida</span>'
-      +'<span style="font-family:Cormorant Garamond,serif;font-size:18px;font-weight:500;color:var(--Tm)">'+dash.tirz_ampolas_total+' amp</span></div>'
-      +'<div style="display:flex;justify-content:space-between;padding:6px 0">'
+      +'<div style="text-align:right"><span style="font-family:Cormorant Garamond,serif;font-size:18px;font-weight:500;color:var(--Tm)">'+tAmp+' amp</span>'
+      +'<div style="font-size:10px;color:var(--c4)">'+fBRL(tVal)+' investido</div></div></div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0">'
       +'<span style="font-size:12px;font-weight:600">Implantes</span>'
-      +'<button class="btn btn-gh btn-xs" onclick="tab(\'impl\')">Ver →</button></div>';
+      +'<span style="font-family:Cormorant Garamond,serif;font-size:18px;font-weight:500;color:var(--Pm)">'+iAmp+' un</span></div>';
   }
   gerarResumoDash(dash);
 }
@@ -1223,19 +1231,27 @@ async function confirmarRet(){
 // ── TIRZEPATIDA ──────────────────────────────────────────────────────
 async function renderTirz(){
   var f=document.getElementById('tfilt')?document.getElementById('tfilt').value:'all';
-  var query=db.from('tirzepatida_frascos').select('*,fornecedores(nome)').order('validade');
-  if(f==='60') query=query.eq('mg',60);if(f==='90') query=query.eq('mg',90);
-  if(f==='venc'){var q2=new Date().toISOString().slice(0,10);query=query.lt('validade',q2);}
+  var query=db.from('tirzepatida_frascos').select('*,fornecedores(nome)').neq('mg',0).eq('status','ativo').order('validade');
+  if(f==='60') query=query.eq('mg',60);
+  if(f==='90') query=query.eq('mg',90);
+  if(f==='venc') query=query.lt('validade',today());
+  if(f==='crit'){var d30t=new Date();d30t.setDate(d30t.getDate()+30);query=query.lte('validade',d30t.toISOString().slice(0,10)).gte('validade',today());}
   var {data:tirz}=await query;
-  if(!tirz) return;
-  var a60=0,a90=0,tvlr=0,venc=0;
-  tirz.forEach(function(t){if(t.mg==60)a60+=t.ampolas_disp;if(t.mg==90)a90+=t.ampolas_disp;tvlr+=t.preco_pago;if(st(t.validade)==='venc'||st(t.validade)==='crit')venc++;});
+  tirz=tirz||[];
+  var a60=0,a90=0,tvlr=0,venc=0,abaixoMin=0;
+  tirz.forEach(function(t){
+    if(t.mg==60)a60+=t.ampolas_disp;
+    if(t.mg==90)a90+=t.ampolas_disp;
+    tvlr+=t.preco_pago;
+    if(st(t.validade)==='venc'||st(t.validade)==='crit')venc++;
+    if((t.estoque_min_ampolas||0)>0&&t.ampolas_disp<=(t.estoque_min_ampolas||0))abaixoMin++;
+  });
   var ts=document.getElementById('tstats');
   if(ts) ts.innerHTML=
     '<div class="fc"><div class="fl">Ampolas 60mg</div><div class="fv" style="color:var(--Tm)">'+a60+'</div><div class="fs">'+tirz.filter(function(t){return t.mg==60;}).length+' frasco(s)</div></div>'
     +'<div class="fc"><div class="fl">Ampolas 90mg</div><div class="fv" style="color:var(--Tm)">'+a90+'</div><div class="fs">'+tirz.filter(function(t){return t.mg==90;}).length+' frasco(s)</div></div>'
     +'<div class="fc"><div class="fl">Total Investido</div><div class="fv">'+fBRL(tvlr)+'</div><div class="fs">'+tirz.length+' frasco(s)</div></div>'
-    +'<div class="fc"><div class="fl">Atenção / Vencidos</div><div class="fv" style="color:var(--Rm)">'+venc+'</div><div class="fs">verificar validade</div></div>';
+    +'<div class="fc"><div class="fl">Abaixo do Mínimo</div><div class="fv" style="color:'+(abaixoMin>0?'var(--Rm)':'var(--Gm)')+'">'+abaixoMin+'</div><div class="fs">'+(venc>0?venc+' vencendo':'validades OK')+'</div></div>';
   var el=document.getElementById('tlist');
   if(!el) return;
   document.getElementById('etrz').style.display=tirz.length?'none':'block';
@@ -1259,7 +1275,20 @@ async function adjTirz(id,usadas,delta){
   await db.from('tirzepatida_frascos').update({ampolas_usadas:novoUsado,atualizado_em:new Date().toISOString()}).eq('id',id);
   flash();renderTirz();
 }
-async function rmTirz(id){if(!confirm('Remover frasco?'))return;await db.from('tirzepatida_frascos').update({status:'descartado'}).eq('id',id);flash();renderTirz();}
+async function excluirTirz(id){
+  var confirmId=id||'';
+  if(!confirmId){alert('ID não encontrado.');return;}
+  if(!confirm('Excluir este frasco permanentemente?'))return;
+  var {error}=await db.from('tirzepatida_frascos').update({status:'descartado',atualizado_em:new Date().toISOString()}).eq('id',confirmId);
+  if(error){alert('Erro ao excluir: '+error.message);return;}
+  fechar('madedittz');flash();renderTirz();
+}
+async function rmTirz(id){
+  if(!confirm('Remover frasco?'))return;
+  var {error}=await db.from('tirzepatida_frascos').update({status:'descartado',atualizado_em:new Date().toISOString()}).eq('id',id);
+  if(error){alert('Erro: '+error.message);return;}
+  flash();renderTirz();renderDash();
+}
 async function salvarTirz(){
   var farm=document.getElementById('tfarm').value.trim(),val=document.getElementById('tval').value;
   var msg=document.getElementById('tirz-msg');
