@@ -344,6 +344,45 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
 /* misc */
 .empty{text-align:center;padding:2.5rem;color:var(--tl);font-size:12px}
 
+/* ── MODAL SESSÕES ────────────────────────────────────────── */
+.modal-box-lg{background:var(--bg2);border-radius:10px;width:100%;max-width:700px;max-height:92vh;overflow-y:auto;display:flex;flex-direction:column}
+.modal-box-lg::-webkit-scrollbar{width:4px}
+.modal-box-lg::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
+.ms-resumo{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:14px}
+.ms-metric{background:var(--bg3);border-radius:var(--r);padding:10px 12px}
+.ms-metric-label{font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:var(--tl);font-weight:600;margin-bottom:4px}
+.ms-metric-val{font-size:20px;font-weight:500;color:var(--tx)}
+.ms-metric-val.terra{color:var(--terra-d)}
+.ms-metric-val.verde{color:var(--verde)}
+.ms-sem-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin-bottom:14px}
+.ms-sem-cell{border-radius:var(--r);padding:8px 4px;text-align:center;border:1px solid var(--bd);cursor:pointer;transition:all .12s;background:var(--bg2)}
+.ms-sem-cell:hover{border-color:var(--terra)}
+.ms-sem-cell.done{background:var(--verde-l);border-color:#b0d4c8}
+.ms-sem-cell.sel{background:var(--terra-xl);border-color:var(--terra);box-shadow:0 0 0 2px rgba(193,123,62,.15)}
+.ms-sem-num{font-size:10px;font-weight:600;color:var(--tl);margin-bottom:3px}
+.ms-sem-cell.done .ms-sem-num{color:var(--verde)}
+.ms-sem-cell.sel .ms-sem-num{color:var(--terra-d)}
+.ms-sem-date{font-size:9px;color:var(--tl);margin-top:3px}
+.ms-detalhe{background:var(--bg3);border-radius:var(--r);padding:1rem;border:1px solid var(--bd)}
+.ms-det-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.ms-det-title{font-size:13px;font-weight:500;color:var(--tx)}
+.ms-det-badge{font-size:9px;font-weight:600;padding:3px 9px;border-radius:var(--r);text-transform:uppercase;letter-spacing:.5px}
+.ms-det-badge.done{background:var(--verde-l);color:var(--verde)}
+.ms-det-badge.pend{background:var(--bg2);color:var(--tl);border:1px solid var(--bd2)}
+.ms-det-info{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.ms-det-field label{font-size:9px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--tl);display:block;margin-bottom:2px}
+.ms-det-field span{font-size:12px;color:var(--tx);font-weight:500}
+.ms-ativos{display:flex;flex-direction:column;gap:3px}
+.ms-ativo-row{display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--bg2);border-radius:4px;border:1px solid var(--bd)}
+.ms-ativo-check{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0}
+.ms-ativo-check.ok{background:var(--verde-l);color:var(--verde)}
+.ms-ativo-check.no{background:var(--bg3);color:var(--tl);border:1px solid var(--bd2)}
+.ms-ativo-nm{flex:1;font-size:11px;color:var(--tx)}
+.ms-ativo-lote{font-size:10px;color:var(--tl)}
+.ms-intercorr{margin-top:8px;padding:8px 10px;background:var(--terra-xl);border-radius:var(--r);border-left:2px solid var(--terra)}
+.ms-intercorr-label{font-size:9px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--terra-d);margin-bottom:3px}
+.ms-intercorr-txt{font-size:11px;color:var(--terra-d)}
+
 /* ── DASHBOARD ────────────────────────────────────────────── */
 .dash-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
 @media(max-width:900px){.dash-grid{grid-template-columns:repeat(2,1fr)}}
@@ -840,6 +879,34 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
       </div>
     </div>
 
+    <!-- MODAL SESSÕES DO PROTOCOLO -->
+    <div id="m-sessoes" style="display:none;width:100%;max-width:700px">
+      <div class="modal-box-lg" onclick="event.stopPropagation()">
+        <div class="modal-head" style="flex-shrink:0">
+          <div>
+            <div class="modal-title" id="ms-title">Protocolo</div>
+            <div class="modal-sub" id="ms-sub"></div>
+          </div>
+          <button class="btn btn-xs" onclick="closeModal()" style="flex-shrink:0">✕ Fechar</button>
+        </div>
+        <div class="modal-body" style="flex:1;overflow-y:auto">
+          <div class="ms-resumo">
+            <div class="ms-metric"><div class="ms-metric-label">Realizadas</div><div class="ms-metric-val verde" id="ms-realizadas">0</div></div>
+            <div class="ms-metric"><div class="ms-metric-label">Pendentes</div><div class="ms-metric-val terra" id="ms-pendentes">12</div></div>
+            <div class="ms-metric"><div class="ms-metric-label">Progresso</div><div class="ms-metric-val" id="ms-pct">0%</div></div>
+            <div class="ms-metric"><div class="ms-metric-label">Próxima sessão</div><div class="ms-metric-val" id="ms-proxima" style="font-size:14px">—</div></div>
+          </div>
+          <div class="prog-wrap" style="margin-bottom:14px">
+            <div class="prog-label-row"><span>Progresso do protocolo</span><span id="ms-prog-label">0 / 12</span></div>
+            <div class="prog-track"><div class="prog-fill" id="ms-prog-fill" style="width:0%"></div></div>
+          </div>
+          <div class="sec" style="margin-bottom:8px">Clique em uma semana para ver o detalhamento</div>
+          <div class="ms-sem-grid" id="ms-sem-grid"></div>
+          <div id="ms-detalhe"></div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1227,7 +1294,8 @@ function renderProtCard(pr){
     <div class="prot-footer">
       <span class="prot-pagto">${pr.pagamento||'—'}</span>
       <div style="display:flex;gap:4px">
-        ${!concluido?`<button class="btn btn-xs btn-verde" onclick="concluirProtocolo('${pr.id}')">Marcar concluído</button>`:''}
+        <button class="btn btn-xs btn-terra" onclick="abrirModalSessoes('${pr.id}')">Ver sessões</button>
+        ${!concluido?`<button class="btn btn-xs btn-verde" onclick="concluirProtocolo('${pr.id}')">Concluído</button>`:''}
         <button class="btn btn-xs btn-danger" onclick="apagarProtocolo('${pr.id}')">Remover</button>
       </div>
     </div>
@@ -1563,7 +1631,15 @@ function gerarPDFSessoes(indices){
 // ── MODAL ─────────────────────────────────────────────────────────────
 function openModal(id){
   document.getElementById('modal-ov').style.display='flex';
-  ['recibo','add-ativo','add-pac','pront'].forEach(x=>document.getElementById('m-'+x).style.display=x===id?'':'none');
+  ['recibo','add-ativo','add-pac','pront','sessoes'].forEach(x=>{
+    const el=document.getElementById('m-'+x);
+    if(el)el.style.display=x===id?'':'none';
+  });
+  // modal de sessões é maior
+  const box=document.querySelector('.modal-box');
+  if(box)box.style.display=id==='sessoes'?'none':'';
+  const boxLg=document.getElementById('m-sessoes');
+  if(boxLg)boxLg.style.display=id==='sessoes'?'':'none';
 }
 function closeModal(){document.getElementById('modal-ov').style.display='none';}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
@@ -1641,6 +1717,132 @@ async function concluirProtocolo(id){
   const{error}=await db.from('protocolos').update({status:'concluido',data_fim:new Date().toISOString().slice(0,10)}).eq('id',id);
   if(error){alert('Erro: '+error.message);return;}
   await carregarProtocolosPacs();
+}
+
+// ── MODAL SESSÕES ─────────────────────────────────────────────────────
+let modalProtAtual = null;
+let semSelecionada = 0;
+
+async function abrirModalSessoes(id){
+  // Busca o protocolo completo no cache
+  let pr = null;
+  for(const k of Object.keys(protsByPac)){
+    const found = protsByPac[k].find(p=>p.id===id);
+    if(found){pr=found;break;}
+  }
+  if(!pr){
+    // Fallback: busca no Supabase
+    const{data}=await db.from('protocolos').select('*').eq('id',id).single();
+    pr=data;
+  }
+  if(!pr)return;
+  modalProtAtual=pr;
+  semSelecionada=0;
+
+  // Preenche cabeçalho
+  document.getElementById('ms-title').textContent=pr.paciente_nome+' — '+(pr.titulo||'Protocolo');
+  const dtI=pr.data_inicio?new Date(pr.data_inicio+'T12:00').toLocaleDateString('pt-BR'):'—';
+  const total=fmt(parseFloat(pr.valor_total)||0);
+  document.getElementById('ms-sub').textContent=`${pr.duracao?pr.duracao+' meses':'Livre'} · Início ${dtI} · ${total}`;
+
+  // Métricas
+  const sess=pr.sessoes_realizadas||0;
+  const pend=12-sess;
+  const pct=Math.round((sess/12)*100);
+  document.getElementById('ms-realizadas').textContent=sess;
+  document.getElementById('ms-pendentes').textContent=pend;
+  document.getElementById('ms-pct').textContent=pct+'%';
+  document.getElementById('ms-prog-label').textContent=sess+' / 12';
+  document.getElementById('ms-prog-fill').style.width=pct+'%';
+
+  // Próxima sessão
+  const dtIni=pr.data_inicio;
+  if(dtIni&&sess<12){
+    const d=new Date(dtIni+'T12:00');
+    d.setDate(d.getDate()+sess*7);
+    document.getElementById('ms-proxima').textContent=d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+  } else {
+    document.getElementById('ms-proxima').textContent=sess>=12?'Concluído':'—';
+  }
+
+  renderSemGrid();
+  document.getElementById('ms-detalhe').innerHTML='<div style="font-size:11px;color:var(--tl);text-align:center;padding:1rem 0">Clique em uma semana acima para ver o detalhamento</div>';
+  openModal('sessoes');
+}
+
+function dtSemana(idx){
+  if(!modalProtAtual||!modalProtAtual.data_inicio)return'S'+(idx+1);
+  const d=new Date(modalProtAtual.data_inicio+'T12:00');
+  d.setDate(d.getDate()+idx*7);
+  return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+}
+
+function renderSemGrid(){
+  const pr=modalProtAtual;if(!pr)return;
+  const sess=pr.sessoes_realizadas||0;
+  // Tenta pegar sessoes do localStorage (dados de sessão da gestão de semanas)
+  const el=document.getElementById('ms-sem-grid');
+  el.innerHTML=Array.from({length:12},(_,i)=>{
+    const done=i<sess;
+    const sel=i===semSelecionada;
+    const icon=done
+      ?`<svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="#4A7C6B"/><path d="M4 7l2 2 4-4" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+      :`<svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="none" stroke="#DDD6CC" stroke-width="1.2"/></svg>`;
+    return`<div class="ms-sem-cell${done?' done':''}${sel?' sel':''}" onclick="selectSemModal(${i})">
+      <div class="ms-sem-num">S${i+1}</div>
+      ${icon}
+      <div class="ms-sem-date">${dtSemana(i)}</div>
+    </div>`;
+  }).join('');
+}
+
+function selectSemModal(idx){
+  semSelecionada=idx;
+  renderSemGrid();
+  renderSemDetalhe(idx);
+}
+
+function renderSemDetalhe(idx){
+  const pr=modalProtAtual;if(!pr)return;
+  const el=document.getElementById('ms-detalhe');
+  const sess=pr.sessoes_realizadas||0;
+  const done=idx<sess;
+  const dt=dtSemana(idx);
+
+  // Tenta pegar dados de sessão do localStorage
+  const sData=sessoes[idx]||{};
+  const items=semanas[idx]||[];
+
+  const ativosHtml=items.length
+    ?items.map(it=>{
+        const inf=(sData.itens||{})[it.name]||{};
+        return`<div class="ms-ativo-row">
+          <div class="ms-ativo-check ${inf.aplicado||done?'ok':'no'}">${inf.aplicado||done?'✓':'○'}</div>
+          <span class="ms-ativo-nm">${it.name}</span>
+          <span class="ms-ativo-lote">${inf.lote?'Lote: '+inf.lote:done?'—':''}</span>
+        </div>`;
+      }).join('')
+    :`<div style="font-size:11px;color:var(--tl);padding:6px 0">Nenhum ativo distribuído nesta semana.<br><span style="font-size:10px">Distribua ativos na seção Semanas.</span></div>`;
+
+  const intercorrHtml=sData.intercorrencias
+    ?`<div class="ms-intercorr"><div class="ms-intercorr-label">Intercorrência registrada</div><div class="ms-intercorr-txt">${sData.intercorrencias}</div></div>`:'';
+
+  el.innerHTML=`<div class="ms-detalhe">
+    <div class="ms-det-header">
+      <div class="ms-det-title">Semana ${idx+1} — ${dt}</div>
+      <span class="ms-det-badge ${done?'done':'pend'}">${done?'Realizada':'Pendente'}</span>
+    </div>
+    ${done?`<div class="ms-det-info">
+      <div class="ms-det-field"><label>Enfermeiro(a)</label><span>${sData.enfermeiro||'—'}</span></div>
+      <div class="ms-det-field"><label>Data</label><span>${sData.data?new Date(sData.data+'T12:00').toLocaleDateString('pt-BR'):'—'}</span></div>
+      <div class="ms-det-field"><label>Hora</label><span>${sData.hora||'—'}</span></div>
+    </div>
+    ${sData.obs?`<div style="font-size:11px;color:var(--tm);margin-bottom:10px;padding:6px 8px;background:var(--bg2);border-radius:4px"><strong style="color:var(--tl);font-size:9px;text-transform:uppercase;letter-spacing:.5px">Obs: </strong>${sData.obs}</div>`:''}`:
+    `<div style="font-size:11px;color:var(--tl);margin-bottom:10px">Sessão ainda não realizada.</div>`}
+    <div class="sec" style="margin-bottom:6px">Ativos desta semana</div>
+    <div class="ms-ativos">${ativosHtml}</div>
+    ${intercorrHtml}
+  </div>`;
 }
 
 async function apagarProtocolo(id){
