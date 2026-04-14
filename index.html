@@ -343,6 +343,52 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
 
 /* misc */
 .empty{text-align:center;padding:2.5rem;color:var(--tl);font-size:12px}
+
+/* ── DASHBOARD ────────────────────────────────────────────── */
+.dash-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+@media(max-width:900px){.dash-grid{grid-template-columns:repeat(2,1fr)}}
+.metric-card{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:1rem;border-top:3px solid var(--terra)}
+.metric-card.verde{border-top-color:var(--verde)}
+.metric-label{font-size:9px;letter-spacing:1.5px;font-weight:600;text-transform:uppercase;color:var(--tl);margin-bottom:6px}
+.metric-value{font-size:26px;font-weight:500;color:var(--tx);line-height:1}
+.metric-sub{font-size:10px;color:var(--tl);margin-top:4px}
+.dash-chart-card{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:1rem 1.125rem;margin-bottom:14px}
+.chart-bars{display:flex;align-items:flex-end;gap:6px;height:72px;margin-top:10px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.bar-fill{width:100%;border-radius:3px 3px 0 0;background:var(--terra);opacity:.7;min-height:3px;transition:opacity .15s}
+.bar-fill.hi{opacity:1}
+.bar-lbl{font-size:9px;color:var(--tl)}
+.dash-recentes{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:1rem 1.125rem}
+.prot-dash-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bg3)}
+.prot-dash-row:last-child{border-bottom:none}
+.prot-dash-av{width:30px;height:30px;border-radius:50%;background:var(--terra-l);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--terra-d);flex-shrink:0}
+.prot-dash-info{flex:1;min-width:0}
+.prot-dash-nome{font-size:12px;font-weight:500;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prot-dash-meta{font-size:10px;color:var(--tl);margin-top:1px}
+.prot-dash-val{font-size:12px;font-weight:500;color:var(--terra-d);white-space:nowrap}
+.prog-track{height:5px;background:var(--bd2);border-radius:3px;overflow:hidden;margin-top:3px}
+.prog-fill{height:100%;border-radius:3px;background:var(--terra)}
+.prog-fill.done{background:var(--verde)}
+
+/* ── PROTOCOLOS POR PACIENTE ──────────────────────────────── */
+.prot-expand{margin-top:12px;padding-top:12px;border-top:1px solid var(--bd)}
+.prot-item{background:var(--bg3);border:1px solid var(--bd);border-radius:var(--r);padding:.875rem 1rem;margin-bottom:8px}
+.prot-item:last-child{margin-bottom:0}
+.prot-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.prot-title-nm{font-size:12px;font-weight:500;color:var(--tx)}
+.prot-title-dt{font-size:10px;color:var(--tl);margin-top:2px}
+.prot-valor{font-size:15px;font-weight:500;color:var(--terra-d);text-align:right}
+.prot-valor.verde{color:var(--verde)}
+.tag-status{font-size:9px;font-weight:600;letter-spacing:.5px;padding:2px 8px;border-radius:var(--r);text-transform:uppercase}
+.tag-andamento{background:var(--terra-l);color:var(--terra-d)}
+.tag-concluido{background:var(--verde-l);color:var(--verde)}
+.chips-ativos{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px}
+.chip-ativo{font-size:9px;padding:2px 7px;border-radius:var(--r);background:var(--bg2);border:1px solid var(--bd);color:var(--tm)}
+.prog-label-row{display:flex;justify-content:space-between;font-size:10px;color:var(--tl);margin-bottom:3px}
+.prot-footer{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.prot-pagto{font-size:10px;color:var(--tl)}
+.pac-prot-badge{font-size:9px;font-weight:600;padding:2px 8px;border-radius:var(--r);background:var(--terra-l);color:var(--terra-d);letter-spacing:.3px}
+.pac-row-actions{display:flex;align-items:center;gap:6px}
 </style>
 </head>
 <body>
@@ -373,6 +419,12 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
   <!-- SIDEBAR -->
   <nav class="sb">
     <div class="sb-logo">LC</div>
+
+    <button class="sb-btn" onclick="goPage('dashboard',this)">
+      <svg viewBox="0 0 18 18" fill="none" stroke="#7A6E65" stroke-width="1.5"><rect x="2" y="2" width="6" height="6" rx="1"/><rect x="10" y="2" width="6" height="6" rx="1"/><rect x="2" y="10" width="6" height="6" rx="1"/><rect x="10" y="10" width="6" height="6" rx="1"/></svg>
+      <span>DASH</span>
+      <div class="sb-tt">Dashboard</div>
+    </button>
 
     <button class="sb-btn on" onclick="goPage('precificador',this)">
       <svg viewBox="0 0 18 18" fill="none" stroke="white" stroke-width="1.5"><rect x="2" y="2" width="14" height="14" rx="2.5"/><line x1="5" y1="7" x2="13" y2="7"/><line x1="5" y1="10" x2="11" y2="10"/><line x1="5" y1="13" x2="9" y2="13"/></svg>
@@ -441,6 +493,34 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
 
     <!-- CONTENT -->
     <div class="content-wrap">
+
+      <!-- ══ DASHBOARD ══════════════════════════════════════════════ -->
+      <div id="pg-dashboard" class="page">
+        <div class="dash-grid" id="dash-metrics">
+          <div class="metric-card"><div class="metric-label">Protocolos ativos</div><div class="metric-value" id="dm-ativos">—</div><div class="metric-sub" id="dm-ativos-sub"></div></div>
+          <div class="metric-card"><div class="metric-label">Faturado em protocolos</div><div class="metric-value" id="dm-faturado">—</div><div class="metric-sub" id="dm-faturado-sub"></div></div>
+          <div class="metric-card verde"><div class="metric-label">Sessões realizadas</div><div class="metric-value" id="dm-sessoes">—</div><div class="metric-sub" id="dm-sessoes-sub"></div></div>
+          <div class="metric-card verde"><div class="metric-label">Concluídos</div><div class="metric-value" id="dm-concluidos">—</div><div class="metric-sub" id="dm-concluidos-sub"></div></div>
+        </div>
+        <div class="two">
+          <div>
+            <div class="dash-chart-card">
+              <div class="sec" style="margin:0">Protocolos salvos por mês</div>
+              <div class="chart-bars" id="dash-bars"><div style="color:var(--tl);font-size:11px;padding:1rem 0">Carregando...</div></div>
+            </div>
+            <div class="dash-recentes">
+              <div class="sec">Protocolos recentes</div>
+              <div id="dash-recentes-list"><div class="empty">Nenhum protocolo salvo ainda.</div></div>
+            </div>
+          </div>
+          <div>
+            <div class="card">
+              <div class="sec">Status geral</div>
+              <div id="dash-status-list"><div class="empty">Sem dados.</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- ══ PRECIFICADOR ══════════════════════════════════════════ -->
       <div id="pg-precificador" class="page on">
@@ -558,7 +638,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
                 <button class="btn btn-terra" style="font-size:10px;letter-spacing:.8px;font-weight:700" onclick="pdfProtocolo()">PDF PROTOCOLO</button>
                 <button class="btn btn-dk" style="font-size:10px;letter-spacing:.5px" onclick="openModal('recibo')">RECIBO FINANCEIRO</button>
               </div>
-              <button class="btn btn-verde" style="width:100%;font-size:10px;letter-spacing:.5px" onclick="irParaSemanas()">GESTÃO DE SEMANAS →</button>
+              <button class="btn btn-verde" style="width:100%;font-size:10px;letter-spacing:.5px;margin-bottom:6px" onclick="irParaSemanas()">GESTÃO DE SEMANAS →</button>
+              <button class="btn" style="width:100%;font-size:10px;letter-spacing:.5px;background:var(--verde-l);color:var(--verde);border-color:#b0d4c8;font-weight:600" onclick="salvarProtocolo()">✓ Salvar protocolo no histórico</button>
               <button class="btn btn-danger btn-xs" style="width:100%;margin-top:6px;text-align:center" onclick="clearAll()">Limpar seleção</button>
 
             </div>
@@ -659,7 +740,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
             <div class="sec" style="margin:0">Pacientes</div>
             <button class="btn btn-terra btn-sm" onclick="openModal('add-pac')">+ Nova paciente</button>
           </div>
-          <p style="font-size:11px;color:var(--tl);margin-bottom:10px">Cadastro básico para vinculação futura com agenda e prontuário completo.</p>
           <div class="sw" style="margin-bottom:10px"><span class="si">⌕</span><input id="srch-pac" type="text" placeholder="Buscar por nome ou CPF..." oninput="renderPacs()"></div>
           <div id="pac-list"></div>
         </div>
@@ -824,6 +904,7 @@ async function iniciarApp(user){
   renderItems();
   updSummary();
   renderPacs();
+  carregarProtocolosPacs();
   syncSbBtns();
 }
 
@@ -875,8 +956,8 @@ function dtLabel(i){const ini=document.getElementById('dt-inicio')?document.getE
 function fmtCPF(el){let v=el.value.replace(/\D/g,'').slice(0,11);v=v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2');el.value=v;}
 
 // ── NAVIGATION ────────────────────────────────────────────────────────
-const PAGE_LABELS={precificador:'de Protocolos',semanas:'de Semanas',ativos:'e Serviços',pacientes:'',estoque:''};
-const PAGE_PREFIX={precificador:'Precificador',semanas:'Gestão',ativos:'Ativos',pacientes:'Pacientes',estoque:'Estoque'};
+const PAGE_LABELS={dashboard:'',precificador:'de Protocolos',semanas:'de Semanas',ativos:'e Serviços',pacientes:'',estoque:''};
+const PAGE_PREFIX={dashboard:'Dashboard',precificador:'Precificador',semanas:'Gestão',ativos:'Ativos',pacientes:'Pacientes',estoque:'Estoque'};
 
 let estoqueLoaded = false;
 function goPage(id,btn){
@@ -886,7 +967,8 @@ function goPage(id,btn){
   document.getElementById('tb-page').textContent=PAGE_LABELS[id]||'';
   document.getElementById('tb-clinic').textContent=PAGE_PREFIX[id]||'';
   if(id==='ativos')renderAtivos();
-  if(id==='pacientes')renderPacs();
+  if(id==='pacientes'){renderPacs();carregarProtocolosPacs();}
+  if(id==='dashboard')renderDashboard();
   if(id==='semanas'){
     const nome=getNome();if(nome)document.getElementById('sem-pac-nome').textContent=nome;
     const cnt=Object.keys(selected).length;
@@ -933,7 +1015,7 @@ function carregarEstoque(){
 }
 
 function syncSbBtns(activeId){
-  const map={precificador:0,semanas:1,ativos:2,pacientes:3,estoque:4};
+  const map={dashboard:0,precificador:1,semanas:2,ativos:3,pacientes:4,estoque:5};
   document.querySelectorAll('.sb-btn').forEach((b,i)=>{
     const isOn=activeId?i===map[activeId]:b.classList.contains('on');
     if(activeId){b.classList.toggle('on',i===map[activeId]);}
@@ -1063,16 +1145,93 @@ function selPacDrop(i){activePacIdx=i;document.getElementById('nome-livre').valu
 document.addEventListener('click',e=>{const drop=document.getElementById('pac-drop');if(drop&&!drop.parentElement.contains(e.target))drop.style.display='none';});
 
 // ── PACIENTES ─────────────────────────────────────────────────────────
+// cache protocolos por paciente
+let protsByPac={};
+
+async function carregarProtocolosPacs(){
+  if(!USER)return;
+  try{
+    const {data}=await db.from('protocolos').select('*').order('created_at',{ascending:false});
+    protsByPac={};
+    (data||[]).forEach(p=>{
+      const k=p.paciente_nome;
+      if(!protsByPac[k])protsByPac[k]=[];
+      protsByPac[k].push(p);
+    });
+    renderPacs();
+  }catch(e){console.warn('Erro ao carregar protocolos:',e);}
+}
+
 function renderPacs(){
   const q=(document.getElementById('srch-pac')||{}).value?.toLowerCase()||'';
   const f=pacientes.filter(p=>!q||p.nome.toLowerCase().includes(q)||(p.cpf||'').includes(q));
   const el=document.getElementById('pac-list');
   if(!f.length){el.innerHTML='<div class="empty">Nenhuma paciente cadastrada.</div>';return;}
-  el.innerHTML=f.map((p,i)=>`<div class="pac-row">
-    <div class="pac-av">${p.nome.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()}</div>
-    <div style="flex:1"><div class="pac-nm">${p.nome}</div><div class="pac-cpf">${p.cpf||'CPF não informado'}</div></div>
-    <button class="btn btn-xs btn-danger" onclick="delPac(${i})">Remover</button>
-  </div>`).join('');
+  el.innerHTML=f.map((p,i)=>{
+    const prots=protsByPac[p.nome]||[];
+    const badge=prots.length?`<span class="pac-prot-badge">${prots.length} protocolo${prots.length>1?'s':''}</span>`:`<span style="font-size:10px;color:var(--tl)">sem protocolos</span>`;
+    return`<div class="pac-row" style="flex-wrap:wrap">
+      <div class="pac-av">${p.nome.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()}</div>
+      <div style="flex:1;min-width:0"><div class="pac-nm">${p.nome}</div><div class="pac-cpf">${p.cpf||'CPF não informado'}</div></div>
+      <div class="pac-row-actions">
+        ${badge}
+        ${prots.length?`<button class="btn btn-xs" onclick="toggleProtsPac('pp-${i}',this)">Ver protocolos ▾</button>`:''}
+        <button class="btn btn-xs btn-danger" onclick="delPac(${i})">Remover</button>
+      </div>
+      <div id="pp-${i}" class="prot-expand" style="display:none;width:100%">
+        ${prots.map(pr=>renderProtCard(pr)).join('')}
+        <button class="btn btn-verde btn-xs" style="width:100%;margin-top:4px;font-size:10px" onclick="preencherPacNoPrec('${esc(p.nome)}')">+ Novo protocolo para esta paciente</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleProtsPac(id,btn){
+  const el=document.getElementById(id);
+  const open=el.style.display==='none';
+  el.style.display=open?'block':'none';
+  btn.textContent=open?'Fechar ▴':'Ver protocolos ▾';
+}
+
+function preencherPacNoPrec(nome){
+  goPage('precificador',null);
+  document.getElementById('nome-livre').value=nome;
+  syncSbBtns('precificador');
+}
+
+function renderProtCard(pr){
+  const ativos=JSON.parse(pr.ativos||'[]');
+  const total=parseFloat(pr.valor_total)||0;
+  const sess=pr.sessoes_realizadas||0;
+  const maxSess=12;
+  const pct=Math.round((sess/maxSess)*100);
+  const concluido=pr.status==='concluido';
+  const chips=ativos.slice(0,4).map(a=>`<span class="chip-ativo">${a.name||a}</span>`).join('');
+  const mais=ativos.length>4?`<span class="chip-ativo">+${ativos.length-4}</span>`:'';
+  const dtI=pr.data_inicio?new Date(pr.data_inicio+'T12:00').toLocaleDateString('pt-BR'):'—';
+  const dtF=pr.data_fim?new Date(pr.data_fim+'T12:00').toLocaleDateString('pt-BR'):'';
+  return`<div class="prot-item">
+    <div class="prot-header">
+      <div>
+        <div class="prot-title-nm">${pr.titulo||'Protocolo'}</div>
+        <div class="prot-title-dt">Início: ${dtI}${dtF?' · '+( concluido?'Concluído':'Término prev.')+': '+dtF:''} · ${pr.duracao?pr.duracao+' meses':'Livre'}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="prot-valor${concluido?' verde':''}">${fmt(total)}</div>
+        <span class="tag-status ${concluido?'tag-concluido':'tag-andamento'}" style="margin-top:3px;display:inline-block">${concluido?'Concluído':'Em andamento'}</span>
+      </div>
+    </div>
+    <div class="chips-ativos">${chips}${mais}</div>
+    <div class="prog-label-row"><span>Sessões realizadas</span><span style="font-weight:500">${sess} / ${maxSess}</span></div>
+    <div class="prog-track"><div class="prog-fill${concluido?' done':''}" style="width:${pct}%"></div></div>
+    <div class="prot-footer">
+      <span class="prot-pagto">${pr.pagamento||'—'}</span>
+      <div style="display:flex;gap:4px">
+        ${!concluido?`<button class="btn btn-xs btn-verde" onclick="concluirProtocolo('${pr.id}')">Marcar concluído</button>`:''}
+        <button class="btn btn-xs btn-danger" onclick="apagarProtocolo('${pr.id}')">Remover</button>
+      </div>
+    </div>
+  </div>`;
 }
 function salvarPac(){const n=document.getElementById('pac-nome').value.trim();if(!n){alert('Informe o nome.');return;}pacientes.push({nome:n,cpf:document.getElementById('pac-cpf').value});closeModal();renderPacs();scheduleSave();}
 function delPac(i){if(!confirm('Remover paciente?'))return;pacientes.splice(i,1);renderPacs();scheduleSave();}
@@ -1431,6 +1590,146 @@ function loadState(){
 }
 function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(saveState,900);}
 document.addEventListener('change',e=>{if(['nome-livre','d-pct','d-val','taxa-val'].includes(e.target.id))scheduleSave();});
+
+// ── PROTOCOLOS — SUPABASE ────────────────────────────────────────────
+
+async function salvarProtocolo(){
+  const items=Object.entries(selected);
+  if(!items.length){alert('Selecione pelo menos um ativo primeiro.');return;}
+  const nome=getNome();
+  if(!nome){alert('Informe o nome da paciente antes de salvar.');return;}
+  const b=getBruto(),disc=getDisc(b),afterDisc=Math.max(0,b-disc),taxa=getTaxa(afterDisc),final=afterDisc+taxa;
+  const dtI=document.getElementById('dt-inicio')?.value||new Date().toISOString().slice(0,10);
+  let dtF='';
+  if(dtI&&duracao){const d=new Date(dtI+'T12:00');d.setMonth(d.getMonth()+duracao);dtF=d.toISOString().slice(0,10);}
+  const ativos=items.map(([n,{qty,note}])=>({name:n,qty,note,preco:prices[n]||0}));
+  const tituloParts=[nome];
+  if(duracao)tituloParts.push(duracao+' meses');
+  const titulo=tituloParts.join(' — ');
+  const pagStr={pix:'Pix',debito:'Débito',credito:'Crédito à vista',parcelado:`Crédito ${parcSel}x`}[payMode]||payMode;
+  const payload={
+    paciente_nome:nome,
+    titulo,
+    ativos:JSON.stringify(ativos),
+    valor_total:final,
+    data_inicio:dtI,
+    data_fim:dtF||null,
+    duracao:duracao||null,
+    pagamento:pagStr,
+    sessoes_realizadas:0,
+    status:'andamento',
+  };
+  try{
+    const {data,error}=await db.from('protocolos').insert(payload).select().single();
+    if(error)throw error;
+    // atualiza cache local
+    if(!protsByPac[nome])protsByPac[nome]=[];
+    protsByPac[nome].unshift(data);
+    const msg=document.getElementById('save-msg');
+    msg.textContent='Protocolo salvo!';
+    msg.style.color='var(--verde)';
+    clearTimeout(msg._t);
+    msg._t=setTimeout(()=>{msg.textContent='';msg.style.color='';},3000);
+  }catch(e){
+    alert('Erro ao salvar protocolo: '+e.message);
+    console.error(e);
+  }
+}
+
+async function concluirProtocolo(id){
+  if(!confirm('Marcar este protocolo como concluído?'))return;
+  const{error}=await db.from('protocolos').update({status:'concluido',data_fim:new Date().toISOString().slice(0,10)}).eq('id',id);
+  if(error){alert('Erro: '+error.message);return;}
+  await carregarProtocolosPacs();
+}
+
+async function apagarProtocolo(id){
+  if(!confirm('Remover este protocolo permanentemente?'))return;
+  const{error}=await db.from('protocolos').delete().eq('id',id);
+  if(error){alert('Erro: '+error.message);return;}
+  await carregarProtocolosPacs();
+  renderDashboard();
+}
+
+// ── DASHBOARD ────────────────────────────────────────────────────────
+async function renderDashboard(){
+  try{
+    const{data:prots}=await db.from('protocolos').select('*').order('created_at',{ascending:false});
+    const all=prots||[];
+    const ativos=all.filter(p=>p.status==='andamento');
+    const concluidos=all.filter(p=>p.status==='concluido');
+    const totalFat=all.reduce((s,p)=>s+(parseFloat(p.valor_total)||0),0);
+    const totalSess=all.reduce((s,p)=>s+(p.sessoes_realizadas||0),0);
+    const totalPrevSess=all.length*12;
+
+    document.getElementById('dm-ativos').textContent=ativos.length;
+    document.getElementById('dm-ativos-sub').textContent=all.length+' total';
+    document.getElementById('dm-faturado').textContent='R$ '+Math.round(totalFat/1000)+'k';
+    document.getElementById('dm-faturado-sub').textContent=all.length+' protocolos';
+    document.getElementById('dm-sessoes').textContent=totalSess;
+    document.getElementById('dm-sessoes-sub').textContent='de '+totalPrevSess+' previstas';
+    document.getElementById('dm-concluidos').textContent=concluidos.length;
+    document.getElementById('dm-concluidos-sub').textContent=ativos.length+' em andamento';
+
+    // Gráfico de barras por mês (últimos 6 meses)
+    const meses={};
+    const agora=new Date();
+    for(let i=5;i>=0;i--){
+      const d=new Date(agora.getFullYear(),agora.getMonth()-i,1);
+      const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+      meses[k]=0;
+    }
+    all.forEach(p=>{if(p.created_at){const k=p.created_at.slice(0,7);if(meses[k]!==undefined)meses[k]++;}});
+    const maxBar=Math.max(...Object.values(meses),1);
+    const nomMes=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    const barsEl=document.getElementById('dash-bars');
+    barsEl.innerHTML=Object.entries(meses).map(([k,v])=>{
+      const mes=nomMes[parseInt(k.split('-')[1])-1];
+      const h=Math.round((v/maxBar)*100);
+      const isLast=k===Object.keys(meses).slice(-1)[0];
+      return`<div class="bar-col"><div class="bar-fill${isLast?' hi':''}" style="height:${Math.max(h,4)}%"></div><div class="bar-lbl">${mes}</div></div>`;
+    }).join('');
+
+    // Recentes
+    const recentEl=document.getElementById('dash-recentes-list');
+    if(!all.length){recentEl.innerHTML='<div class="empty">Nenhum protocolo salvo ainda.</div>';
+    }else{
+      recentEl.innerHTML=all.slice(0,6).map(p=>{
+        const av=p.paciente_nome.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+        const pct=Math.round(((p.sessoes_realizadas||0)/12)*100);
+        const concluido=p.status==='concluido';
+        return`<div class="prot-dash-row">
+          <div class="prot-dash-av">${av}</div>
+          <div class="prot-dash-info">
+            <div class="prot-dash-nome">${p.paciente_nome} — ${p.duracao?p.duracao+'m':'livre'}</div>
+            <div class="prog-track" style="margin-top:4px"><div class="prog-fill${concluido?' done':''}" style="width:${pct}%"></div></div>
+            <div class="prot-dash-meta">${p.sessoes_realizadas||0}/12 sessões · ${concluido?'Concluído':'Em andamento'}</div>
+          </div>
+          <div class="prot-dash-val">${fmt(parseFloat(p.valor_total)||0)}</div>
+        </div>`;
+      }).join('')}
+
+    // Status lateral
+    const statusEl=document.getElementById('dash-status-list');
+    statusEl.innerHTML=`
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div class="prot-dash-row" style="background:var(--terra-xl);border-radius:var(--r);padding:8px 10px">
+          <div style="flex:1;font-size:12px;color:var(--terra-d)">Em andamento</div>
+          <div style="font-size:18px;font-weight:500;color:var(--terra-d)">${ativos.length}</div>
+        </div>
+        <div class="prot-dash-row" style="background:var(--verde-l);border-radius:var(--r);padding:8px 10px">
+          <div style="flex:1;font-size:12px;color:var(--verde)">Concluídos</div>
+          <div style="font-size:18px;font-weight:500;color:var(--verde)">${concluidos.length}</div>
+        </div>
+        <div class="divr"></div>
+        ${all.length?`<div style="font-size:11px;color:var(--tl)">Ticket médio</div>
+        <div style="font-size:18px;font-weight:500;color:var(--tx)">${fmt(Math.round(totalFat/(all.length||1)))}</div>
+        <div class="divr"></div>
+        <div style="font-size:11px;color:var(--tl)">Última paciente</div>
+        <div style="font-size:12px;font-weight:500;color:var(--tx);margin-top:2px">${all[0]?.paciente_nome||'—'}</div>`:''}
+      </div>`;
+  }catch(e){console.warn('Erro no dashboard:',e);}
+}
 
 // ── EXPORT / IMPORT ───────────────────────────────────────────────────
 function exportarDados(){
