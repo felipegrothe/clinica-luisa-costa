@@ -1258,7 +1258,7 @@ function renderPacs(){
           +'<div style="font-size:10px;color:var(--tl);margin-top:2px">'+(p.cpf||'CPF não informado')+' &nbsp;·&nbsp; '+statusLine+'</div>'
         +'</div>'
         +'<div style="display:flex;gap:6px">'
-          +'<button class="btn btn-xs btn-terra" onclick="preencherPacNoPrec(''+esc(p.nome)+'')">+ Protocolo</button>'
+          +'<button class="btn btn-xs btn-terra" data-action="novo-prot" data-nome="'+esc(p.nome)+'">+ Protocolo</button>'
           +'<button class="btn btn-xs btn-danger" onclick="delPac('+i+')">Remover</button>'
         +'</div>'
       +'</div>'
@@ -1266,6 +1266,31 @@ function renderPacs(){
     +'</div>';
   }).join('');
 }
+
+// Event delegation para pac-list — evita aspas em onclick inline
+document.addEventListener('click', function(e){
+  // Clique no card do protocolo (abrir modal sessões)
+  const protItem = e.target.closest('.prot-item[data-prid]');
+  if(protItem && !e.target.closest('[data-action]')){
+    abrirModalSessoes(protItem.dataset.prid);
+    return;
+  }
+  // Botão concluir
+  if(e.target.dataset.action === 'concluir'){
+    concluirProtocolo(e.target.dataset.id);
+    return;
+  }
+  // Botão apagar
+  if(e.target.dataset.action === 'apagar'){
+    apagarProtocolo(e.target.dataset.id);
+    return;
+  }
+  // Botão + Protocolo via &quot;
+  if(e.target.dataset.action === 'novo-prot'){
+    preencherPacNoPrec(e.target.dataset.nome);
+    return;
+  }
+});
 
 function preencherPacNoPrec(nome){
   goPage('precificador',null);
@@ -1282,7 +1307,7 @@ function renderProtCard(pr){
   const dtI=pr.data_inicio?new Date(pr.data_inicio+'T12:00').toLocaleDateString('pt-BR'):'—';
   const nomes=ativos.map(a=>a.name||a);
   const resumo=nomes.slice(0,3).join(' · ')+(nomes.length>3?' +'+( nomes.length-3):'');
-  return '<div class="prot-item" style="cursor:pointer;transition:border-color .12s" onclick="abrirModalSessoes(''+pr.id+'')" onmouseover="this.style.borderColor='var(--terra)'" onmouseout="this.style.borderColor=''">'
+  return '<div class="prot-item" style="cursor:pointer;transition:border-color .12s" data-prid="'+pr.id+'" onmouseover="this.style.borderColor=\'var(--terra)\'" onmouseout="this.style.borderColor=\'\'">'
     +'<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">'
       +'<div style="flex:1;min-width:0">'
         +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px">'
@@ -1300,8 +1325,8 @@ function renderProtCard(pr){
     +'<div style="display:flex;justify-content:space-between;align-items:center">'
       +'<div style="font-size:10px;color:var(--tl);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+resumo+'</div>'
       +'<div style="display:flex;gap:4px;flex-shrink:0;margin-left:8px" onclick="event.stopPropagation()">'
-        +(!concluido?'<button class="btn btn-xs btn-verde" onclick="concluirProtocolo(''+pr.id+'')">Concluir</button>':'')
-        +'<button class="btn btn-xs btn-danger" onclick="apagarProtocolo(''+pr.id+'')">Remover</button>'
+        +(!concluido?'<button class="btn btn-xs btn-verde" data-action="concluir" data-id="'+pr.id+'">Concluir</button>':'')
+        +'<button class="btn btn-xs btn-danger" data-action="apagar" data-id="'+pr.id+'">Remover</button>'
       +'</div>'
     +'</div>'
   +'</div>';
