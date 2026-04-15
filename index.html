@@ -1221,7 +1221,9 @@ let protsByPac={};
 async function carregarProtocolosPacs(){
   if(!USER)return;
   try{
-    const {data}=await db.from('protocolos').select('*').order('created_at',{ascending:false});
+    const {data,error}=await db.from('protocolos').select('*').order('created_at',{ascending:false});
+    if(error)throw error;
+    // Reconstrói cache do zero com dados frescos do Supabase
     protsByPac={};
     (data||[]).forEach(p=>{
       const k=p.paciente_nome;
@@ -1229,8 +1231,6 @@ async function carregarProtocolosPacs(){
       protsByPac[k].push(p);
     });
     renderPacs();
-    const dashPg2=document.getElementById('pg-dashboard');
-    if(dashPg2&&dashPg2.classList.contains('on'))renderDashboard();
   }catch(e){console.warn('Erro ao carregar protocolos:',e);}
 }
 
@@ -1267,27 +1267,24 @@ function renderPacs(){
   }).join('');
 }
 
-// Event delegation para pac-list — evita aspas em onclick inline
+// Event delegation — usa closest() para capturar cliques em filhos do botão
 document.addEventListener('click', function(e){
-  // Clique no card do protocolo (abrir modal sessões)
+  // Verificar botões de ação primeiro (têm prioridade)
+  const actionBtn = e.target.closest('[data-action]');
+  if(actionBtn){
+    e.stopPropagation();
+    const action = actionBtn.dataset.action;
+    const id     = actionBtn.dataset.id;
+    const nome   = actionBtn.dataset.nome;
+    if(action === 'apagar')    { apagarProtocolo(id);     return; }
+    if(action === 'concluir')  { concluirProtocolo(id);   return; }
+    if(action === 'novo-prot') { preencherPacNoPrec(nome);return; }
+    return;
+  }
+  // Clique no card do protocolo — abre modal sessões
   const protItem = e.target.closest('.prot-item[data-prid]');
-  if(protItem && !e.target.closest('[data-action]')){
+  if(protItem){
     abrirModalSessoes(protItem.dataset.prid);
-    return;
-  }
-  // Botão concluir
-  if(e.target.dataset.action === 'concluir'){
-    concluirProtocolo(e.target.dataset.id);
-    return;
-  }
-  // Botão apagar
-  if(e.target.dataset.action === 'apagar'){
-    apagarProtocolo(e.target.dataset.id);
-    return;
-  }
-  // Botão + Protocolo via &quot;
-  if(e.target.dataset.action === 'novo-prot'){
-    preencherPacNoPrec(e.target.dataset.nome);
     return;
   }
 });
@@ -1324,7 +1321,7 @@ function renderProtCard(pr){
     +'<div class="prog-track" style="margin-bottom:6px"><div class="prog-fill'+(concluido?' done':'')+'" style="width:'+pct+'%"></div></div>'
     +'<div style="display:flex;justify-content:space-between;align-items:center">'
       +'<div style="font-size:10px;color:var(--tl);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+resumo+'</div>'
-      +'<div style="display:flex;gap:4px;flex-shrink:0;margin-left:8px" onclick="event.stopPropagation()">'
+      +'<div style="display:flex;gap:4px;flex-shrink:0;margin-left:8px">'
         +(!concluido?'<button class="btn btn-xs btn-verde" data-action="concluir" data-id="'+pr.id+'">Concluir</button>':'')
         +'<button class="btn btn-xs btn-danger" data-action="apagar" data-id="'+pr.id+'">Remover</button>'
       +'</div>'
@@ -1332,7 +1329,13 @@ function renderProtCard(pr){
   +'</div>';
 }
 function salvarPac(){const n=document.getElementById('pac-nome').value.trim();if(!n){alert('Informe o nome.');return;}pacientes.push({nome:n,cpf:document.getElementById('pac-cpf').value});closeModal();renderPacs();scheduleSave();}
-function delPac(i){if(!confirm('Remover paciente?'))return;pacientes.splice(i,1);renderPacs();scheduleSave();}
+function delPac(i){
+  if(!confirm('Remover paciente e todos os seus dados locais?'))return;
+  pacientes.splice(i,1);
+  renderPacs();
+  scheduleSave();
+  showToast('Paciente removido','ok');
+}
 
 // ── ATIVOS ────────────────────────────────────────────────────────────
 function initCatSelects(){
@@ -1672,32 +1675,135 @@ function closeModal(){document.getElementById('modal-ov').style.display='none';}
 
 // ── OVERLAY INDEPENDENTE PARA MODAL DE SESSÕES ─────────────────────
 function openModalSessoes(){
-  // Remove overlay antigo se existir
+  const pr=modalProtAtual; if(!pr)return;
+  // Remove overlay anterior
   const old=document.getElementById('sessoes-ov');
   if(old)old.remove();
-  // Cria overlay do zero toda vez — evita bugs de estado
+
+  const sess=pr.sessoes_realizadas||0;
+  const pend=12-sess;
+  const pct=Math.round((sess/12)*100);
+  const dtI=pr.data_inicio?new Date(pr.data_inicio+'T12:00').toLocaleDateString('pt-BR'):'—';
+
+  // Próxima sessão
+  let proxima='—';
+  if(pr.data_inicio&&sess<12){
+    const d=new Date(pr.data_inicio+'T12:00');
+    d.setDate(d.getDate()+sess*7);
+    proxima=d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+  } else if(sess>=12) proxima='Concluído';
+
+  // Grid de semanas
+  const semGrid=Array.from({length:12},(_,i)=>{
+    const done=i<sess;
+    const dt=dtSemana(i);
+    const icon=done
+      ?'<svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="#4A7C6B"/><path d="M4 7l2 2 4-4" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>'
+      :'<svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="none" stroke="#DDD6CC" stroke-width="1.2"/></svg>';
+    return'<div class="ms-sem-cell'+(done?' done':'')+'" data-semidx="'+i+'" style="cursor:pointer">'
+      +'<div class="ms-sem-num">S'+(i+1)+'</div>'
+      +icon
+      +'<div class="ms-sem-date">'+dt+'</div>'
+      +'</div>';
+  }).join('');
+
+  const html='<div id="sessoes-modal-inner" style="background:var(--bg2);border-radius:10px;width:100%;max-width:700px;overflow:hidden;margin:auto">'
+    +'<div class="modal-head" style="display:flex;justify-content:space-between;align-items:flex-start">'
+      +'<div>'
+        +'<div class="modal-title">'+pr.paciente_nome+'</div>'
+        +'<div class="modal-sub">'+(pr.titulo||'')+(pr.duracao?' · '+pr.duracao+' meses':'')+' · Início '+dtI+' · '+fmt(parseFloat(pr.valor_total)||0)+'</div>'
+      +'</div>'
+      +'<button id="btn-fechar-sess" class="btn btn-xs" style="flex-shrink:0;margin-left:12px">✕ Fechar</button>'
+    +'</div>'
+    +'<div style="padding:1rem 1.25rem;overflow-y:auto;max-height:80vh">'
+      // Métricas
+      +'<div class="ms-resumo" style="margin-bottom:12px">'
+        +'<div class="ms-metric"><div class="ms-metric-label">Realizadas</div><div class="ms-metric-val verde">'+sess+'</div></div>'
+        +'<div class="ms-metric"><div class="ms-metric-label">Pendentes</div><div class="ms-metric-val terra">'+pend+'</div></div>'
+        +'<div class="ms-metric"><div class="ms-metric-label">Progresso</div><div class="ms-metric-val">'+pct+'%</div></div>'
+        +'<div class="ms-metric"><div class="ms-metric-label">Próxima</div><div class="ms-metric-val" style="font-size:14px">'+proxima+'</div></div>'
+      +'</div>'
+      // Barra progresso
+      +'<div style="margin-bottom:14px">'
+        +'<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--tl);margin-bottom:4px"><span>Progresso</span><span>'+sess+' / 12</span></div>'
+        +'<div class="prog-track"><div class="prog-fill" style="width:'+pct+'%"></div></div>'
+      +'</div>'
+      // Grid semanas
+      +'<div class="sec" style="margin-bottom:8px">Clique em uma semana para ver o detalhamento</div>'
+      +'<div class="ms-sem-grid" id="sess-sem-grid" style="margin-bottom:14px">'+semGrid+'</div>'
+      // Detalhe
+      +'<div id="sess-detalhe"><div style="text-align:center;padding:1rem 0;font-size:11px;color:var(--tl)">Clique em uma semana acima</div></div>'
+    +'</div>'
+  +'</div>';
+
   const ov=document.createElement('div');
   ov.id='sessoes-ov';
-  ov.style.cssText='position:fixed;inset:0;background:rgba(26,23,20,.58);display:flex;align-items:flex-start;justify-content:center;z-index:5000;padding:1rem 1rem 2rem;overflow-y:auto';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(26,23,20,.58);display:flex;align-items:flex-start;justify-content:center;z-index:5000;padding:1.5rem;overflow-y:auto';
   ov.onclick=e=>{if(e.target===ov)closeModalSessoes();};
-  // Clona o conteúdo do m-sessoes
-  const inner=document.getElementById('m-sessoes');
-  if(inner){
-    const clone=inner.cloneNode(true);
-    clone.style.display='block';
-    clone.id='m-sessoes-live';
-    // Reaplica event listeners via onclick inline (já estão no HTML)
-    ov.appendChild(clone);
-    // Atualiza o botão fechar do clone
-    const closeBtn=clone.querySelector('[onclick="closeModalSessoes()"]');
-    if(closeBtn)closeBtn.onclick=closeModalSessoes;
-  }
+  ov.innerHTML=html;
   document.body.appendChild(ov);
   document.body.style.overflow='hidden';
+
+  // Event listeners diretos — sem clone, sem IDs duplicados
+  document.getElementById('btn-fechar-sess').onclick=closeModalSessoes;
+  document.getElementById('sess-sem-grid').addEventListener('click',function(e){
+    const cell=e.target.closest('[data-semidx]');
+    if(!cell)return;
+    const idx=parseInt(cell.dataset.semidx);
+    // Highlight selecionado
+    document.querySelectorAll('#sess-sem-grid .ms-sem-cell').forEach(c=>c.classList.remove('sel'));
+    cell.classList.add('sel');
+    // Renderizar detalhe
+    renderDetalheNoModal(idx);
+  });
 }
+
+function renderDetalheNoModal(idx){
+  const pr=modalProtAtual; if(!pr)return;
+  const el=document.getElementById('sess-detalhe'); if(!el)return;
+  const sess=pr.sessoes_realizadas||0;
+  const done=idx<sess;
+  const dt=dtSemana(idx);
+  const sData=sessoes[idx]||{};
+  const items=semanas[idx]||[];
+
+  const ativosHtml=items.length
+    ?items.map(it=>{
+        const inf=(sData.itens||{})[it.name]||{};
+        return'<div class="ms-ativo-row">'
+          +'<div class="ms-ativo-check '+(inf.aplicado||done?'ok':'no')+'">'+(inf.aplicado||done?'✓':'○')+'</div>'
+          +'<span class="ms-ativo-nm">'+it.name+'</span>'
+          +'<span class="ms-ativo-lote">'+(inf.lote?'Lote: '+inf.lote:done?'—':'')+'</span>'
+          +'</div>';
+      }).join('')
+    :'<div style="font-size:11px;color:var(--tl);padding:6px 0">Nenhum ativo distribuído nesta semana.</div>';
+
+  const intercorrHtml=sData.intercorrencias
+    ?'<div class="ms-intercorr"><div class="ms-intercorr-label">Intercorrência registrada</div><div class="ms-intercorr-txt">'+sData.intercorrencias+'</div></div>':'';
+
+  el.innerHTML='<div class="ms-detalhe">'
+    +'<div class="ms-det-header">'
+      +'<div class="ms-det-title">Semana '+(idx+1)+' — '+dt+'</div>'
+      +'<span class="ms-det-badge '+(done?'done':'pend')+'">'+(done?'Realizada':'Pendente')+'</span>'
+    +'</div>'
+    +(done
+      ?'<div class="ms-det-info">'
+          +'<div class="ms-det-field"><label>Enfermeiro(a)</label><span>'+(sData.enfermeiro||'—')+'</span></div>'
+          +'<div class="ms-det-field"><label>Data</label><span>'+(sData.data?new Date(sData.data+'T12:00').toLocaleDateString('pt-BR'):'—')+'</span></div>'
+          +'<div class="ms-det-field"><label>Hora</label><span>'+(sData.hora||'—')+'</span></div>'
+        +'</div>'
+        +(sData.obs?'<div style="font-size:11px;color:var(--tm);margin-bottom:10px;padding:6px 8px;background:var(--bg2);border-radius:4px">'+sData.obs+'</div>':'')
+      :'<div style="font-size:11px;color:var(--tl);margin-bottom:10px">Sessão ainda não realizada.</div>')
+    +'<div class="sec" style="margin-bottom:6px">Ativos desta semana</div>'
+    +'<div class="ms-ativos">'+ativosHtml+'</div>'
+    +intercorrHtml
+  +'</div>';
+}
+
 function closeModalSessoes(){
   const ov=document.getElementById('sessoes-ov');
-  if(ov){ov.style.opacity='0';setTimeout(()=>{ov.remove();document.body.style.overflow='';},200);}
+  if(ov){ov.remove();}
+  document.body.style.overflow='';
   modalProtAtual=null;
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeModalSessoes();}});
@@ -1774,13 +1880,9 @@ async function concluirProtocolo(id){
   const hoje=new Date().toISOString().slice(0,10);
   const{error}=await db.from('protocolos').update({status:'concluido',data_fim:hoje}).eq('id',id);
   if(error){showToast('Erro: '+error.message,'err');return;}
-  // Atualiza cache local imediatamente
-  for(const k of Object.keys(protsByPac)){
-    const pr=protsByPac[k].find(p=>p.id===id);
-    if(pr){pr.status='concluido';pr.data_fim=hoje;}
-  }
-  renderPacs();
-  if(document.getElementById('pg-dashboard')?.classList.contains('on'))renderDashboard();
+  // Recarrega do Supabase para consistência
+  await carregarProtocolosPacs();
+  await renderDashboard();
   showToast('Protocolo concluído ✓','ok');
 }
 
@@ -1831,19 +1933,8 @@ async function abrirModalSessoes(id){
   }
 
   renderSemGrid();
-  // Renderiza no elemento original antes de clonar
-  const detalhe=document.getElementById('ms-detalhe');
-  if(detalhe)detalhe.innerHTML='<div style="font-size:11px;color:var(--tl);text-align:center;padding:1rem 0">Clique em uma semana acima para ver o detalhamento</div>';
+  // Abre o modal com o HTML gerado do zero
   openModalSessoes();
-  // Após clonar, re-renderiza grid no clone
-  requestAnimationFrame(()=>{
-    const liveGrid=document.getElementById('m-sessoes-live');
-    if(!liveGrid)return;
-    const grid=liveGrid.querySelector('#ms-sem-grid');
-    const det=liveGrid.querySelector('#ms-detalhe');
-    if(grid)renderSemGridEl(grid);
-    if(det)det.innerHTML='<div style="font-size:11px;color:var(--tl);text-align:center;padding:1rem 0">Clique em uma semana acima para ver o detalhamento</div>';
-  });
 }
 
 function renderSemDetalhe(idx){
@@ -1940,19 +2031,26 @@ function renderSemDetalheEl(el,idx){
 async function apagarProtocolo(id){
   if(!confirm('Remover este protocolo permanentemente?'))return;
   const{error}=await db.from('protocolos').delete().eq('id',id);
-  if(error){alert('Erro: '+error.message);return;}
-  for(const k of Object.keys(protsByPac)){
-    protsByPac[k]=protsByPac[k].filter(p=>p.id!==id);
-  }
-  renderPacs();
-  const dashPg=document.getElementById('pg-dashboard');
-  if(dashPg&&dashPg.classList.contains('on'))renderDashboard();
+  if(error){showToast('Erro ao remover: '+error.message,'err');console.error(error);return;}
+  // Recarrega do Supabase — fonte da verdade
+  await carregarProtocolosPacs();
+  await renderDashboard();
+  showToast('Protocolo removido','ok');
 }
 
 // ── DASHBOARD ────────────────────────────────────────────────────────
 async function renderDashboard(){
+  // Zera métricas antes de buscar — evita dados fantasma
+  ['dm-ativos','dm-faturado','dm-sessoes','dm-concluidos'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.textContent='...';
+  });
+  const recentEl=document.getElementById('dash-recentes-list');
+  if(recentEl)recentEl.innerHTML='<div class="empty">Carregando...</div>';
   try{
-    const{data:prots}=await db.from('protocolos').select('*').order('created_at',{ascending:false});
+    // Sempre busca direto do Supabase — nunca usa cache
+    const{data:prots,error:dashErr}=await db.from('protocolos').select('*').order('created_at',{ascending:false});
+    if(dashErr)throw dashErr;
     const all=prots||[];
     const ativos=all.filter(p=>p.status==='andamento');
     const concluidos=all.filter(p=>p.status==='concluido');
@@ -1962,7 +2060,7 @@ async function renderDashboard(){
 
     document.getElementById('dm-ativos').textContent=ativos.length;
     document.getElementById('dm-ativos-sub').textContent=all.length+' total';
-    const fatStr=totalFat>=1000?'R$ '+Math.round(totalFat/1000)+'k':fmt(totalFat);
+    const fatStr=all.length===0?'R$ 0':totalFat>=1000?'R$ '+Math.round(totalFat/1000)+'k':fmt(totalFat);
     document.getElementById('dm-faturado').textContent=fatStr;
     document.getElementById('dm-faturado-sub').textContent=all.length+' protocolo'+(all.length!==1?'s':'');
     document.getElementById('dm-sessoes').textContent=totalSess;
