@@ -879,7 +879,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
       </div>
     </div>
 
-    <!-- MODAL SESSÕES DO PROTOCOLO -->
+    <!-- MODAL SESSÕES — movido para overlay próprio via JS -->
     <div id="m-sessoes" style="display:none;width:100%;max-width:700px">
       <div class="modal-box-lg" onclick="event.stopPropagation()">
         <div class="modal-head" style="flex-shrink:0">
@@ -887,7 +887,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
             <div class="modal-title" id="ms-title">Protocolo</div>
             <div class="modal-sub" id="ms-sub"></div>
           </div>
-          <button class="btn btn-xs" onclick="closeModal()" style="flex-shrink:0">✕ Fechar</button>
+          <button class="btn btn-xs" onclick="closeModalSessoes()" style="flex-shrink:0">✕ Fechar</button>
         </div>
         <div class="modal-body" style="flex:1;overflow-y:auto">
           <div class="ms-resumo">
@@ -1150,26 +1150,32 @@ let selExpanded=false;
 function updSummary(){
   const items=Object.entries(selected);
   const cnt=document.getElementById('sel-count'),nms=document.getElementById('sel-names'),ver=document.getElementById('sel-ver');
-  if(!items.length){cnt.textContent='Nenhum ativo';nms.textContent='Selecione ativos na lista ao lado';nms.style.color='var(--tl)';if(ver)ver.style.display='none';document.getElementById('t-bruto').textContent='R$ 0,00';updTotal();return;}
+  if(!items.length){
+    cnt.textContent='Nenhum ativo';
+    nms.innerHTML='<span style="color:var(--tl);font-size:11px">Selecione ativos na lista ao lado</span>';
+    if(ver)ver.style.display='none';
+    document.getElementById('t-bruto').textContent='R$ 0,00';
+    selExpanded=false;
+    updTotal();return;
+  }
   cnt.textContent=items.length+' ativo'+(items.length!==1?'s':'');
-  if(ver)ver.style.display='';
-  const names=items.map(([n,{qty}])=>(qty>1?qty+'× ':'')+n.split(' ').slice(0,3).join(' '));
-  nms.textContent=names.slice(0,4).join(' · ')+(names.length>4?' +mais...':'');
-  nms.style.color='var(--terra-d)';
+  if(ver){ver.style.display='';ver.textContent=selExpanded?'fechar':'ver todos';}
+  if(!selExpanded){
+    // Modo compacto: mostra 3 primeiros truncados
+    const names=items.map(([n,{qty}])=>(qty>1?qty+'× ':'')+n);
+    const preview=names.slice(0,3).map(n=>`<span style="display:block;font-size:10px;color:var(--terra-d);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n}</span>`).join('');
+    const mais=names.length>3?`<span style="font-size:10px;color:var(--tl)">+ ${names.length-3} mais...</span>`:'';
+    nms.innerHTML=preview+mais;
+  } else {
+    // Modo expandido: todos em linhas com nome completo + preço
+    nms.innerHTML=items.map(([n,{qty}])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--bd);font-size:11px"><span style="color:var(--tx);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:6px">${qty>1?'<strong>'+qty+'×</strong> ':''} ${n}</span><span style="color:var(--terra-d);font-weight:500;flex-shrink:0">${fmt((prices[n]||0)*qty)}</span></div>`).join('')+'<div style="display:flex;justify-content:space-between;padding-top:6px;font-size:11px;font-weight:600"><span style="color:var(--tm)">Subtotal</span><span style="color:var(--terra-d)">${fmt(getBruto())}</span></div>';
+  }
   document.getElementById('t-bruto').textContent=fmt(getBruto());
   updTotal();
 }
 function toggleSelExpand(){
-  const items=Object.entries(selected);
-  const nms=document.getElementById('sel-names'),ver=document.getElementById('sel-ver');
   selExpanded=!selExpanded;
-  if(selExpanded){
-    nms.style.whiteSpace='normal';
-    nms.innerHTML=items.map(([n,{qty}])=>`<span style="display:inline-block;background:var(--terra-l);border-radius:3px;padding:2px 6px;margin:2px;font-size:10px;color:var(--terra-d)">${qty>1?qty+'× ':''} ${n}</span>`).join('');
-    if(ver)ver.textContent='fechar';
-  } else {
-    nms.style.whiteSpace='nowrap';updSummary();if(ver)ver.textContent='ver todos';
-  }
+  updSummary();
 }
 
 function updTotal(){
@@ -1630,19 +1636,41 @@ function gerarPDFSessoes(indices){
 
 // ── MODAL ─────────────────────────────────────────────────────────────
 function openModal(id){
+  // Modal de sessões usa overlay próprio — não mistura com os outros
+  if(id==='sessoes'){openModalSessoes();return;}
   document.getElementById('modal-ov').style.display='flex';
-  ['recibo','add-ativo','add-pac','pront','sessoes'].forEach(x=>{
+  ['recibo','add-ativo','add-pac','pront'].forEach(x=>{
     const el=document.getElementById('m-'+x);
     if(el)el.style.display=x===id?'':'none';
   });
-  // modal de sessões é maior
-  const box=document.querySelector('.modal-box');
-  if(box)box.style.display=id==='sessoes'?'none':'';
-  const boxLg=document.getElementById('m-sessoes');
-  if(boxLg)boxLg.style.display=id==='sessoes'?'':'none';
 }
 function closeModal(){document.getElementById('modal-ov').style.display='none';}
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
+// ── OVERLAY INDEPENDENTE PARA MODAL DE SESSÕES ─────────────────────
+function openModalSessoes(){
+  let ov=document.getElementById('sessoes-ov');
+  if(!ov){
+    ov=document.createElement('div');
+    ov.id='sessoes-ov';
+    ov.style.cssText='position:fixed;inset:0;background:rgba(26,23,20,.55);display:flex;align-items:flex-start;justify-content:center;z-index:2000;padding:1rem;overflow-y:auto';
+    ov.onclick=e=>{if(e.target===ov)closeModalSessoes();};
+    // Mover conteúdo do m-sessoes para cá
+    const inner=document.getElementById('m-sessoes');
+    if(inner){
+      inner.style.display='';
+      ov.appendChild(inner);
+    }
+    document.body.appendChild(ov);
+  } else {
+    ov.style.display='flex';
+  }
+}
+function closeModalSessoes(){
+  const ov=document.getElementById('sessoes-ov');
+  if(ov)ov.style.display='none';
+  modalProtAtual=null;
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeModalSessoes();}});
 
 // ── LOCALSTORAGE ──────────────────────────────────────────────────────
 const SAVE_KEY='clc_v3';
@@ -1701,6 +1729,8 @@ async function salvarProtocolo(){
     // atualiza cache local
     if(!protsByPac[nome])protsByPac[nome]=[];
     protsByPac[nome].unshift(data);
+    renderDashboard();
+    renderPacs();
     const msg=document.getElementById('save-msg');
     msg.textContent='Protocolo salvo!';
     msg.style.color='var(--verde)';
@@ -1767,7 +1797,7 @@ async function abrirModalSessoes(id){
 
   renderSemGrid();
   document.getElementById('ms-detalhe').innerHTML='<div style="font-size:11px;color:var(--tl);text-align:center;padding:1rem 0">Clique em uma semana acima para ver o detalhamento</div>';
-  openModal('sessoes');
+  openModalSessoes();
 }
 
 function dtSemana(idx){
@@ -1866,8 +1896,9 @@ async function renderDashboard(){
 
     document.getElementById('dm-ativos').textContent=ativos.length;
     document.getElementById('dm-ativos-sub').textContent=all.length+' total';
-    document.getElementById('dm-faturado').textContent='R$ '+Math.round(totalFat/1000)+'k';
-    document.getElementById('dm-faturado-sub').textContent=all.length+' protocolos';
+    const fatStr=totalFat>=1000?'R$ '+Math.round(totalFat/1000)+'k':fmt(totalFat);
+    document.getElementById('dm-faturado').textContent=fatStr;
+    document.getElementById('dm-faturado-sub').textContent=all.length+' protocolo'+(all.length!==1?'s':'');
     document.getElementById('dm-sessoes').textContent=totalSess;
     document.getElementById('dm-sessoes-sub').textContent='de '+totalPrevSess+' previstas';
     document.getElementById('dm-concluidos').textContent=concluidos.length;
