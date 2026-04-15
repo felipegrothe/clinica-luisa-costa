@@ -598,12 +598,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
               <div class="divr"></div>
 
               <div class="sec">Ativos selecionados</div>
-              <div class="sel-box" id="sel-box">
-                <div class="sel-box-top">
+              <div class="sel-box" id="sel-box" style="max-height:240px;overflow-y:auto">
+                <div class="sel-box-top" style="margin-bottom:6px">
                   <span class="sel-box-count" id="sel-count">Nenhum ativo</span>
-                  <span class="sel-link" id="sel-ver" onclick="toggleSelExpand()" style="display:none">ver todos</span>
                 </div>
-                <div class="sel-box-names" id="sel-names">Selecione ativos na lista ao lado</div>
+                <div id="sel-names"></div>
               </div>
 
               <div class="divr"></div>
@@ -1146,36 +1145,34 @@ function setParc(n){
   updTotal();
 }
 
-let selExpanded=false;
 function updSummary(){
   const items=Object.entries(selected);
-  const cnt=document.getElementById('sel-count'),nms=document.getElementById('sel-names'),ver=document.getElementById('sel-ver');
+  const cnt=document.getElementById('sel-count');
+  const nms=document.getElementById('sel-names');
   if(!items.length){
     cnt.textContent='Nenhum ativo';
-    nms.innerHTML='<span style="color:var(--tl);font-size:11px">Selecione ativos na lista ao lado</span>';
-    if(ver)ver.style.display='none';
+    nms.innerHTML='<div style="font-size:11px;color:var(--tl);padding:4px 0">Selecione ativos na lista ao lado</div>';
     document.getElementById('t-bruto').textContent='R$ 0,00';
-    selExpanded=false;
     updTotal();return;
   }
   cnt.textContent=items.length+' ativo'+(items.length!==1?'s':'');
-  if(ver){ver.style.display='';ver.textContent=selExpanded?'fechar':'ver todos';}
-  if(!selExpanded){
-    // Modo compacto: mostra 3 primeiros truncados
-    const names=items.map(([n,{qty}])=>(qty>1?qty+'× ':'')+n);
-    const preview=names.slice(0,3).map(n=>`<span style="display:block;font-size:10px;color:var(--terra-d);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n}</span>`).join('');
-    const mais=names.length>3?`<span style="font-size:10px;color:var(--tl)">+ ${names.length-3} mais...</span>`:'';
-    nms.innerHTML=preview+mais;
-  } else {
-    // Modo expandido: todos em linhas com nome completo + preço
-    nms.innerHTML=items.map(([n,{qty}])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--bd);font-size:11px"><span style="color:var(--tx);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:6px">${qty>1?'<strong>'+qty+'×</strong> ':''} ${n}</span><span style="color:var(--terra-d);font-weight:500;flex-shrink:0">${fmt((prices[n]||0)*qty)}</span></div>`).join('')+'<div style="display:flex;justify-content:space-between;padding-top:6px;font-size:11px;font-weight:600"><span style="color:var(--tm)">Subtotal</span><span style="color:var(--terra-d)">${fmt(getBruto())}</span></div>';
-  }
-  document.getElementById('t-bruto').textContent=fmt(getBruto());
+  const bruto=getBruto();
+  // Lista completa sempre visível — sem truncar, sem toggle
+  nms.innerHTML=items.map(([n,{qty}])=>{
+    const sub=(prices[n]||0)*qty;
+    return '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:5px 0;border-bottom:1px solid var(--bd);gap:6px">'
+      +'<span style="font-size:11px;color:var(--tx);flex:1;min-width:0;line-height:1.4">'
+      +(qty>1?'<strong style="color:var(--terra-d)">'+qty+'×</strong> ':'')+n
+      +'</span>'
+      +'<span style="font-size:11px;font-weight:500;color:var(--terra-d);flex-shrink:0">'+fmt(sub)+'</span>'
+      +'</div>';
+  }).join('')
+  +'<div style="display:flex;justify-content:space-between;padding:7px 0 2px;font-size:12px;font-weight:600">'
+  +'<span style="color:var(--tm)">Subtotal</span>'
+  +'<span style="color:var(--terra-d)">'+fmt(bruto)+'</span>'
+  +'</div>';
+  document.getElementById('t-bruto').textContent=fmt(bruto);
   updTotal();
-}
-function toggleSelExpand(){
-  selExpanded=!selExpanded;
-  updSummary();
 }
 
 function updTotal(){
@@ -1232,6 +1229,8 @@ async function carregarProtocolosPacs(){
       protsByPac[k].push(p);
     });
     renderPacs();
+    const dashPg2=document.getElementById('pg-dashboard');
+    if(dashPg2&&dashPg2.classList.contains('on'))renderDashboard();
   }catch(e){console.warn('Erro ao carregar protocolos:',e);}
 }
 
@@ -1242,28 +1241,30 @@ function renderPacs(){
   if(!f.length){el.innerHTML='<div class="empty">Nenhuma paciente cadastrada.</div>';return;}
   el.innerHTML=f.map((p,i)=>{
     const prots=protsByPac[p.nome]||[];
-    const badge=prots.length?`<span class="pac-prot-badge">${prots.length} protocolo${prots.length>1?'s':''}</span>`:`<span style="font-size:10px;color:var(--tl)">sem protocolos</span>`;
-    return`<div class="pac-row" style="flex-wrap:wrap">
-      <div class="pac-av">${p.nome.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()}</div>
-      <div style="flex:1;min-width:0"><div class="pac-nm">${p.nome}</div><div class="pac-cpf">${p.cpf||'CPF não informado'}</div></div>
-      <div class="pac-row-actions">
-        ${badge}
-        ${prots.length?`<button class="btn btn-xs" onclick="toggleProtsPac('pp-${i}',this)">Ver protocolos ▾</button>`:''}
-        <button class="btn btn-xs btn-danger" onclick="delPac(${i})">Remover</button>
-      </div>
-      <div id="pp-${i}" class="prot-expand" style="display:none;width:100%">
-        ${prots.map(pr=>renderProtCard(pr)).join('')}
-        <button class="btn btn-verde btn-xs" style="width:100%;margin-top:4px;font-size:10px" onclick="preencherPacNoPrec('${esc(p.nome)}')">+ Novo protocolo para esta paciente</button>
-      </div>
-    </div>`;
+    const ativos=prots.filter(pr=>pr.status==='andamento');
+    const concluidos=prots.filter(pr=>pr.status==='concluido');
+    let statusLine='';
+    if(ativos.length)statusLine+='<span style="color:var(--terra-d);font-weight:500">'+ativos.length+' em andamento</span>';
+    if(concluidos.length)statusLine+=(statusLine?' &nbsp;·&nbsp; ':'')+'<span style="color:var(--verde)">'+concluidos.length+' concluído'+(concluidos.length>1?'s':'')+'</span>';
+    if(!prots.length)statusLine='<span style="color:var(--tl)">Sem protocolos</span>';
+    const protsHtml=prots.length
+      ?'<div style="padding:8px 14px 12px;display:flex;flex-direction:column;gap:6px">'+prots.map(pr=>renderProtCard(pr)).join('')+'</div>'
+      :'';
+    return '<div style="background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:8px;overflow:hidden">'
+      +'<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;'+(prots.length?'border-bottom:1px solid var(--bd)':'') +'">'
+        +'<div class="pac-av">'+p.nome.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()+'</div>'
+        +'<div style="flex:1;min-width:0">'
+          +'<div class="pac-nm">'+p.nome+'</div>'
+          +'<div style="font-size:10px;color:var(--tl);margin-top:2px">'+(p.cpf||'CPF não informado')+' &nbsp;·&nbsp; '+statusLine+'</div>'
+        +'</div>'
+        +'<div style="display:flex;gap:6px">'
+          +'<button class="btn btn-xs btn-terra" onclick="preencherPacNoPrec(''+esc(p.nome)+'')">+ Protocolo</button>'
+          +'<button class="btn btn-xs btn-danger" onclick="delPac('+i+')">Remover</button>'
+        +'</div>'
+      +'</div>'
+      +protsHtml
+    +'</div>';
   }).join('');
-}
-
-function toggleProtsPac(id,btn){
-  const el=document.getElementById(id);
-  const open=el.style.display==='none';
-  el.style.display=open?'block':'none';
-  btn.textContent=open?'Fechar ▴':'Ver protocolos ▾';
 }
 
 function preencherPacNoPrec(nome){
@@ -1276,36 +1277,34 @@ function renderProtCard(pr){
   const ativos=JSON.parse(pr.ativos||'[]');
   const total=parseFloat(pr.valor_total)||0;
   const sess=pr.sessoes_realizadas||0;
-  const maxSess=12;
-  const pct=Math.round((sess/maxSess)*100);
+  const pct=Math.round((sess/12)*100);
   const concluido=pr.status==='concluido';
-  const chips=ativos.slice(0,4).map(a=>`<span class="chip-ativo">${a.name||a}</span>`).join('');
-  const mais=ativos.length>4?`<span class="chip-ativo">+${ativos.length-4}</span>`:'';
   const dtI=pr.data_inicio?new Date(pr.data_inicio+'T12:00').toLocaleDateString('pt-BR'):'—';
-  const dtF=pr.data_fim?new Date(pr.data_fim+'T12:00').toLocaleDateString('pt-BR'):'';
-  return`<div class="prot-item">
-    <div class="prot-header">
-      <div>
-        <div class="prot-title-nm">${pr.titulo||'Protocolo'}</div>
-        <div class="prot-title-dt">Início: ${dtI}${dtF?' · '+( concluido?'Concluído':'Término prev.')+': '+dtF:''} · ${pr.duracao?pr.duracao+' meses':'Livre'}</div>
-      </div>
-      <div style="text-align:right">
-        <div class="prot-valor${concluido?' verde':''}">${fmt(total)}</div>
-        <span class="tag-status ${concluido?'tag-concluido':'tag-andamento'}" style="margin-top:3px;display:inline-block">${concluido?'Concluído':'Em andamento'}</span>
-      </div>
-    </div>
-    <div class="chips-ativos">${chips}${mais}</div>
-    <div class="prog-label-row"><span>Sessões realizadas</span><span style="font-weight:500">${sess} / ${maxSess}</span></div>
-    <div class="prog-track"><div class="prog-fill${concluido?' done':''}" style="width:${pct}%"></div></div>
-    <div class="prot-footer">
-      <span class="prot-pagto">${pr.pagamento||'—'}</span>
-      <div style="display:flex;gap:4px">
-        <button class="btn btn-xs btn-terra" onclick="abrirModalSessoes('${pr.id}')">Ver sessões</button>
-        ${!concluido?`<button class="btn btn-xs btn-verde" onclick="concluirProtocolo('${pr.id}')">Concluído</button>`:''}
-        <button class="btn btn-xs btn-danger" onclick="apagarProtocolo('${pr.id}')">Remover</button>
-      </div>
-    </div>
-  </div>`;
+  const nomes=ativos.map(a=>a.name||a);
+  const resumo=nomes.slice(0,3).join(' · ')+(nomes.length>3?' +'+( nomes.length-3):'');
+  return '<div class="prot-item" style="cursor:pointer;transition:border-color .12s" onclick="abrirModalSessoes(''+pr.id+'')" onmouseover="this.style.borderColor='var(--terra)'" onmouseout="this.style.borderColor=''">'
+    +'<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">'
+      +'<div style="flex:1;min-width:0">'
+        +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px">'
+          +'<span class="prot-title-nm">'+(pr.duracao?pr.duracao+' meses':'Livre')+'</span>'
+          +'<span class="tag-status '+(concluido?'tag-concluido':'tag-andamento')+'">'+(concluido?'Concluído':'Em andamento')+'</span>'
+        +'</div>'
+        +'<div class="prot-title-dt">Início '+dtI+' · '+( pr.pagamento||'—')+'</div>'
+      +'</div>'
+      +'<div style="text-align:right;flex-shrink:0;margin-left:12px">'
+        +'<div class="prot-valor'+(concluido?' verde':'')+'">'+fmt(total)+'</div>'
+        +'<div style="font-size:10px;color:var(--tl);margin-top:2px">'+sess+'/12 sessões</div>'
+      +'</div>'
+    +'</div>'
+    +'<div class="prog-track" style="margin-bottom:6px"><div class="prog-fill'+(concluido?' done':'')+'" style="width:'+pct+'%"></div></div>'
+    +'<div style="display:flex;justify-content:space-between;align-items:center">'
+      +'<div style="font-size:10px;color:var(--tl);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+resumo+'</div>'
+      +'<div style="display:flex;gap:4px;flex-shrink:0;margin-left:8px" onclick="event.stopPropagation()">'
+        +(!concluido?'<button class="btn btn-xs btn-verde" onclick="concluirProtocolo(''+pr.id+'')">Concluir</button>':'')
+        +'<button class="btn btn-xs btn-danger" onclick="apagarProtocolo(''+pr.id+'')">Remover</button>'
+      +'</div>'
+    +'</div>'
+  +'</div>';
 }
 function salvarPac(){const n=document.getElementById('pac-nome').value.trim();if(!n){alert('Informe o nome.');return;}pacientes.push({nome:n,cpf:document.getElementById('pac-cpf').value});closeModal();renderPacs();scheduleSave();}
 function delPac(i){if(!confirm('Remover paciente?'))return;pacientes.splice(i,1);renderPacs();scheduleSave();}
@@ -1648,26 +1647,32 @@ function closeModal(){document.getElementById('modal-ov').style.display='none';}
 
 // ── OVERLAY INDEPENDENTE PARA MODAL DE SESSÕES ─────────────────────
 function openModalSessoes(){
-  let ov=document.getElementById('sessoes-ov');
-  if(!ov){
-    ov=document.createElement('div');
-    ov.id='sessoes-ov';
-    ov.style.cssText='position:fixed;inset:0;background:rgba(26,23,20,.55);display:flex;align-items:flex-start;justify-content:center;z-index:2000;padding:1rem;overflow-y:auto';
-    ov.onclick=e=>{if(e.target===ov)closeModalSessoes();};
-    // Mover conteúdo do m-sessoes para cá
-    const inner=document.getElementById('m-sessoes');
-    if(inner){
-      inner.style.display='';
-      ov.appendChild(inner);
-    }
-    document.body.appendChild(ov);
-  } else {
-    ov.style.display='flex';
+  // Remove overlay antigo se existir
+  const old=document.getElementById('sessoes-ov');
+  if(old)old.remove();
+  // Cria overlay do zero toda vez — evita bugs de estado
+  const ov=document.createElement('div');
+  ov.id='sessoes-ov';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(26,23,20,.58);display:flex;align-items:flex-start;justify-content:center;z-index:5000;padding:1rem 1rem 2rem;overflow-y:auto';
+  ov.onclick=e=>{if(e.target===ov)closeModalSessoes();};
+  // Clona o conteúdo do m-sessoes
+  const inner=document.getElementById('m-sessoes');
+  if(inner){
+    const clone=inner.cloneNode(true);
+    clone.style.display='block';
+    clone.id='m-sessoes-live';
+    // Reaplica event listeners via onclick inline (já estão no HTML)
+    ov.appendChild(clone);
+    // Atualiza o botão fechar do clone
+    const closeBtn=clone.querySelector('[onclick="closeModalSessoes()"]');
+    if(closeBtn)closeBtn.onclick=closeModalSessoes;
   }
+  document.body.appendChild(ov);
+  document.body.style.overflow='hidden';
 }
 function closeModalSessoes(){
   const ov=document.getElementById('sessoes-ov');
-  if(ov)ov.style.display='none';
+  if(ov){ov.style.opacity='0';setTimeout(()=>{ov.remove();document.body.style.overflow='';},200);}
   modalProtAtual=null;
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeModalSessoes();}});
@@ -1699,54 +1704,59 @@ document.addEventListener('change',e=>{if(['nome-livre','d-pct','d-val','taxa-va
 
 async function salvarProtocolo(){
   const items=Object.entries(selected);
-  if(!items.length){alert('Selecione pelo menos um ativo primeiro.');return;}
+  if(!items.length){showToast('Selecione pelo menos um ativo primeiro.','err');return;}
   const nome=getNome();
-  if(!nome){alert('Informe o nome da paciente antes de salvar.');return;}
+  if(!nome){showToast('Informe o nome da paciente antes de salvar.','err');return;}
   const b=getBruto(),disc=getDisc(b),afterDisc=Math.max(0,b-disc),taxa=getTaxa(afterDisc),final=afterDisc+taxa;
   const dtI=document.getElementById('dt-inicio')?.value||new Date().toISOString().slice(0,10);
   let dtF='';
   if(dtI&&duracao){const d=new Date(dtI+'T12:00');d.setMonth(d.getMonth()+duracao);dtF=d.toISOString().slice(0,10);}
   const ativos=items.map(([n,{qty,note}])=>({name:n,qty,note,preco:prices[n]||0}));
-  const tituloParts=[nome];
-  if(duracao)tituloParts.push(duracao+' meses');
-  const titulo=tituloParts.join(' — ');
-  const pagStr={pix:'Pix',debito:'Débito',credito:'Crédito à vista',parcelado:`Crédito ${parcSel}x`}[payMode]||payMode;
+  const titulo=(duracao?duracao+' meses':'Livre')+' · '+nome;
+  const pagStr={pix:'Pix',debito:'Débito',credito:'Crédito à vista',parcelado:'Crédito '+parcSel+'x'}[payMode]||payMode;
   const payload={
-    paciente_nome:nome,
-    titulo,
+    paciente_nome:nome, titulo,
     ativos:JSON.stringify(ativos),
     valor_total:final,
-    data_inicio:dtI,
-    data_fim:dtF||null,
-    duracao:duracao||null,
-    pagamento:pagStr,
-    sessoes_realizadas:0,
-    status:'andamento',
+    data_inicio:dtI, data_fim:dtF||null,
+    duracao:duracao||null, pagamento:pagStr,
+    sessoes_realizadas:0, status:'andamento',
   };
+  const btn=document.querySelector('[onclick="salvarProtocolo()"]');
+  if(btn){btn.textContent='Salvando...';btn.disabled=true;}
   try{
     const {data,error}=await db.from('protocolos').insert(payload).select().single();
     if(error)throw error;
-    // atualiza cache local
+    // Atualiza cache silenciosamente
     if(!protsByPac[nome])protsByPac[nome]=[];
     protsByPac[nome].unshift(data);
-    renderDashboard();
+    // Atualiza página de pacientes em background (sem redirecionar)
     renderPacs();
-    const msg=document.getElementById('save-msg');
-    msg.textContent='Protocolo salvo!';
-    msg.style.color='var(--verde)';
-    clearTimeout(msg._t);
-    msg._t=setTimeout(()=>{msg.textContent='';msg.style.color='';},3000);
+    // Dashboard atualiza só se estiver aberto
+    if(document.getElementById('pg-dashboard')?.classList.contains('on'))renderDashboard();
+    // Toast de sucesso discreta — permanece no precificador
+    showToast('Protocolo salvo para '+nome+' ✓','ok');
   }catch(e){
-    alert('Erro ao salvar protocolo: '+e.message);
+    showToast('Erro ao salvar: '+e.message,'err');
     console.error(e);
+  }finally{
+    if(btn){btn.textContent='✓ Salvar protocolo no histórico';btn.disabled=false;}
   }
 }
 
 async function concluirProtocolo(id){
   if(!confirm('Marcar este protocolo como concluído?'))return;
-  const{error}=await db.from('protocolos').update({status:'concluido',data_fim:new Date().toISOString().slice(0,10)}).eq('id',id);
-  if(error){alert('Erro: '+error.message);return;}
-  await carregarProtocolosPacs();
+  const hoje=new Date().toISOString().slice(0,10);
+  const{error}=await db.from('protocolos').update({status:'concluido',data_fim:hoje}).eq('id',id);
+  if(error){showToast('Erro: '+error.message,'err');return;}
+  // Atualiza cache local imediatamente
+  for(const k of Object.keys(protsByPac)){
+    const pr=protsByPac[k].find(p=>p.id===id);
+    if(pr){pr.status='concluido';pr.data_fim=hoje;}
+  }
+  renderPacs();
+  if(document.getElementById('pg-dashboard')?.classList.contains('on'))renderDashboard();
+  showToast('Protocolo concluído ✓','ok');
 }
 
 // ── MODAL SESSÕES ─────────────────────────────────────────────────────
@@ -1796,10 +1806,26 @@ async function abrirModalSessoes(id){
   }
 
   renderSemGrid();
-  document.getElementById('ms-detalhe').innerHTML='<div style="font-size:11px;color:var(--tl);text-align:center;padding:1rem 0">Clique em uma semana acima para ver o detalhamento</div>';
+  // Renderiza no elemento original antes de clonar
+  const detalhe=document.getElementById('ms-detalhe');
+  if(detalhe)detalhe.innerHTML='<div style="font-size:11px;color:var(--tl);text-align:center;padding:1rem 0">Clique em uma semana acima para ver o detalhamento</div>';
   openModalSessoes();
+  // Após clonar, re-renderiza grid no clone
+  requestAnimationFrame(()=>{
+    const liveGrid=document.getElementById('m-sessoes-live');
+    if(!liveGrid)return;
+    const grid=liveGrid.querySelector('#ms-sem-grid');
+    const det=liveGrid.querySelector('#ms-detalhe');
+    if(grid)renderSemGridEl(grid);
+    if(det)det.innerHTML='<div style="font-size:11px;color:var(--tl);text-align:center;padding:1rem 0">Clique em uma semana acima para ver o detalhamento</div>';
+  });
 }
 
+function renderSemDetalhe(idx){
+  const el=document.getElementById('ms-detalhe')||
+    document.querySelector('#m-sessoes-live #ms-detalhe');
+  renderSemDetalheEl(el,idx);
+}
 function dtSemana(idx){
   if(!modalProtAtual||!modalProtAtual.data_inicio)return'S'+(idx+1);
   const d=new Date(modalProtAtual.data_inicio+'T12:00');
@@ -1807,11 +1833,9 @@ function dtSemana(idx){
   return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
 }
 
-function renderSemGrid(){
-  const pr=modalProtAtual;if(!pr)return;
+function renderSemGridEl(el){
+  const pr=modalProtAtual;if(!pr||!el)return;
   const sess=pr.sessoes_realizadas||0;
-  // Tenta pegar sessoes do localStorage (dados de sessão da gestão de semanas)
-  const el=document.getElementById('ms-sem-grid');
   el.innerHTML=Array.from({length:12},(_,i)=>{
     const done=i<sess;
     const sel=i===semSelecionada;
@@ -1826,15 +1850,28 @@ function renderSemGrid(){
   }).join('');
 }
 
+function renderSemGrid(){
+  const el=document.getElementById('ms-sem-grid')||
+    document.querySelector('#m-sessoes-live #ms-sem-grid');
+  renderSemGridEl(el);
+}
 function selectSemModal(idx){
   semSelecionada=idx;
-  renderSemGrid();
-  renderSemDetalhe(idx);
+  // Atualiza grid e detalhe no clone (overlay ativo)
+  const live=document.getElementById('m-sessoes-live');
+  if(live){
+    const grid=live.querySelector('#ms-sem-grid');
+    if(grid)renderSemGridEl(grid);
+    const det=live.querySelector('#ms-detalhe');
+    if(det)renderSemDetalheEl(det,idx);
+  } else {
+    renderSemGrid();
+    renderSemDetalhe(idx);
+  }
 }
 
-function renderSemDetalhe(idx){
-  const pr=modalProtAtual;if(!pr)return;
-  const el=document.getElementById('ms-detalhe');
+function renderSemDetalheEl(el,idx){
+  const pr=modalProtAtual;if(!pr||!el)return;
   const sess=pr.sessoes_realizadas||0;
   const done=idx<sess;
   const dt=dtSemana(idx);
@@ -1879,8 +1916,12 @@ async function apagarProtocolo(id){
   if(!confirm('Remover este protocolo permanentemente?'))return;
   const{error}=await db.from('protocolos').delete().eq('id',id);
   if(error){alert('Erro: '+error.message);return;}
-  await carregarProtocolosPacs();
-  renderDashboard();
+  for(const k of Object.keys(protsByPac)){
+    protsByPac[k]=protsByPac[k].filter(p=>p.id!==id);
+  }
+  renderPacs();
+  const dashPg=document.getElementById('pg-dashboard');
+  if(dashPg&&dashPg.classList.contains('on'))renderDashboard();
 }
 
 // ── DASHBOARD ────────────────────────────────────────────────────────
@@ -1962,6 +2003,23 @@ async function renderDashboard(){
         <div style="font-size:12px;font-weight:500;color:var(--tx);margin-top:2px">${all[0]?.paciente_nome||'—'}</div>`:''}
       </div>`;
   }catch(e){console.warn('Erro no dashboard:',e);}
+}
+
+// ── TOAST — feedback discreto sem redirecionar ───────────────────────
+function showToast(msg, type='ok'){
+  let t=document.getElementById('clc-toast');
+  if(!t){
+    t=document.createElement('div');
+    t.id='clc-toast';
+    t.style.cssText='position:fixed;bottom:24px;right:24px;z-index:9999;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:500;box-shadow:0 4px 16px rgba(0,0,0,.18);transition:opacity .3s;pointer-events:none';
+    document.body.appendChild(t);
+  }
+  t.textContent=msg;
+  t.style.background=type==='ok'?'var(--verde)':'#a33';
+  t.style.color='white';
+  t.style.opacity='1';
+  clearTimeout(t._t);
+  t._t=setTimeout(()=>{t.style.opacity='0';},3500);
 }
 
 // ── EXPORT / IMPORT ───────────────────────────────────────────────────
