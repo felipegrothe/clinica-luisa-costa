@@ -430,122 +430,128 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
 .pac-row-actions{display:flex;align-items:center;gap:6px}
 
 /* ══ FINANCEIRO ══════════════════════════════════════════════════════ */
-#pg-financeiro{display:none;height:100%;overflow-y:auto;padding:16px 20px}
+#pg-financeiro{display:none;height:100%;overflow-y:auto;padding:0}
 #pg-financeiro.on{display:block}
-#pg-financeiro::-webkit-scrollbar{width:4px}
-#pg-financeiro::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
-.fin-banner{background:var(--dk);border-radius:var(--r);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;border-left:3px solid var(--terra)}
-.fin-banner-lbl{font-size:8px;letter-spacing:2px;color:rgba(255,255,255,.4);font-weight:600;text-transform:uppercase;margin-bottom:4px}
-.fin-banner-val{font-size:26px;font-weight:500;color:white;line-height:1}
-.fin-banner-sub{font-size:10px;color:rgba(255,255,255,.4);margin-top:3px}
-.fin-pills{display:flex;gap:20px}
-.fin-pill-lbl{font-size:8px;letter-spacing:1.5px;font-weight:600;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:3px}
-.fin-pill-val{font-size:18px;font-weight:500;color:var(--terra-l)}
-.fin-pill-val.neg{color:#E8A0A0}
-.fin-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
-.fin-kpi{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:1rem;border-top:3px solid var(--terra)}
-.fin-kpi.verde{border-top-color:var(--verde)}
-.fin-kpi.alerta{border-top-color:#C0392B}
-.fin-kpi-lbl{font-size:9px;letter-spacing:1.5px;font-weight:600;text-transform:uppercase;color:var(--tl);margin-bottom:6px}
-.fin-kpi-val{font-size:26px;font-weight:500;color:var(--tx);line-height:1}
-.fin-kpi-val.red{color:#C0392B}
-.fin-kpi-val.green{color:var(--verde)}
-.fin-kpi-sub{font-size:10px;color:var(--tl);margin-top:4px}
-.fin-two{display:grid;grid-template-columns:1fr 300px;gap:14px;align-items:start}
+.fin-subnav{background:var(--dk2);display:flex;gap:0;padding:0 16px;flex-shrink:0;overflow-x:auto;border-bottom:1px solid var(--dk3)}
+.fin-subnav::-webkit-scrollbar{display:none}
+.fin-sn{font-size:8px;letter-spacing:1.5px;color:rgba(255,255,255,.38);padding:10px 12px;cursor:pointer;font-weight:600;text-transform:uppercase;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
+.fin-sn:hover{color:rgba(255,255,255,.7)}
+.fin-sn.on{color:var(--terra-l);border-bottom-color:var(--terra)}
+.fin-pg{padding:14px 16px;overflow-y:auto;height:calc(100vh - 120px)}
+.fin-pg::-webkit-scrollbar{width:3px}
+.fin-pg::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
+.fin-ia-banner{border:1px solid var(--terra-l);border-radius:var(--r);padding:12px 16px;background:var(--bg2);margin-bottom:12px}
+.fin-ia-tag{display:inline-flex;align-items:center;gap:5px;font-size:8px;letter-spacing:1.5px;font-weight:600;text-transform:uppercase;color:var(--terra);border:1px solid var(--terra-l);border-radius:10px;padding:3px 10px;margin-bottom:8px}
+.fin-ia-dot{width:5px;height:5px;border-radius:50%;background:var(--terra)}
+.fin-ia-txt{font-size:11px;color:var(--tx);line-height:1.6}
+.fin-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.fin-kpi{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:14px 16px;border-bottom:3px solid var(--terra);overflow:hidden}
+.fin-kpi.v{border-bottom-color:var(--verde)}
+.fin-kpi.r{border-bottom-color:#8B2020}
+.fin-kpi.g{border-bottom-color:#8B7010}
+.fk-lbl{font-size:8px;letter-spacing:1.8px;font-weight:600;text-transform:uppercase;color:var(--tl);margin-bottom:8px}
+.fk-val{font-size:24px;font-weight:500;color:var(--tx);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fk-val.red{color:#8B2020}.fk-val.grn{color:var(--verde)}.fk-val.gold{color:#8B7010}
+.fk-sub{font-size:9px;color:var(--tl);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fin-two{display:grid;grid-template-columns:1fr 270px;gap:12px}
 @media(max-width:900px){.fin-two{grid-template-columns:1fr}}
 .fin-card{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:10px}
-.fin-card-hd{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--bd)}
+.fin-card:last-child{margin-bottom:0}
+.fin-card-hd{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;border-bottom:1px solid var(--bd)}
 .fin-card-body{padding:10px 14px}
-.fin-chart-bars{display:flex;align-items:flex-end;gap:8px;height:80px;margin-top:6px}
-.fin-bar-grp{flex:1;display:flex;gap:2px;align-items:flex-end}
-.fin-bar{flex:1;border-radius:2px 2px 0 0;min-height:3px}
-.fin-bar.rec{background:var(--terra);opacity:.85}
-.fin-bar.des{background:var(--bd2);border:1px solid var(--bd)}
-.fin-bar-lbls{display:flex;gap:8px;margin-top:4px}
-.fin-bar-lbl{flex:1;font-size:9px;color:var(--tl);text-align:center}
-.fin-legend{display:flex;gap:10px}
-.fin-leg{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--tm)}
-.fin-leg-dot{width:9px;height:9px;border-radius:2px}
-.fin-lanc{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bg3);cursor:default}
-.fin-lanc:last-child{border-bottom:none}
-.fin-lanc-ico{width:24px;height:24px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700}
-.fin-lanc-info{flex:1;min-width:0}
-.fin-lanc-desc{font-size:12px;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.fin-lanc-meta{font-size:10px;color:var(--tl);margin-top:1px}
-.fin-lanc-val{font-size:12px;font-weight:500;flex-shrink:0}
-.fin-lanc-val.pos{color:var(--verde)}
-.fin-lanc-val.neg{color:#C0392B}
-.fbadge{display:inline-block;font-size:8px;font-weight:600;letter-spacing:.4px;padding:1px 6px;border-radius:3px;text-transform:uppercase}
-.fbadge.pix{background:#E6F4EF;color:#1A5C35}
-.fbadge.cartao{background:var(--terra-xl);color:var(--terra-d)}
-.fbadge.dinheiro{background:var(--bg3);color:var(--tm)}
-.fbadge.boleto{background:#EDF2F8;color:#1A3A6B}
-.fbadge.vencido{background:#FCEBEB;color:#8B2020}
-.fbadge.ok{background:#E6F4EF;color:#1A5C35}
-.fbadge.prox{background:#FEF9E7;color:#7A5200}
-.fin-conta{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bg3)}
-.fin-conta:last-child{border-bottom:none}
-.fin-conta-bar{width:4px;height:36px;border-radius:2px;flex-shrink:0}
-.fin-conta-bar.venc{background:#C0392B}
-.fin-conta-bar.prox{background:var(--terra)}
-.fin-conta-bar.ok{background:var(--verde)}
-.fin-conta-dt{font-size:11px;color:var(--tx);width:32px;text-align:center;flex-shrink:0;line-height:1.3;font-weight:500}
-.fin-conta-dt span{display:block;font-size:9px;color:var(--tl);font-weight:400}
-.fin-conta-info{flex:1;min-width:0}
-.fin-conta-nome{font-size:12px;color:var(--tx)}
-.fin-conta-cat{font-size:10px;color:var(--tl);margin-top:1px}
-.fin-conta-val{font-size:12px;font-weight:500;color:var(--tx);flex-shrink:0}
-.fin-pay-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:12px}
-.fin-pay-opt{border:1px solid var(--bd2);border-radius:var(--r);padding:8px 10px;cursor:pointer;transition:all .12s;background:var(--bg2)}
-.fin-pay-opt:hover{border-color:var(--terra);background:var(--terra-xl)}
-.fin-pay-opt.on{border-color:var(--terra);background:var(--terra-xl)}
-.fin-pay-label{font-size:11px;font-weight:600;color:var(--tx)}
-.fin-pay-sub{font-size:9px;color:var(--tl)}
-.fin-tipo-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:12px}
-.fin-tipo-btn{border:1px solid var(--bd2);border-radius:var(--r);padding:10px;cursor:pointer;transition:all .12s;background:var(--bg2);text-align:center}
-.fin-tipo-btn:hover{border-color:var(--terra)}
-.fin-tipo-btn.on.rec{border-color:var(--verde);background:var(--verde-l)}
-.fin-tipo-btn.on.des{border-color:#C0392B;background:#FCEBEB}
-.fin-tipo-icon{font-size:18px;margin-bottom:3px}
-.fin-tipo-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
-/* Modal financeiro overlay próprio */
-#fin-modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:8000;align-items:center;justify-content:center}
+.fin-lr{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--bg3)}
+.fin-lr:last-child{border-bottom:none}
+.fin-lr-ico{width:22px;height:22px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.fin-lr-info{flex:1;min-width:0}
+.fin-lr-desc{font-size:11px;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fin-lr-meta{font-size:9px;color:var(--tl);margin-top:1px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.fin-lr-val{font-size:11px;font-weight:500;flex-shrink:0}
+.fin-lr-val.pos{color:var(--verde)}.fin-lr-val.neg{color:#8B2020}
+.fbadge{display:inline-block;font-size:8px;font-weight:600;padding:1px 5px;border-radius:2px;text-transform:uppercase;letter-spacing:.3px}
+.fbadge.pix{background:#E6F4EF;color:#1A5C35}.fbadge.cartao{background:var(--terra-xl);color:var(--terra-d)}
+.fbadge.dinheiro{background:var(--bg3);color:var(--tm)}.fbadge.boleto{background:#EDF2F8;color:#1A3A6B}
+.fin-cr{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--bg3)}
+.fin-cr:last-child{border-bottom:none}
+.fin-cr-bar{width:3px;height:30px;border-radius:2px;flex-shrink:0}
+.fin-cr-bar.r{background:#8B2020}.fin-cr-bar.a{background:var(--terra)}.fin-cr-bar.g{background:var(--verde)}
+.fin-cr-info{flex:1;min-width:0}
+.fin-cr-nome{font-size:11px;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fin-cr-dt{font-size:9px;color:var(--tl);margin-top:1px}
+.fin-cr-val{font-size:11px;font-weight:500;color:var(--tx);flex-shrink:0}
+.fin-cr-tag{font-size:8px;font-weight:600;padding:1px 5px;border-radius:2px;letter-spacing:.3px}
+.fin-cr-tag.r{background:#FCEBEB;color:#8B2020}.fin-cr-tag.a{background:var(--terra-xl);color:var(--terra-d)}.fin-cr-tag.g{background:var(--verde-l);color:var(--verde)}
+.fin-pb{margin-bottom:8px}
+.fin-pb-row{display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px;color:var(--tm)}
+.fin-pb-track{height:3px;background:var(--bd2);border-radius:2px}
+.fin-pb-fill{height:100%;border-radius:2px;background:var(--terra)}
+.dre-grupo{font-size:8px;letter-spacing:1.5px;font-weight:600;text-transform:uppercase;color:var(--tl);padding:8px 0 4px;border-bottom:1px solid var(--bg3)}
+.dre-item{display:flex;justify-content:space-between;font-size:11px;padding:5px 0 5px 12px;border-bottom:1px solid var(--bg3);color:var(--tm)}
+.dre-total{display:flex;justify-content:space-between;font-size:12px;font-weight:600;padding:7px 0;border-bottom:2px solid var(--bd);color:var(--tx)}
+.dre-resultado{display:flex;justify-content:space-between;font-size:14px;font-weight:600;padding:10px 0;margin-top:4px;border-top:2px solid var(--bd)}
+#fin-modal-ov{display:none;position:fixed;inset:0;background:rgba(26,25,21,.6);z-index:8000;align-items:center;justify-content:center}
 #fin-modal-ov.on{display:flex}
-.fin-modal-box{background:var(--bg);border-radius:10px;width:100%;max-width:440px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.35)}
-.fin-modal-head{padding:18px 20px 14px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between}
-.fin-modal-title{font-size:15px;font-weight:500;color:var(--tx)}
-.fin-modal-sub{font-size:10px;color:var(--tl);margin-top:2px}
-.fin-modal-body{padding:16px 20px}
-.fin-modal-foot{padding:12px 20px;border-top:1px solid var(--bd);display:flex;gap:8px;justify-content:flex-end}
-/* IA Financeira */
-.fin-ia-box{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:10px}
-.fin-ia-msgs{max-height:180px;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:8px}
+.fin-modal{background:var(--bg);border-radius:8px;width:100%;max-width:440px;max-height:90vh;overflow-y:auto;border:1px solid var(--bd)}
+.fin-modal::-webkit-scrollbar{width:3px}
+.fin-modal::-webkit-scrollbar-thumb{background:var(--bd2)}
+.fin-m-hd{padding:14px 18px 12px;border-bottom:1px solid var(--bd);display:flex;align-items:flex-start;justify-content:space-between}
+.fin-m-title{font-size:14px;font-weight:500;color:var(--tx)}
+.fin-m-sub{font-size:9px;color:var(--tl);margin-top:2px}
+.fin-m-body{padding:14px 18px}
+.fin-m-ft{padding:10px 18px;border-top:1px solid var(--bd);display:flex;gap:8px;justify-content:flex-end}
+.fin-mf{margin-bottom:10px}
+.fin-mf label{display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px}
+.fin-mf input,.fin-mf select,.fin-mf textarea{width:100%;padding:8px 10px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);color:var(--tx);font-size:12px}
+.fin-mf input:focus,.fin-mf select:focus{outline:none;border-color:var(--terra);box-shadow:0 0 0 2px rgba(193,123,62,.1)}
+.fin-mf-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.fin-tipo-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
+.fin-tipo-btn{border:1px solid var(--bd2);border-radius:var(--r);padding:9px 12px;cursor:pointer;background:var(--bg2);transition:all .15s}
+.fin-tipo-btn.on.rec{border-color:var(--verde);background:var(--verde-l)}
+.fin-tipo-btn.on.des{border-color:#8B2020;background:#FCEBEB}
+.fin-tipo-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
+.fin-tipo-sub{font-size:9px;color:var(--tl);margin-top:2px}
+.fin-pay-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:10px}
+.fin-pay-btn{border:1px solid var(--bd2);border-radius:var(--r);padding:7px 4px;cursor:pointer;background:var(--bg2);text-align:center;font-size:9px;font-weight:600;letter-spacing:.5px;color:var(--tm);text-transform:uppercase;transition:all .15s}
+.fin-pay-btn.on{border-color:var(--terra);background:var(--terra-xl);color:var(--terra-d)}
+.fin-extra{background:var(--bg3);border:1px solid var(--bd);border-radius:var(--r);padding:10px 12px;margin-bottom:10px}
+.fin-extra-lbl{font-size:8px;letter-spacing:1.5px;font-weight:600;text-transform:uppercase;color:var(--tl);margin-bottom:8px}
+.fin-favs{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px}
+.fin-fav{padding:4px 10px;border-radius:20px;border:1px solid var(--bd2);background:var(--bg2);color:var(--tm);font-size:10px;cursor:pointer;transition:all .12s;letter-spacing:.3px}
+.fin-fav:hover{border-color:var(--terra);color:var(--terra)}
+.fin-fav.on{background:var(--terra-xl);border-color:var(--terra-l);color:var(--terra-d)}
+.fin-fav.add{border-style:dashed;color:var(--tl)}
+.fin-inad-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bg3)}
+.fin-inad-row:last-child{border-bottom:none}
+.fin-inad-av{width:28px;height:28px;border-radius:50%;background:var(--terra-l);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--terra-d);flex-shrink:0}
+.fin-inad-info{flex:1;min-width:0}
+.fin-inad-nome{font-size:11px;font-weight:500;color:var(--tx)}
+.fin-inad-meta{font-size:9px;color:var(--tl);margin-top:1px}
+.fin-inad-val{text-align:right;flex-shrink:0}
+.fin-inad-saldo{font-size:11px;font-weight:500;color:#8B2020}
+.fin-inad-dias{font-size:9px;color:var(--tl);margin-top:1px}
+.fin-ia-msgs{max-height:200px;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:8px}
 .fin-ia-msgs::-webkit-scrollbar{width:3px}
-.fin-ia-msgs::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
-.fin-ia-msg{font-size:12px;line-height:1.5;padding:8px 10px;border-radius:var(--r);max-width:90%}
+.fin-ia-msg{font-size:11px;line-height:1.5;padding:8px 10px;border-radius:var(--r);max-width:88%}
 .fin-ia-msg.user{background:var(--terra-xl);color:var(--tx);align-self:flex-end;border:1px solid var(--terra-l)}
 .fin-ia-msg.ai{background:var(--bg3);color:var(--tx);align-self:flex-start;border:1px solid var(--bd)}
-.fin-ia-msg.ai .fin-ia-lbl{font-size:8px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--terra);margin-bottom:3px}
-.fin-ia-input-row{display:flex;gap:6px;padding:8px 14px;border-top:1px solid var(--bd)}
-.fin-ia-input-row input{flex:1;padding:7px 10px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:12px}
-.fin-ia-input-row input:focus{outline:none;border-color:var(--terra)}
-/* Validação fluxo */
-.fin-valid-item{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid var(--bg3);font-size:11px;color:var(--tx)}
+.fin-ia-lbl{font-size:8px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--terra);margin-bottom:3px}
+.fin-ia-row{display:flex;gap:6px;padding:8px 14px;border-top:1px solid var(--bd)}
+.fin-ia-row input{flex:1;padding:7px 10px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:12px;color:var(--tx)}
+.fin-ia-row input:focus{outline:none;border-color:var(--terra)}
+.fin-setor-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+.fin-setor{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:14px 16px;border-bottom:3px solid var(--terra)}
+.fin-setor.v{border-bottom-color:var(--verde)}.fin-setor.b{border-bottom-color:#3A6BA0}.fin-setor.p{border-bottom-color:#7A4A8C}
+.fin-setor-lbl{font-size:8px;letter-spacing:1.8px;font-weight:600;text-transform:uppercase;color:var(--tl);margin-bottom:8px}
+.fin-setor-val{font-size:22px;font-weight:500;color:var(--tx);line-height:1;margin-bottom:4px}
+.fin-setor-sub{font-size:10px;color:var(--tl)}
+.fin-setor-bar{height:3px;background:var(--bd2);border-radius:2px;margin-top:8px}
+.fin-setor-fill{height:100%;border-radius:2px;background:var(--terra)}
+.fin-valid-item{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--bg3);font-size:11px;color:var(--tx)}
 .fin-valid-item:last-child{border-bottom:none}
-.fin-valid-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px}
-.fin-valid-dot.ok{background:var(--verde)}
-.fin-valid-dot.warn{background:var(--terra)}
-.fin-valid-dot.err{background:#C0392B}
-/* Lembretes */
-.fin-reminder-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--bg3);font-size:11px}
-.fin-reminder-item:last-child{border-bottom:none}
-/* Barra pagamento por tipo */
-.fin-paybar{margin-bottom:8px}
-.fin-paybar-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px}
-.fin-paybar-track{height:4px;background:var(--bd2);border-radius:2px}
-.fin-paybar-fill{height:100%;border-radius:2px;background:var(--terra)}
-</style>
+.fin-valid-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.fin-valid-dot.ok{background:var(--verde)}.fin-valid-dot.warn{background:var(--terra)}.fin-valid-dot.err{background:#8B2020}
+.fin-sub-pg{display:none}.fin-sub-pg.on{display:block}
 
+</style>
 </head>
 <body>
 
@@ -616,10 +622,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
       <span>ESTOQUE</span>
       <div class="sb-tt">Gestão de Estoque</div>
     </button>
-
     <!-- FINANCEIRO -->
     <button class="sb-btn" onclick="goPage('financeiro',this)">
-      <svg viewBox="0 0 18 18" fill="none" stroke="#7A6E65" stroke-width="1.5"><rect x="2" y="5" width="14" height="10" rx="1.5"/><line x1="2" y1="8" x2="16" y2="8"/><circle cx="6" cy="12" r="1"/><line x1="9" y1="11" x2="13" y2="11"/><line x1="9" y1="13" x2="11" y2="13"/></svg>
+      <svg viewBox="0 0 18 18" fill="none" stroke="#7A6E65" stroke-width="1.5"><rect x="2" y="5" width="14" height="10" rx="1.5"/><line x1="2" y1="8" x2="16" y2="8"/><circle cx="6" cy="12" r="1" fill="#7A6E65"/><line x1="9" y1="11" x2="13" y2="11"/><line x1="9" y1="13" x2="11" y2="13"/></svg>
       <span>FINANC.</span>
       <div class="sb-tt">Financeiro</div>
     </button>
@@ -908,122 +913,132 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
       </div>
 
       <!-- ══ FINANCEIRO ═════════════════════════════════════════════ -->
-      <div id="pg-financeiro" class="page">
+      <div id="pg-financeiro" class="page" style="padding:0;display:flex;flex-direction:column">
 
-        <!-- Banner saldo -->
-        <div class="fin-banner">
-          <div>
-            <div class="fin-banner-lbl">Saldo do mês — <span id="fin-mes-label">—</span></div>
-            <div class="fin-banner-val" id="fin-saldo-val">R$ —</div>
-            <div class="fin-banner-sub">receitas menos despesas confirmadas</div>
+        <!-- Sub-nav -->
+        <div class="fin-subnav">
+          <div class="fin-sn on" onclick="finGoSub('dashboard',this)">Dashboard</div>
+          <div class="fin-sn" onclick="finGoSub('receitas',this)">Receitas</div>
+          <div class="fin-sn" onclick="finGoSub('despesas',this)">Despesas</div>
+          <div class="fin-sn" onclick="finGoSub('contas',this)">Contas a Pagar</div>
+          <div class="fin-sn" onclick="finGoSub('inadimplentes',this)">Inadimplentes</div>
+          <div class="fin-sn" onclick="finGoSub('setores',this)">Setores</div>
+          <div class="fin-sn" onclick="finGoSub('dre',this)">DRE</div>
+          <div class="fin-sn" onclick="finGoSub('ia',this)">Assistente IA</div>
+        </div>
+
+        <!-- ── DASHBOARD ── -->
+        <div class="fin-sub-pg on fin-pg" id="fin-pg-dashboard">
+          <div class="fin-ia-banner">
+            <div class="fin-ia-tag"><div class="fin-ia-dot"></div>Resumo do dia — Inteligência Artificial</div>
+            <div class="fin-ia-txt" id="fin-ia-resumo">Carregando análise do dia...</div>
+            <button class="btn btn-sm" style="margin-top:8px;font-size:9px" onclick="finGerarResumo()">↺ Atualizar</button>
           </div>
-          <div class="fin-pills">
+          <div class="fin-kpis">
+            <div class="fin-kpi r"><div class="fk-lbl">Saldo do mês</div><div class="fk-val red" id="fk-saldo">—</div><div class="fk-sub" id="fk-saldo-sub">—</div></div>
+            <div class="fin-kpi v"><div class="fk-lbl">Entradas</div><div class="fk-val grn" id="fk-rec">—</div><div class="fk-sub" id="fk-rec-sub">—</div></div>
+            <div class="fin-kpi r"><div class="fk-lbl">Saídas</div><div class="fk-val red" id="fk-des">—</div><div class="fk-sub" id="fk-des-sub">—</div></div>
+            <div class="fin-kpi g"><div class="fk-lbl">Ticket médio</div><div class="fk-val gold" id="fk-ticket">—</div><div class="fk-sub" id="fk-ticket-sub">—</div></div>
+            <div class="fin-kpi r"><div class="fk-lbl">Vencimentos hoje</div><div class="fk-val red" id="fk-venc">—</div><div class="fk-sub" id="fk-venc-sub">—</div></div>
+          </div>
+          <div class="fin-two">
             <div>
-              <div class="fin-pill-lbl">Entradas</div>
-              <div class="fin-pill-val" id="fin-total-rec">R$ —</div>
+              <div class="fin-card">
+                <div class="fin-card-hd">
+                  <span class="sec">Lançamentos recentes</span>
+                  <button class="btn btn-xs btn-terra" onclick="finAbrirModal()">+ Novo</button>
+                </div>
+                <div class="fin-card-body" id="fin-lanc-lista"><div style="color:var(--tl);font-size:11px">Carregando...</div></div>
+              </div>
+              <div class="fin-card">
+                <div class="fin-card-hd"><span class="sec">Validação do fluxo de caixa</span><button class="btn btn-xs" onclick="finValidar()">Verificar</button></div>
+                <div class="fin-card-body" id="fin-validacao"><div style="color:var(--tl);font-size:11px">Clique em Verificar para analisar.</div></div>
+              </div>
             </div>
-            <div style="width:1px;background:rgba(255,255,255,.12);margin:0 4px"></div>
             <div>
-              <div class="fin-pill-lbl">Saídas</div>
-              <div class="fin-pill-val neg" id="fin-total-des">R$ —</div>
-            </div>
-            <div style="margin-left:14px">
-              <button class="btn btn-sm" style="font-size:10px;letter-spacing:.5px;background:var(--terra);color:white;border-color:var(--terra)" onclick="finOpenModal()">+ Lançamento</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- KPIs -->
-        <div class="fin-kpis">
-          <div class="fin-kpi"><div class="fin-kpi-lbl">Faturamento bruto</div><div class="fin-kpi-val" id="fkpi-fat">—</div><div class="fin-kpi-sub" id="fkpi-fat-sub"></div></div>
-          <div class="fin-kpi alerta"><div class="fin-kpi-lbl">Despesas do mês</div><div class="fin-kpi-val red" id="fkpi-des">—</div><div class="fin-kpi-sub" id="fkpi-des-sub"></div></div>
-          <div class="fin-kpi verde"><div class="fin-kpi-lbl">Ticket médio</div><div class="fin-kpi-val" id="fkpi-ticket">—</div><div class="fin-kpi-sub" id="fkpi-ticket-sub"></div></div>
-          <div class="fin-kpi alerta"><div class="fin-kpi-lbl">Vencimentos hoje</div><div class="fin-kpi-val red" id="fkpi-venc">—</div><div class="fin-kpi-sub" id="fkpi-venc-sub"></div></div>
-        </div>
-
-        <div class="fin-two">
-          <!-- Coluna esquerda -->
-          <div>
-            <!-- Gráfico entradas x saídas -->
-            <div class="fin-card">
-              <div class="fin-card-hd">
-                <span class="sec" style="margin:0">Entradas vs. saídas — últimos 6 meses</span>
-                <div class="fin-legend">
-                  <div class="fin-leg"><div class="fin-leg-dot" style="background:var(--terra)"></div>Receitas</div>
-                  <div class="fin-leg"><div class="fin-leg-dot" style="background:var(--bd2);border:1px solid var(--bd)"></div>Despesas</div>
-                </div>
+              <div class="fin-card" style="margin-bottom:10px">
+                <div class="fin-card-hd"><span class="sec">Vencimentos próximos</span><button class="btn btn-xs" onclick="finAbrirModal('despesa')" style="font-size:9px">+ Conta</button></div>
+                <div class="fin-card-body" id="fin-contas-lista"><div style="color:var(--tl);font-size:11px">Carregando...</div></div>
               </div>
-              <div class="fin-card-body">
-                <div class="fin-chart-bars" id="fin-chart-bars">
-                  <div style="color:var(--tl);font-size:11px">Carregando...</div>
-                </div>
-                <div class="fin-bar-lbls" id="fin-chart-lbls"></div>
-              </div>
-            </div>
-
-            <!-- Lançamentos recentes -->
-            <div class="fin-card">
-              <div class="fin-card-hd">
-                <span class="sec" style="margin:0">Lançamentos recentes</span>
-                <button class="btn btn-sm btn-xs" onclick="finOpenModal()" style="font-size:10px">+ Novo</button>
-              </div>
-              <div class="fin-card-body" id="fin-lanc-list">
-                <div style="color:var(--tl);font-size:11px;padding:8px 0">Carregando...</div>
-              </div>
-            </div>
-
-            <!-- IA Financeira -->
-            <div class="fin-ia-box">
-              <div class="fin-card-hd">
-                <span class="sec" style="margin:0">Assistente financeiro IA</span>
-                <span style="font-size:9px;color:var(--terra);font-weight:600;letter-spacing:.5px">BETA</span>
-              </div>
-              <div class="fin-ia-msgs" id="fin-ia-msgs">
-                <div class="fin-ia-msg ai">
-                  <div class="fin-ia-lbl">Assistente</div>
-                  Olá! Posso ajudar com dúvidas sobre seu fluxo de caixa, interpretar lançamentos ou sugerir análises. O que precisa?
-                </div>
-              </div>
-              <div class="fin-ia-input-row">
-                <input id="fin-ia-input" type="text" placeholder="Ex: Qual meu maior gasto este mês?" onkeydown="if(event.key==='Enter')finEnviarIA()">
-                <button class="btn btn-terra btn-sm" onclick="finEnviarIA()" style="font-size:10px;white-space:nowrap">Enviar</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Coluna direita -->
-          <div>
-            <!-- Validação do fluxo de caixa -->
-            <div class="fin-card" style="margin-bottom:10px">
-              <div class="fin-card-hd">
-                <span class="sec" style="margin:0">Validação do fluxo de caixa</span>
-                <button class="btn btn-xs" onclick="finValidarFluxo()" style="font-size:10px">Atualizar</button>
-              </div>
-              <div class="fin-card-body" id="fin-validacao">
-                <div style="color:var(--tl);font-size:11px">Clique em Atualizar para validar.</div>
-              </div>
-            </div>
-
-            <!-- Contas a pagar / vencimentos -->
-            <div class="fin-card" style="margin-bottom:10px">
-              <div class="fin-card-hd">
-                <span class="sec" style="margin:0">Vencimentos próximos</span>
-                <button class="btn btn-xs" onclick="finOpenModal('despesa')" style="font-size:10px">+ Conta</button>
-              </div>
-              <div class="fin-card-body" id="fin-contas-list">
-                <div style="color:var(--tl);font-size:11px;padding:8px 0">Carregando...</div>
-              </div>
-            </div>
-
-            <!-- Receitas por forma de pagamento -->
-            <div class="fin-card">
-              <div class="fin-card-hd"><span class="sec" style="margin:0">Receitas por pagamento</span></div>
-              <div class="fin-card-body" id="fin-paybar-list">
-                <div style="color:var(--tl);font-size:11px">Carregando...</div>
+              <div class="fin-card">
+                <div class="fin-card-hd"><span class="sec">Receitas por pagamento</span></div>
+                <div class="fin-card-body" id="fin-paybar"><div style="color:var(--tl);font-size:11px">Carregando...</div></div>
               </div>
             </div>
           </div>
         </div>
+
+        <!-- ── RECEITAS ── -->
+        <div class="fin-sub-pg fin-pg" id="fin-pg-receitas">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <div class="sec">Todas as receitas</div>
+            <button class="btn btn-terra btn-sm" onclick="finAbrirModal('receita')">+ Nova receita</button>
+          </div>
+          <div class="fin-card"><div class="fin-card-body" id="fin-rec-lista"><div style="color:var(--tl);font-size:11px">Carregando...</div></div></div>
+        </div>
+
+        <!-- ── DESPESAS ── -->
+        <div class="fin-sub-pg fin-pg" id="fin-pg-despesas">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <div class="sec">Todas as despesas</div>
+            <button class="btn btn-dk btn-sm" onclick="finAbrirModal('despesa')">+ Nova despesa</button>
+          </div>
+          <div class="fin-card"><div class="fin-card-body" id="fin-des-lista"><div style="color:var(--tl);font-size:11px">Carregando...</div></div></div>
+        </div>
+
+        <!-- ── CONTAS A PAGAR ── -->
+        <div class="fin-sub-pg fin-pg" id="fin-pg-contas">
+          <div class="fin-kpis" style="grid-template-columns:repeat(3,1fr)">
+            <div class="fin-kpi r"><div class="fk-lbl">Vencidas</div><div class="fk-val red" id="fk-venc-total">0</div><div class="fk-sub">em aberto</div></div>
+            <div class="fin-kpi"><div class="fk-lbl">Vencem em 7 dias</div><div class="fk-val" id="fk-prox7">0</div><div class="fk-sub">requer atenção</div></div>
+            <div class="fin-kpi v"><div class="fk-lbl">Pagas este mês</div><div class="fk-val grn" id="fk-pagas">0</div><div class="fk-sub">concluídas</div></div>
+          </div>
+          <div class="fin-card"><div class="fin-card-hd"><span class="sec">Contas a pagar</span><button class="btn btn-xs" onclick="finAbrirModal('despesa')">+ Adicionar</button></div><div class="fin-card-body" id="fin-contas-full"><div style="color:var(--tl);font-size:11px">Carregando...</div></div></div>
+        </div>
+
+        <!-- ── INADIMPLENTES ── -->
+        <div class="fin-sub-pg fin-pg" id="fin-pg-inadimplentes">
+          <div class="fin-kpis" style="grid-template-columns:repeat(3,1fr)">
+            <div class="fin-kpi r"><div class="fk-lbl">Total em aberto</div><div class="fk-val red" id="fk-inad-total">R$ 0</div><div class="fk-sub" id="fk-inad-pac">0 pacientes</div></div>
+            <div class="fin-kpi"><div class="fk-lbl">Sinais sem retorno</div><div class="fk-val" id="fk-inad-sinais">0</div><div class="fk-sub">aguardando consulta</div></div>
+            <div class="fin-kpi r"><div class="fk-lbl">Complemento pendente</div><div class="fk-val red" id="fk-inad-comp">0</div><div class="fk-sub">consulta realizada</div></div>
+          </div>
+          <div class="fin-card"><div class="fin-card-hd"><span class="sec">Saldos em aberto por paciente</span></div><div class="fin-card-body" id="fin-inad-lista"><div style="color:var(--tl);font-size:11px">Nenhum saldo em aberto.</div></div></div>
+        </div>
+
+        <!-- ── SETORES ── -->
+        <div class="fin-sub-pg fin-pg" id="fin-pg-setores">
+          <div class="fin-setor-grid">
+            <div class="fin-setor"><div class="fin-setor-lbl">Protocolos</div><div class="fin-setor-val" id="fset-prot">—</div><div class="fin-setor-sub" id="fset-prot-sub">—</div><div class="fin-setor-bar"><div class="fin-setor-fill" id="fset-prot-bar" style="width:0%"></div></div></div>
+            <div class="fin-setor v"><div class="fin-setor-lbl">Dermatologia</div><div class="fin-setor-val" id="fset-derm">—</div><div class="fin-setor-sub" id="fset-derm-sub">—</div><div class="fin-setor-bar"><div class="fin-setor-fill" id="fset-derm-bar" style="width:0%;background:var(--verde)"></div></div></div>
+            <div class="fin-setor b"><div class="fin-setor-lbl">Nutrição</div><div class="fin-setor-val" id="fset-nutr">—</div><div class="fin-setor-sub" id="fset-nutr-sub">—</div><div class="fin-setor-bar"><div class="fin-setor-fill" id="fset-nutr-bar" style="width:0%;background:#3A6BA0"></div></div></div>
+            <div class="fin-setor p"><div class="fin-setor-lbl">Geral / Outros</div><div class="fin-setor-val" id="fset-geral">—</div><div class="fin-setor-sub" id="fset-geral-sub">—</div><div class="fin-setor-bar"><div class="fin-setor-fill" id="fset-geral-bar" style="width:0%;background:#7A4A8C"></div></div></div>
+          </div>
+        </div>
+
+        <!-- ── DRE ── -->
+        <div class="fin-sub-pg fin-pg" id="fin-pg-dre">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <div class="sec">Demonstração do resultado — <span id="fin-dre-mes">—</span></div>
+            <button class="btn btn-sm" onclick="finExportarDRE()" style="font-size:10px">Exportar PDF</button>
+          </div>
+          <div class="fin-card"><div class="fin-card-body" id="fin-dre-corpo"><div style="color:var(--tl);font-size:11px">Carregando DRE...</div></div></div>
+        </div>
+
+        <!-- ── ASSISTENTE IA ── -->
+        <div class="fin-sub-pg fin-pg" id="fin-pg-ia">
+          <div class="fin-card">
+            <div class="fin-card-hd"><span class="sec">Assistente financeiro — IA</span><span style="font-size:9px;color:var(--terra);font-weight:600;letter-spacing:.5px">BETA</span></div>
+            <div class="fin-ia-msgs" id="fin-ia-chat">
+              <div class="fin-ia-msg ai"><div class="fin-ia-lbl">Assistente</div>Olá! Posso analisar seu fluxo de caixa, responder dúvidas financeiras e gerar insights. Como posso ajudar?</div>
+            </div>
+            <div class="fin-ia-row">
+              <input id="fin-ia-input" type="text" placeholder="Ex: Qual meu maior gasto este mês?" onkeydown="if(event.key==='Enter')finEnviarIA()">
+              <button class="btn btn-terra btn-sm" onclick="finEnviarIA()" style="font-size:10px;white-space:nowrap">Enviar</button>
+            </div>
+          </div>
+        </div>
+
       </div><!-- /pg-financeiro -->
 
       <!-- ══ ESTOQUE ════════════════════════════════════════════════ -->
@@ -1040,82 +1055,122 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
 </div><!-- /app -->
 
 <!-- ══ MODAL FINANCEIRO ═══════════════════════════════════════════════ -->
-<div id="fin-modal-ov" onclick="if(event.target===this)finCloseModal()">
-  <div class="fin-modal-box" onclick="event.stopPropagation()">
-    <div class="fin-modal-head">
-      <div>
-        <div class="fin-modal-title" id="fin-modal-title">Novo lançamento</div>
-        <div class="fin-modal-sub">Registre uma receita, despesa ou conta</div>
-      </div>
-      <button class="btn btn-xs" onclick="finCloseModal()" style="font-size:16px;border:none;background:none;color:var(--tl)">✕</button>
+<div id="fin-modal-ov" onclick="if(event.target===this)finFecharModal()">
+  <div class="fin-modal" onclick="event.stopPropagation()">
+    <div class="fin-m-hd">
+      <div><div class="fin-m-title">Novo lançamento</div><div class="fin-m-sub">Favorito ou preenchimento manual</div></div>
+      <button onclick="finFecharModal()" style="border:none;background:none;color:var(--tl);font-size:18px;cursor:pointer;line-height:1">✕</button>
     </div>
-    <div class="fin-modal-body">
-      <!-- Tipo: receita ou despesa -->
-      <div class="sec" style="margin-bottom:6px">Tipo</div>
+    <div class="fin-m-body">
+      <!-- Favoritos -->
+      <div class="sec" style="margin-bottom:6px">Acesso rápido</div>
+      <div class="fin-favs" id="fin-favs-lista"></div>
+      <!-- Tipo -->
       <div class="fin-tipo-grid">
         <div class="fin-tipo-btn on rec" id="fin-tipo-rec" onclick="finSetTipo('receita')">
           <div class="fin-tipo-lbl" style="color:var(--verde)">+ Receita</div>
-          <div style="font-size:9px;color:var(--tl);margin-top:2px">Consulta, procedimento</div>
+          <div class="fin-tipo-sub">consulta, procedimento</div>
         </div>
         <div class="fin-tipo-btn des" id="fin-tipo-des" onclick="finSetTipo('despesa')">
-          <div class="fin-tipo-lbl" style="color:#C0392B">− Despesa</div>
-          <div style="font-size:9px;color:var(--tl);margin-top:2px">Custo, fornecedor</div>
+          <div class="fin-tipo-lbl" style="color:#8B2020">− Despesa</div>
+          <div class="fin-tipo-sub">custo, fornecedor</div>
         </div>
       </div>
-      <!-- Categoria rápida -->
-      <div class="sec" style="margin-bottom:6px">Categoria</div>
-      <div id="fin-cats" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px"></div>
       <!-- Descrição -->
-      <div class="mf" style="margin-bottom:10px">
-        <label style="font-size:9px;letter-spacing:1.5px;font-weight:600;text-transform:uppercase;color:var(--tl);display:block;margin-bottom:4px">Descrição</label>
-        <input id="fin-desc" type="text" placeholder="Ex: Consulta Dra. Luisa — Ana Lima">
+      <div class="fin-mf">
+        <label>Descrição da movimentação</label>
+        <input id="fin-desc" type="text" placeholder="Ex: Consulta Dra. Luisa Costa">
+      </div>
+      <!-- Categoria DRE -->
+      <div class="fin-mf">
+        <label>Categoria DRE</label>
+        <select id="fin-cat"></select>
       </div>
       <!-- Valor e data -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-        <div class="mf" style="margin:0">
-          <label style="font-size:9px;letter-spacing:1.5px;font-weight:600;text-transform:uppercase;color:var(--tl);display:block;margin-bottom:4px">Valor (R$)</label>
-          <input id="fin-valor" type="number" min="0" step="10" placeholder="0,00">
-        </div>
-        <div class="mf" style="margin:0">
-          <label style="font-size:9px;letter-spacing:1.5px;font-weight:600;text-transform:uppercase;color:var(--tl);display:block;margin-bottom:4px">Data</label>
-          <input id="fin-data" type="date">
-        </div>
+      <div class="fin-mf-row">
+        <div class="fin-mf" style="margin:0"><label>Valor (R$)</label><input id="fin-valor" type="number" min="0" step="10" placeholder="0,00"></div>
+        <div class="fin-mf" style="margin:0"><label>Data</label><input id="fin-data" type="date"></div>
       </div>
-      <!-- Forma de pagamento (só receita) -->
-      <div id="fin-pagto-sec">
+      <!-- Forma de pagamento -->
+      <div id="fin-pagto-bloco">
         <div class="sec" style="margin-bottom:6px">Forma de pagamento</div>
         <div class="fin-pay-grid">
-          <div class="fin-pay-opt on" id="fp-pix" onclick="finSetPay('pix')"><div class="fin-pay-label">PIX</div><div class="fin-pay-sub">instantâneo</div></div>
-          <div class="fin-pay-opt" id="fp-cartao" onclick="finSetPay('cartao')"><div class="fin-pay-label">Cartão</div><div class="fin-pay-sub">crédito / débito</div></div>
-          <div class="fin-pay-opt" id="fp-dinheiro" onclick="finSetPay('dinheiro')"><div class="fin-pay-label">Dinheiro</div><div class="fin-pay-sub">espécie</div></div>
-          <div class="fin-pay-opt" id="fp-boleto" onclick="finSetPay('boleto')"><div class="fin-pay-label">Boleto</div><div class="fin-pay-sub">bancário</div></div>
+          <div class="fin-pay-btn on" id="fp-pix" onclick="finSetPay('pix')">PIX</div>
+          <div class="fin-pay-btn" id="fp-cartao" onclick="finSetPay('cartao')">Cartão</div>
+          <div class="fin-pay-btn" id="fp-dinheiro" onclick="finSetPay('dinheiro')">Dinheiro</div>
+          <div class="fin-pay-btn" id="fp-boleto" onclick="finSetPay('boleto')">Boleto</div>
+        </div>
+        <!-- Detalhes dinâmicos por meio -->
+        <div class="fin-extra" id="fin-det-pix">
+          <div class="fin-extra-lbl">Detalhes — PIX</div>
+          <div class="fin-mf-row" style="margin-bottom:0">
+            <div class="fin-mf" style="margin:0"><label>Banco</label>
+              <select id="fin-pix-banco"><option value="">Selecionar...</option><option>Sicoob</option><option>Nubank</option><option>Itaú</option><option>Bradesco</option><option>Inter</option><option>Outro</option></select>
+            </div>
+            <div class="fin-mf" style="margin:0"><label>Tipo</label>
+              <select id="fin-pix-tipo"><option value="total">Pagamento total</option><option value="sinal">Sinal / entrada</option><option value="complemento">Complemento</option></select>
+            </div>
+          </div>
+        </div>
+        <div class="fin-extra" id="fin-det-cartao" style="display:none">
+          <div class="fin-extra-lbl">Detalhes — Cartão</div>
+          <div class="fin-mf-row" style="margin-bottom:0">
+            <div class="fin-mf" style="margin:0"><label>Bandeira</label>
+              <select id="fin-cartao-band"><option>Visa</option><option>Mastercard</option><option>Elo</option><option>Amex</option><option>Outro</option></select>
+            </div>
+            <div class="fin-mf" style="margin:0"><label>Parcelas</label>
+              <select id="fin-cartao-parc"><option value="1">À vista (1x)</option><option value="2">2x</option><option value="3">3x</option><option value="6">6x</option><option value="10">10x</option><option value="12">12x</option></select>
+            </div>
+          </div>
+          <div class="fin-mf" style="margin-top:8px;margin-bottom:0"><label>Taxa maquininha (%)</label><input id="fin-cartao-taxa" type="number" min="0" max="10" step="0.1" value="2.5" placeholder="2.5"></div>
+        </div>
+        <div class="fin-extra" id="fin-det-dinheiro" style="display:none">
+          <div class="fin-extra-lbl">Detalhes — Dinheiro</div>
+          <div class="fin-mf-row" style="margin-bottom:0">
+            <div class="fin-mf" style="margin:0"><label>Valor recebido (R$)</label><input id="fin-din-recebido" type="number" min="0" step="10" placeholder="0,00"></div>
+            <div class="fin-mf" style="margin:0"><label>Troco (R$)</label><input id="fin-din-troco" type="number" min="0" step="1" placeholder="0,00" readonly style="background:var(--bg3)"></div>
+          </div>
+        </div>
+        <div class="fin-extra" id="fin-det-boleto" style="display:none">
+          <div class="fin-extra-lbl">Detalhes — Boleto</div>
+          <div class="fin-mf-row" style="margin-bottom:0">
+            <div class="fin-mf" style="margin:0"><label>Banco</label>
+              <select id="fin-bol-banco"><option>Sicoob</option><option>Bradesco</option><option>Itaú</option><option>Santander</option><option>Outro</option></select>
+            </div>
+            <div class="fin-mf" style="margin:0"><label>Vencimento</label><input id="fin-bol-venc" type="date"></div>
+          </div>
+        </div>
+        <!-- Paciente -->
+        <div class="fin-mf" style="margin-bottom:0">
+          <label>Paciente / cliente (opcional)</label>
+          <input id="fin-paciente" type="text" placeholder="Buscar paciente...">
         </div>
       </div>
-      <!-- Vencimento (só despesa / conta a pagar) -->
-      <div id="fin-venc-sec" style="display:none;margin-bottom:12px">
-        <label style="font-size:9px;letter-spacing:1.5px;font-weight:600;text-transform:uppercase;color:var(--tl);display:block;margin-bottom:4px">Vencimento</label>
-        <input id="fin-venc" type="date">
-        <div style="margin-top:8px;display:flex;align-items:center;gap:6px">
-          <input type="checkbox" id="fin-recorrente" style="width:auto">
-          <label for="fin-recorrente" style="font-size:11px;color:var(--tm);cursor:pointer">Despesa recorrente (mensal)</label>
-        </div>
-        <div style="margin-top:6px;display:flex;align-items:center;gap:6px">
-          <input type="checkbox" id="fin-lembrete" style="width:auto" checked>
-          <label for="fin-lembrete" style="font-size:11px;color:var(--tm);cursor:pointer">Lembrar 3 dias antes do vencimento</label>
+      <!-- Vencimento (despesa) -->
+      <div id="fin-venc-bloco" style="display:none">
+        <div class="fin-mf"><label>Vencimento</label><input id="fin-venc" type="date"></div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <label style="display:flex;align-items:center;gap:7px;font-size:11px;color:var(--tm);cursor:pointer">
+            <input type="checkbox" id="fin-recorrente" style="width:auto"> Despesa recorrente mensal
+          </label>
+          <label style="display:flex;align-items:center;gap:7px;font-size:11px;color:var(--tm);cursor:pointer">
+            <input type="checkbox" id="fin-lembrete" checked style="width:auto"> Lembrar 3 dias antes do vencimento
+          </label>
         </div>
       </div>
       <!-- Obs -->
-      <div class="mf" style="margin-bottom:0">
-        <label style="font-size:9px;letter-spacing:1.5px;font-weight:600;text-transform:uppercase;color:var(--tl);display:block;margin-bottom:4px">Observação (opcional)</label>
-        <input id="fin-obs" type="text" placeholder="Ex: NF 00412, referente a abril">
+      <div class="fin-mf" style="margin-top:10px;margin-bottom:0">
+        <label>Observação (opcional)</label>
+        <input id="fin-obs" type="text" placeholder="Detalhes adicionais...">
       </div>
     </div>
-    <div class="fin-modal-foot">
-      <button class="btn" onclick="finCloseModal()">Cancelar</button>
-      <button class="btn btn-terra" onclick="finSalvarLancamento()">Salvar lançamento</button>
+    <div class="fin-m-ft">
+      <button class="btn" onclick="finFecharModal()">Cancelar</button>
+      <button class="btn btn-terra" onclick="finSalvar()" id="fin-btn-salvar">Salvar lançamento</button>
     </div>
   </div>
 </div>
+
 
 <!-- ══ MODAIS ══════════════════════════════════════════════════════════ -->
 <div class="modal-ov" id="modal-ov" style="display:none" onclick="if(event.target===this)closeModal()">
@@ -2549,363 +2604,651 @@ function showToast(msg, type='ok'){
   t._t=setTimeout(()=>{t.style.opacity='0';},3500);
 }
 
+
 // ══ FINANCEIRO ═══════════════════════════════════════════════════════
-// Estado local
+
+// ── Estado ───────────────────────────────────────────────────────────
+let finLancs = [];
 let finTipo = 'receita';
-let finPay  = 'pix';
-let finLancamentos = [];
-let finIaHistorico = [];
+let finPay = 'pix';
+let finIaHist = [];
+let finEditId = null;
+let finFavs = [];
 
-const FIN_CATS_REC = ['Consulta','Protocolo','Procedimento','Exame','Outro'];
-const FIN_CATS_DES = ['Aluguel','Salários','Insumos','Fornecedor','Software','Impostos','Outro'];
+const FIN_CATS_REC = [
+  {cod:'1.1',label:'1.1 — Atendimentos PIX / TED'},
+  {cod:'1.2',label:'1.2 — Recebimentos de Cartão'},
+];
+const FIN_CATS_DES = [
+  {cod:'2.1',label:'2.1 — Impostos sobre Receita'},
+  {cod:'2.2',label:'2.2 — Estornos e Devoluções'},
+  {cod:'3.1',label:'3.1 — Compra de Medicamentos'},
+  {cod:'3.2',label:'3.2 — Materiais e Insumos Clínicos'},
+  {cod:'4.1',label:'4.1 — Salário CLT — Ana Eduarda'},
+  {cod:'4.2',label:'4.2 — Pró-labore — Dra. Luisa Costa'},
+  {cod:'4.3',label:'4.3 — Pró-labore — Sócio Gestor'},
+  {cod:'4.4',label:'4.4 — Encargos Trabalhistas'},
+  {cod:'5.1',label:'5.1 — Aluguel / Locação'},
+  {cod:'5.2',label:'5.2 — Sistema / Software Médico'},
+  {cod:'5.3',label:'5.3 — Serviços Terceirizados'},
+  {cod:'5.4',label:'5.4 — Cartão Corporativo Mastercard'},
+  {cod:'5.5',label:'5.5 — Fornecedores Gerais / Boletos'},
+  {cod:'5.6',label:'5.6 — Utilidades (Energia/Água/Tel)'},
+  {cod:'5.7',label:'5.7 — Outras Despesas Operacionais'},
+  {cod:'5.8',label:'5.8 — Marketing / Redes Sociais'},
+  {cod:'6.1',label:'6.1 — Empréstimo Bancário'},
+  {cod:'6.2',label:'6.2 — Tarifas Bancárias Sicoob'},
+  {cod:'7.1',label:'7.1 — Benfeitorias / Obra'},
+  {cod:'7.2',label:'7.2 — Equipamentos Médicos'},
+];
 
-function fmtMoeda(v){ return 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0}); }
-function fmtMoedaDec(v){ return 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
-function mesAtual(){ const d=new Date(); return d.getFullYear()+'-'+(String(d.getMonth()+1).padStart(2,'0')); }
-function mesLabel(){ const d=new Date(); return d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'}); }
-function hoje(){ return new Date().toISOString().slice(0,10); }
+function finFmt(v){ return 'R$ '+Math.round(Number(v||0)).toLocaleString('pt-BR'); }
+function finFmtDec(v){ return 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function finHoje(){ return new Date().toISOString().slice(0,10); }
+function finMesAtual(){ const d=new Date(); return d.getFullYear()+'-'+(String(d.getMonth()+1).padStart(2,'0')); }
+function finMesLabel(){ return new Date().toLocaleDateString('pt-BR',{month:'long',year:'numeric'}); }
 
-// ── SUPABASE tabelas financeiras (cria se não existir via insert silencioso) ──
-async function finEnsureTables(){
-  // Tenta buscar; se tabela não existir o erro é silencioso
-  try{ await db.from('fin_lancamentos').select('id').limit(1); }catch(e){}
-}
-
-async function finCarregarLancamentos(){
-  try{
-    const {data,error} = await db.from('fin_lancamentos')
-      .select('*').order('data',{ascending:false}).limit(200);
-    if(!error && data) finLancamentos = data;
-  }catch(e){ finLancamentos=[]; }
-}
-
-// ── INIT ──────────────────────────────────────────────────────────────
+// ── Init ──────────────────────────────────────────────────────────────
 async function finInit(){
-  await finCarregarLancamentos();
-  finRenderBanner();
-  finRenderKpis();
-  finRenderChart();
-  finRenderLancamentos();
-  finRenderContas();
-  finRenderPayBar();
-  finValidarFluxo();
+  await finCarregar();
+  finCarregarFavs();
+  finRenderDash();
   finChecarLembretes();
 }
 
-// ── BANNER SALDO ──────────────────────────────────────────────────────
-function finRenderBanner(){
-  const mes = mesAtual();
-  const rec = finLancamentos.filter(l=>l.tipo==='receita'&&l.data&&l.data.startsWith(mes));
-  const des = finLancamentos.filter(l=>l.tipo==='despesa'&&l.data&&l.data.startsWith(mes));
-  const totalRec = rec.reduce((s,l)=>s+(Number(l.valor)||0),0);
-  const totalDes = des.reduce((s,l)=>s+(Number(l.valor)||0),0);
-  const saldo = totalRec - totalDes;
-  document.getElementById('fin-mes-label').textContent = mesLabel();
-  document.getElementById('fin-saldo-val').textContent = fmtMoeda(saldo);
-  document.getElementById('fin-total-rec').textContent = fmtMoeda(totalRec);
-  document.getElementById('fin-total-des').textContent = fmtMoeda(totalDes);
+async function finCarregar(){
+  try{
+    const {data,error}=await db.from('fin_lancamentos').select('*').order('data',{ascending:false}).limit(300);
+    if(!error&&data) finLancs=data;
+  }catch(e){ finLancs=[]; }
 }
 
-// ── KPIS ──────────────────────────────────────────────────────────────
-function finRenderKpis(){
-  const mes = mesAtual();
-  const rec = finLancamentos.filter(l=>l.tipo==='receita'&&l.data&&l.data.startsWith(mes));
-  const des = finLancamentos.filter(l=>l.tipo==='despesa'&&l.data&&l.data.startsWith(mes));
-  const totalRec = rec.reduce((s,l)=>s+(Number(l.valor)||0),0);
-  const totalDes = des.reduce((s,l)=>s+(Number(l.valor)||0),0);
-  const ticket = rec.length ? Math.round(totalRec/rec.length) : 0;
-  const hj = hoje();
-  const vencHoje = finLancamentos.filter(l=>l.tipo==='despesa'&&l.vencimento===hj&&!l.pago).length;
-  const vencPend = finLancamentos.filter(l=>l.tipo==='despesa'&&l.vencimento&&l.vencimento<hj&&!l.pago).length;
-
-  document.getElementById('fkpi-fat').textContent = fmtMoeda(totalRec);
-  document.getElementById('fkpi-fat-sub').textContent = rec.length+' lançamento(s) no mês';
-  document.getElementById('fkpi-des').textContent = fmtMoeda(totalDes);
-  document.getElementById('fkpi-des-sub').textContent = des.length+' despesa(s) registradas';
-  document.getElementById('fkpi-ticket').textContent = fmtMoeda(ticket);
-  document.getElementById('fkpi-ticket-sub').textContent = rec.length+' receita(s) no mês';
-  document.getElementById('fkpi-venc').textContent = String(vencHoje+vencPend);
-  document.getElementById('fkpi-venc-sub').textContent = vencPend>0?vencPend+' vencida(s)':'em dia';
-}
-
-// ── GRÁFICO 6 MESES ───────────────────────────────────────────────────
-function finRenderChart(){
-  const meses = [];
-  for(let i=5;i>=0;i--){
-    const d=new Date(); d.setMonth(d.getMonth()-i);
-    meses.push({key:d.getFullYear()+'-'+(String(d.getMonth()+1).padStart(2,'0')),
-                lbl:d.toLocaleDateString('pt-BR',{month:'short'}).replace('.','')});
+function finCarregarFavs(){
+  try{ finFavs=JSON.parse(localStorage.getItem('fin_favs')||'[]'); }catch(e){ finFavs=[]; }
+  if(!finFavs.length){
+    finFavs=[
+      {id:1,label:'Consulta Dra. Luisa Costa',tipo:'receita',cat:'1.1',pay:'pix'},
+      {id:2,label:'Consulta Dermatologia',tipo:'receita',cat:'1.2',pay:'cartao'},
+      {id:3,label:'Consulta Nutricional',tipo:'receita',cat:'1.1',pay:'pix'},
+      {id:4,label:'Pró-labore Dra. Luisa',tipo:'despesa',cat:'4.2',pay:'pix'},
+      {id:5,label:'Medicamentos — Dose Certa',tipo:'despesa',cat:'3.1',pay:'boleto'},
+    ];
+    finSalvarFavs();
   }
-  const maxVal = Math.max(1,...meses.map(m=>{
-    const r=finLancamentos.filter(l=>l.tipo==='receita'&&l.data&&l.data.startsWith(m.key)).reduce((s,l)=>s+Number(l.valor||0),0);
-    const d=finLancamentos.filter(l=>l.tipo==='despesa'&&l.data&&l.data.startsWith(m.key)).reduce((s,l)=>s+Number(l.valor||0),0);
-    return Math.max(r,d);
-  }));
-  const bars = document.getElementById('fin-chart-bars');
-  const lbls = document.getElementById('fin-chart-lbls');
-  bars.innerHTML = meses.map(m=>{
-    const r=finLancamentos.filter(l=>l.tipo==='receita'&&l.data&&l.data.startsWith(m.key)).reduce((s,l)=>s+Number(l.valor||0),0);
-    const d=finLancamentos.filter(l=>l.tipo==='despesa'&&l.data&&l.data.startsWith(m.key)).reduce((s,l)=>s+Number(l.valor||0),0);
-    const hr=Math.max(4,Math.round((r/maxVal)*76));
-    const hd=Math.max(4,Math.round((d/maxVal)*76));
-    return `<div class="fin-bar-grp"><div class="fin-bar rec" style="height:${hr}px" title="Receita: ${fmtMoeda(r)}"></div><div class="fin-bar des" style="height:${hd}px" title="Despesa: ${fmtMoeda(d)}"></div></div>`;
-  }).join('');
-  lbls.innerHTML = meses.map(m=>`<div class="fin-bar-lbl">${m.lbl}</div>`).join('');
 }
 
-// ── LANÇAMENTOS RECENTES ──────────────────────────────────────────────
-function finRenderLancamentos(){
-  const el = document.getElementById('fin-lanc-list');
-  const lista = finLancamentos.slice(0,8);
-  if(!lista.length){el.innerHTML='<div style="color:var(--tl);font-size:11px;padding:8px 0">Nenhum lançamento ainda. Clique em + Novo para começar.</div>';return;}
-  el.innerHTML = lista.map(l=>{
-    const pos = l.tipo==='receita';
-    const sinal = pos?'+':'-';
-    const cls = pos?'pos':'neg';
-    const pagBadge = l.forma_pagamento?`<span class="fbadge ${l.forma_pagamento}">${l.forma_pagamento}</span>`:'';
-    const dtFmt = l.data?new Date(l.data+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}):'';
-    return `<div class="fin-lanc">
-      <div class="fin-lanc-ico" style="background:${pos?'var(--verde-l)':'#FCEBEB'};color:${pos?'var(--verde)':'#C0392B'};font-size:14px">${pos?'+':'−'}</div>
-      <div class="fin-lanc-info">
-        <div class="fin-lanc-desc">${l.descricao||l.categoria||'—'}</div>
-        <div class="fin-lanc-meta">${dtFmt} ${pagBadge}</div>
+function finSalvarFavs(){
+  try{ localStorage.setItem('fin_favs',JSON.stringify(finFavs)); }catch(e){}
+}
+
+// ── Sub-nav ───────────────────────────────────────────────────────────
+function finGoSub(id,el){
+  document.querySelectorAll('.fin-sn').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.fin-sub-pg').forEach(p=>p.classList.remove('on'));
+  if(el) el.classList.add('on');
+  const pg=document.getElementById('fin-pg-'+id);
+  if(pg) pg.classList.add('on');
+  if(id==='dashboard') finRenderDash();
+  if(id==='receitas') finRenderLista('receita');
+  if(id==='despesas') finRenderLista('despesa');
+  if(id==='contas') finRenderContas();
+  if(id==='inadimplentes') finRenderInad();
+  if(id==='setores') finRenderSetores();
+  if(id==='dre') finRenderDRE();
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────
+function finRenderDash(){
+  const mes=finMesAtual(), hj=finHoje();
+  const rec=finLancs.filter(l=>l.tipo==='receita'&&l.data&&l.data.startsWith(mes));
+  const des=finLancs.filter(l=>l.tipo==='despesa'&&l.data&&l.data.startsWith(mes));
+  const tRec=rec.reduce((s,l)=>s+Number(l.valor||0),0);
+  const tDes=des.reduce((s,l)=>s+Number(l.valor||0),0);
+  const saldo=tRec-tDes;
+  const ticket=rec.length?Math.round(tRec/rec.length):0;
+  const em3=new Date(); em3.setDate(em3.getDate()+3); const em3s=em3.toISOString().slice(0,10);
+  const vencHoje=finLancs.filter(l=>l.tipo==='despesa'&&(l.vencimento===hj||l.vencimento<hj)&&!l.pago).length;
+
+  const setSafe=(id,v)=>{ const el=document.getElementById(id); if(el)el.textContent=v; };
+  setSafe('fk-saldo', finFmt(saldo));
+  setSafe('fk-saldo-sub', finMesLabel());
+  const kel=document.getElementById('fk-saldo');
+  if(kel){ kel.className='fk-val '+(saldo>=0?'grn':'red'); }
+  setSafe('fk-rec', finFmt(tRec));
+  setSafe('fk-rec-sub', rec.length+' lançamento(s)');
+  setSafe('fk-des', finFmt(tDes));
+  setSafe('fk-des-sub', des.length+' despesa(s)');
+  setSafe('fk-ticket', finFmt(ticket));
+  setSafe('fk-ticket-sub', rec.length+' receita(s)');
+  setSafe('fk-venc', String(vencHoje));
+  setSafe('fk-venc-sub', vencHoje>0?'requer atenção':'em dia');
+
+  finRenderLancRecentes();
+  finRenderContasSide();
+  finRenderPayBar();
+  finGerarResumoAuto();
+}
+
+function finRenderLancRecentes(){
+  const el=document.getElementById('fin-lanc-lista'); if(!el)return;
+  const lista=finLancs.slice(0,8);
+  if(!lista.length){el.innerHTML='<div style="color:var(--tl);font-size:11px;padding:8px 0">Nenhum lançamento. Clique em + Novo.</div>';return;}
+  el.innerHTML=lista.map(l=>{
+    const pos=l.tipo==='receita';
+    const dt=l.data?new Date(l.data+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}):'';
+    const badge=l.forma_pagamento?`<span class="fbadge ${l.forma_pagamento}">${l.forma_pagamento}</span>`:'';
+    const pac=l.paciente?`· ${l.paciente}`:'';
+    const editBtn=NIVEL==='admin'||NIVEL==='financeiro'?`<button onclick="finAbrirEstorno('${l.id}')" style="border:none;background:none;color:var(--tl);font-size:10px;cursor:pointer;padding:2px 4px" title="Estornar">✕</button>`:'';
+    return `<div class="fin-lr">
+      <div class="fin-lr-ico" style="background:${pos?'var(--verde-l)':'#FCEBEB'};color:${pos?'var(--verde)':'#8B2020'}">${pos?'+':'−'}</div>
+      <div class="fin-lr-info">
+        <div class="fin-lr-desc">${l.descricao||l.categoria_dre||'—'}</div>
+        <div class="fin-lr-meta">${dt} ${badge} ${pac}</div>
       </div>
-      <div class="fin-lanc-val ${cls}">${sinal} ${fmtMoeda(l.valor)}</div>
+      <div style="display:flex;align-items:center;gap:4px">
+        <div class="fin-lr-val ${pos?'pos':'neg'}">${pos?'+':'-'} ${finFmt(l.valor)}</div>
+        ${editBtn}
+      </div>
     </div>`;
   }).join('');
 }
 
-// ── CONTAS / VENCIMENTOS ──────────────────────────────────────────────
-function finRenderContas(){
-  const el = document.getElementById('fin-contas-list');
-  const hj = hoje();
-  const em3 = new Date(); em3.setDate(em3.getDate()+3); const em3s=em3.toISOString().slice(0,10);
-  const contas = finLancamentos
-    .filter(l=>l.tipo==='despesa'&&l.vencimento&&!l.pago)
-    .sort((a,b)=>a.vencimento.localeCompare(b.vencimento))
-    .slice(0,6);
-  if(!contas.length){el.innerHTML='<div style="color:var(--tl);font-size:11px;padding:8px 0">Nenhuma conta a pagar.</div>';return;}
-  el.innerHTML = contas.map(l=>{
-    const venc = l.vencimento;
-    const barCls = venc<hj?'venc':venc<=em3s?'prox':'ok';
-    const badge = venc<hj?'vencido':venc<=em3s?'prox':'ok';
-    const badgeTxt = venc<hj?'Vencido':venc<=em3s?'Vence em breve':'Em dia';
-    const d = new Date(venc+'T12:00');
-    return `<div class="fin-conta">
-      <div class="fin-conta-bar ${barCls}"></div>
-      <div class="fin-conta-dt">${d.getDate()}<span>${d.toLocaleDateString('pt-BR',{month:'short'}).replace('.','')} </span></div>
-      <div class="fin-conta-info">
-        <div class="fin-conta-nome">${l.descricao||l.categoria||'—'}</div>
-        <div class="fin-conta-cat"><span class="fbadge ${badge}">${badgeTxt}</span></div>
+function finRenderContasSide(){
+  const el=document.getElementById('fin-contas-lista'); if(!el)return;
+  const hj=finHoje();
+  const em3=new Date(); em3.setDate(em3.getDate()+3); const em3s=em3.toISOString().slice(0,10);
+  const contas=finLancs.filter(l=>l.tipo==='despesa'&&l.vencimento&&!l.pago).sort((a,b)=>a.vencimento.localeCompare(b.vencimento)).slice(0,5);
+  if(!contas.length){el.innerHTML='<div style="color:var(--tl);font-size:11px;padding:4px 0">Nenhuma conta pendente.</div>';return;}
+  el.innerHTML=contas.map(l=>{
+    const v=l.vencimento;
+    const cls=v<hj?'r':v<=em3s?'a':'g';
+    const tag=v<hj?'Vencido':v<=em3s?'Em breve':'Em dia';
+    const d=new Date(v+'T12:00');
+    return `<div class="fin-cr">
+      <div class="fin-cr-bar ${cls}"></div>
+      <div class="fin-cr-info">
+        <div class="fin-cr-nome">${l.descricao||l.categoria_dre||'—'}</div>
+        <div class="fin-cr-dt">${d.toLocaleDateString('pt-BR')} <span class="fin-cr-tag ${cls}">${tag}</span></div>
       </div>
-      <div class="fin-conta-val">${fmtMoeda(l.valor)}</div>
+      <div class="fin-cr-val">${finFmt(l.valor)}</div>
     </div>`;
   }).join('');
 }
 
-// ── PAGAMENTOS POR FORMA ──────────────────────────────────────────────
 function finRenderPayBar(){
-  const el = document.getElementById('fin-paybar-list');
-  const mes = mesAtual();
-  const rec = finLancamentos.filter(l=>l.tipo==='receita'&&l.data&&l.data.startsWith(mes));
-  const total = rec.reduce((s,l)=>s+Number(l.valor||0),0)||1;
-  const formas = ['pix','cartao','dinheiro','boleto'];
-  const labels = {pix:'PIX',cartao:'Cartão',dinheiro:'Dinheiro',boleto:'Boleto'};
-  const dados = formas.map(f=>({f,lbl:labels[f],v:rec.filter(l=>l.forma_pagamento===f).reduce((s,l)=>s+Number(l.valor||0),0)}))
-    .filter(x=>x.v>0).sort((a,b)=>b.v-a.v);
+  const el=document.getElementById('fin-paybar'); if(!el)return;
+  const mes=finMesAtual();
+  const rec=finLancs.filter(l=>l.tipo==='receita'&&l.data&&l.data.startsWith(mes));
+  const total=rec.reduce((s,l)=>s+Number(l.valor||0),0)||1;
+  const formas=['pix','cartao','dinheiro','boleto'];
+  const labels={pix:'PIX',cartao:'Cartão',dinheiro:'Dinheiro',boleto:'Boleto'};
+  const dados=formas.map(f=>({f,lbl:labels[f],v:rec.filter(l=>l.forma_pagamento===f).reduce((s,l)=>s+Number(l.valor||0),0)})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v);
   if(!dados.length){el.innerHTML='<div style="color:var(--tl);font-size:11px">Sem receitas no mês.</div>';return;}
-  el.innerHTML = dados.map(x=>{
-    const pct = Math.round((x.v/total)*100);
-    return `<div class="fin-paybar">
-      <div class="fin-paybar-row"><span style="color:var(--tm)">${x.lbl}</span><span style="color:var(--tx)">${fmtMoeda(x.v)} <span style="color:var(--tl)">${pct}%</span></span></div>
-      <div class="fin-paybar-track"><div class="fin-paybar-fill" style="width:${pct}%"></div></div>
+  const cores={pix:'var(--terra)',cartao:'var(--dk)',dinheiro:'var(--tl)',boleto:'#3A6BA0'};
+  el.innerHTML=dados.map(x=>{
+    const pct=Math.round((x.v/total)*100);
+    return `<div class="fin-pb"><div class="fin-pb-row"><span>${x.lbl}</span><span>${finFmt(x.v)} · ${pct}%</span></div><div class="fin-pb-track"><div class="fin-pb-fill" style="width:${pct}%;background:${cores[x.f]||'var(--terra)'}"></div></div></div>`;
+  }).join('');
+}
+
+// ── Listas completas ──────────────────────────────────────────────────
+function finRenderLista(tipo){
+  const id=tipo==='receita'?'fin-rec-lista':'fin-des-lista';
+  const el=document.getElementById(id); if(!el)return;
+  const lista=finLancs.filter(l=>l.tipo===tipo);
+  if(!lista.length){el.innerHTML=`<div style="color:var(--tl);font-size:11px;padding:8px 0">Nenhum(a) ${tipo} registrada.</div>`;return;}
+  el.innerHTML=lista.map(l=>{
+    const pos=tipo==='receita';
+    const dt=l.data?new Date(l.data+'T12:00').toLocaleDateString('pt-BR'):'';
+    const badge=l.forma_pagamento?`<span class="fbadge ${l.forma_pagamento}">${l.forma_pagamento}</span>`:'';
+    const editBtn=NIVEL==='admin'||NIVEL==='financeiro'?`<button onclick="finAbrirEstorno('${l.id}')" style="border:none;background:none;color:var(--tl);font-size:10px;cursor:pointer;padding:2px 6px;border:1px solid var(--bd2);border-radius:var(--r)" title="Estornar este lançamento">Estornar</button>`:'';
+    return `<div class="fin-lr">
+      <div class="fin-lr-ico" style="background:${pos?'var(--verde-l)':'#FCEBEB'};color:${pos?'var(--verde)':'#8B2020'}">${pos?'+':'−'}</div>
+      <div class="fin-lr-info">
+        <div class="fin-lr-desc">${l.descricao||l.categoria_dre||'—'}</div>
+        <div class="fin-lr-meta">${dt} ${badge}${l.paciente?' · '+l.paciente:''} · <em style="color:var(--tl)">${l.categoria_dre||''}</em></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="fin-lr-val ${pos?'pos':'neg'}">${pos?'+':'-'} ${finFmt(l.valor)}</div>
+        ${editBtn}
+      </div>
     </div>`;
   }).join('');
 }
 
-// ── VALIDAÇÃO DO FLUXO ────────────────────────────────────────────────
-function finValidarFluxo(){
-  const el = document.getElementById('fin-validacao');
-  const mes = mesAtual();
-  const hj = hoje();
-  const rec = finLancamentos.filter(l=>l.tipo==='receita'&&l.data&&l.data.startsWith(mes));
-  const des = finLancamentos.filter(l=>l.tipo==='despesa'&&l.data&&l.data.startsWith(mes));
-  const totalRec = rec.reduce((s,l)=>s+Number(l.valor||0),0);
-  const totalDes = des.reduce((s,l)=>s+Number(l.valor||0),0);
-  const saldo = totalRec-totalDes;
-  const vencidas = finLancamentos.filter(l=>l.tipo==='despesa'&&l.vencimento&&l.vencimento<hj&&!l.pago);
-  const checks = [];
-
-  // Saldo positivo?
-  checks.push({dot:saldo>=0?'ok':'err', txt: saldo>=0?`Saldo do mês positivo: ${fmtMoeda(saldo)}`:`Saldo negativo este mês: ${fmtMoeda(saldo)} — revise as despesas`});
-  // Contas vencidas
-  checks.push({dot:vencidas.length===0?'ok':'err', txt:vencidas.length===0?'Nenhuma conta vencida em aberto':`${vencidas.length} conta(s) vencida(s) — pague para regularizar`});
-  // Receitas registradas
-  checks.push({dot:rec.length>0?'ok':'warn', txt:rec.length>0?`${rec.length} receita(s) registradas no mês`:'Nenhuma receita registrada ainda neste mês'});
-  // Proporção despesas
-  const pct = totalRec>0?Math.round((totalDes/totalRec)*100):0;
-  checks.push({dot:pct<=70?'ok':pct<=90?'warn':'err', txt:pct<=70?`Despesas em ${pct}% da receita — saudável`:pct<=90?`Despesas em ${pct}% da receita — atenção ao controle`:`Despesas em ${pct}% da receita — acima do recomendável`});
-  // Sem lançamentos
-  if(finLancamentos.length===0) checks.push({dot:'warn',txt:'Nenhum lançamento cadastrado — comece registrando suas receitas'});
-
-  el.innerHTML = checks.map(c=>`<div class="fin-valid-item"><div class="fin-valid-dot ${c.dot}"></div><span>${c.txt}</span></div>`).join('');
+// ── Contas a pagar ────────────────────────────────────────────────────
+function finRenderContas(){
+  const hj=finHoje();
+  const em7=new Date(); em7.setDate(em7.getDate()+7); const em7s=em7.toISOString().slice(0,10);
+  const contas=finLancs.filter(l=>l.tipo==='despesa'&&l.vencimento);
+  const vencidas=contas.filter(l=>l.vencimento<hj&&!l.pago);
+  const prox7=contas.filter(l=>l.vencimento>=hj&&l.vencimento<=em7s&&!l.pago);
+  const pagas=contas.filter(l=>l.pago&&l.data&&l.data.startsWith(finMesAtual()));
+  const setSafe=(id,v)=>{ const el=document.getElementById(id); if(el)el.textContent=v; };
+  setSafe('fk-venc-total',String(vencidas.length));
+  setSafe('fk-prox7',String(prox7.length));
+  setSafe('fk-pagas',String(pagas.length));
+  const el=document.getElementById('fin-contas-full'); if(!el)return;
+  const pendentes=contas.filter(l=>!l.pago).sort((a,b)=>a.vencimento.localeCompare(b.vencimento));
+  if(!pendentes.length){el.innerHTML='<div style="color:var(--tl);font-size:11px">Nenhuma conta pendente.</div>';return;}
+  el.innerHTML=pendentes.map(l=>{
+    const v=l.vencimento;
+    const cls=v<hj?'r':v<=em7s?'a':'g';
+    const tag=v<hj?'Vencido':v<=em7s?'Vence em breve':'Em dia';
+    const d=new Date(v+'T12:00');
+    return `<div class="fin-cr">
+      <div class="fin-cr-bar ${cls}"></div>
+      <div class="fin-cr-info">
+        <div class="fin-cr-nome">${l.descricao||l.categoria_dre||'—'}</div>
+        <div class="fin-cr-dt">${d.toLocaleDateString('pt-BR')} <span class="fin-cr-tag ${cls}">${tag}</span></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="fin-cr-val">${finFmt(l.valor)}</div>
+        <button onclick="finMarcarPago('${l.id}')" style="font-size:9px;padding:3px 8px;border:1px solid var(--verde);border-radius:var(--r);background:var(--verde-l);color:var(--verde);cursor:pointer">Pago</button>
+      </div>
+    </div>`;
+  }).join('');
 }
 
-// ── LEMBRETES DE VENCIMENTO ───────────────────────────────────────────
+async function finMarcarPago(id){
+  try{
+    await db.from('fin_lancamentos').update({pago:true}).eq('id',id);
+    finLancs=finLancs.map(l=>l.id==id?{...l,pago:true}:l);
+    showToast('Marcado como pago!');
+    finRenderContas();
+  }catch(e){ showToast('Erro ao atualizar','err'); }
+}
+
+// ── Inadimplentes ─────────────────────────────────────────────────────
+function finRenderInad(){
+  const abertos=finLancs.filter(l=>l.tipo==='receita'&&l.pix_tipo&&(l.pix_tipo==='sinal'||l.pix_tipo==='complemento')&&!l.quitado);
+  const sinais=abertos.filter(l=>l.pix_tipo==='sinal');
+  const comps=abertos.filter(l=>l.pix_tipo==='complemento');
+  const totalAb=abertos.reduce((s,l)=>s+Number(l.saldo_devedor||0),0);
+  const setSafe=(id,v)=>{ const el=document.getElementById(id); if(el)el.textContent=v; };
+  setSafe('fk-inad-total',finFmt(totalAb));
+  setSafe('fk-inad-pac',String(abertos.length)+' registro(s)');
+  setSafe('fk-inad-sinais',String(sinais.length));
+  setSafe('fk-inad-comp',String(comps.length));
+  const el=document.getElementById('fin-inad-lista'); if(!el)return;
+  if(!abertos.length){el.innerHTML='<div style="color:var(--tl);font-size:11px">Nenhum saldo em aberto.</div>';return;}
+  el.innerHTML=abertos.map(l=>{
+    const ini=l.paciente?l.paciente.slice(0,2).toUpperCase():'??';
+    const saldo=Number(l.saldo_devedor||0);
+    const tipoBadge=l.pix_tipo==='sinal'?'<span style="background:#E6F4EF;color:#1A5C35;font-size:8px;font-weight:600;padding:1px 5px;border-radius:2px">SINAL</span>':'<span style="background:var(--terra-xl);color:var(--terra-d);font-size:8px;font-weight:600;padding:1px 5px;border-radius:2px">COMPLEMENTO</span>';
+    return `<div class="fin-inad-row">
+      <div class="fin-inad-av">${ini}</div>
+      <div class="fin-inad-info">
+        <div class="fin-inad-nome">${l.paciente||'—'}</div>
+        <div class="fin-inad-meta">${l.descricao||''} ${tipoBadge}</div>
+      </div>
+      <div class="fin-inad-val"><div class="fin-inad-saldo">${finFmt(saldo)}</div><div class="fin-inad-dias">saldo restante</div></div>
+    </div>`;
+  }).join('');
+}
+
+// ── Setores ───────────────────────────────────────────────────────────
+function finRenderSetores(){
+  const mes=finMesAtual();
+  const rec=finLancs.filter(l=>l.tipo==='receita'&&l.data&&l.data.startsWith(mes));
+  const setor=(cat)=>rec.filter(l=>l.setor===cat).reduce((s,l)=>s+Number(l.valor||0),0);
+  const tProt=setor('protocolos'), tDerm=setor('dermatologia'), tNutr=setor('nutricao');
+  const tGeral=rec.filter(l=>!l.setor||l.setor==='geral').reduce((s,l)=>s+Number(l.valor||0),0);
+  const max=Math.max(tProt,tDerm,tNutr,tGeral,1);
+  const countSetor=(cat)=>rec.filter(l=>l.setor===cat).length;
+  const setSafe=(id,v)=>{ const el=document.getElementById(id); if(el)el.textContent=v; };
+  setSafe('fset-prot',finFmt(tProt));
+  setSafe('fset-prot-sub',countSetor('protocolos')+' consultas');
+  setSafe('fset-derm',finFmt(tDerm));
+  setSafe('fset-derm-sub',countSetor('dermatologia')+' consultas');
+  setSafe('fset-nutr',finFmt(tNutr));
+  setSafe('fset-nutr-sub',countSetor('nutricao')+' consultas');
+  setSafe('fset-geral',finFmt(tGeral));
+  setSafe('fset-geral-sub',rec.filter(l=>!l.setor||l.setor==='geral').length+' atendimentos');
+  ['prot','derm','nutr','geral'].forEach((k,i)=>{
+    const vals=[tProt,tDerm,tNutr,tGeral];
+    const bar=document.getElementById('fset-'+k+'-bar');
+    if(bar) bar.style.width=Math.round((vals[i]/max)*100)+'%';
+  });
+}
+
+// ── DRE ───────────────────────────────────────────────────────────────
+function finRenderDRE(){
+  const mes=finMesAtual();
+  const setSafe=(id,v)=>{ const el=document.getElementById(id); if(el)el.textContent=v; };
+  setSafe('fin-dre-mes', new Date().toLocaleDateString('pt-BR',{month:'long',year:'numeric'}));
+  const getTotal=(cod)=>finLancs.filter(l=>l.data&&l.data.startsWith(mes)&&l.categoria_dre&&l.categoria_dre.startsWith(cod)).reduce((s,l)=>s+Number(l.valor||0),0);
+  const rec11=getTotal('1.1'), rec12=getTotal('1.2');
+  const recBruta=rec11+rec12;
+  const imp=getTotal('2.1'), est=getTotal('2.2');
+  const recLiq=recBruta-imp+est;
+  const med=getTotal('3.1'), ins=getTotal('3.2');
+  const lucroBruto=recLiq-med-ins;
+  const sal=getTotal('4.1'), pro1=getTotal('4.2'), pro2=getTotal('4.3'), enc=getTotal('4.4');
+  const resPessoal=lucroBruto-sal-pro1-pro2-enc;
+  const alug=getTotal('5.1'), soft=getTotal('5.2'), terc=getTotal('5.3'),
+        mast=getTotal('5.4'), forn=getTotal('5.5'), util=getTotal('5.6'),
+        outr=getTotal('5.7'), mkt=getTotal('5.8');
+  const totalOp=alug+soft+terc+mast+forn+util+outr+mkt;
+  const resOp=resPessoal-totalOp;
+  const emp=getTotal('6.1'), tar=getTotal('6.2');
+  const resultado=resOp-emp-tar;
+  const col=(v,neg=false)=>`<span style="color:${neg?(v>0?'#8B2020':'var(--verde)'):(v>=0?'var(--verde)':'#8B2020')}">${neg&&v>0?'−':v<0?'−':''}${finFmt(Math.abs(v))}</span>`;
+  const el=document.getElementById('fin-dre-corpo'); if(!el)return;
+  el.innerHTML=`
+    <div style="display:flex;justify-content:space-between;padding:4px 0 10px;border-bottom:1px solid var(--bd);margin-bottom:6px">
+      <span style="font-size:8px;letter-spacing:1.5px;font-weight:600;text-transform:uppercase;color:var(--tl)">Regime de caixa</span>
+      <span style="font-size:9px;color:var(--tl)">${new Date().toLocaleDateString('pt-BR')}</span>
+    </div>
+    <div class="dre-grupo">1. Receita bruta de serviços</div>
+    <div class="dre-item"><span>Atendimentos — PIX / TED</span>${col(rec11)}</div>
+    <div class="dre-item"><span>Recebimentos de Cartão</span>${col(rec12)}</div>
+    <div class="dre-total"><span>Receita bruta total</span>${col(recBruta)}</div>
+    <div class="dre-grupo">2. Deduções</div>
+    <div class="dre-item"><span>(−) Impostos sobre receita</span>${col(imp,true)}</div>
+    <div class="dre-total"><span>Receita líquida</span>${col(recLiq)}</div>
+    <div class="dre-grupo">3. Custo dos serviços</div>
+    <div class="dre-item"><span>(−) Medicamentos</span>${col(med,true)}</div>
+    <div class="dre-item"><span>(−) Insumos clínicos</span>${col(ins,true)}</div>
+    <div class="dre-total"><span>Lucro bruto</span>${col(lucroBruto)}</div>
+    <div class="dre-grupo">4. Despesas com pessoal</div>
+    <div class="dre-item"><span>(−) Salário CLT</span>${col(sal,true)}</div>
+    <div class="dre-item"><span>(−) Pró-labore Dra. Luisa</span>${col(pro1,true)}</div>
+    <div class="dre-item"><span>(−) Pró-labore Sócio Gestor</span>${col(pro2,true)}</div>
+    <div class="dre-item"><span>(−) Encargos trabalhistas</span>${col(enc,true)}</div>
+    <div class="dre-total"><span>Resultado após pessoal</span>${col(resPessoal)}</div>
+    <div class="dre-grupo">5. Despesas operacionais</div>
+    ${alug?`<div class="dre-item"><span>(−) Aluguel</span>${col(alug,true)}</div>`:''}
+    ${soft?`<div class="dre-item"><span>(−) Software / Sistema</span>${col(soft,true)}</div>`:''}
+    ${terc?`<div class="dre-item"><span>(−) Serviços terceirizados</span>${col(terc,true)}</div>`:''}
+    ${mast?`<div class="dre-item"><span>(−) Cartão Mastercard</span>${col(mast,true)}</div>`:''}
+    ${forn?`<div class="dre-item"><span>(−) Fornecedores / Boletos</span>${col(forn,true)}</div>`:''}
+    ${util?`<div class="dre-item"><span>(−) Utilidades</span>${col(util,true)}</div>`:''}
+    ${mkt?`<div class="dre-item"><span>(−) Marketing</span>${col(mkt,true)}</div>`:''}
+    ${outr?`<div class="dre-item"><span>(−) Outras despesas</span>${col(outr,true)}</div>`:''}
+    <div class="dre-total"><span>Resultado operacional</span>${col(resOp)}</div>
+    <div class="dre-grupo">6. Despesas financeiras</div>
+    ${emp?`<div class="dre-item"><span>(−) Empréstimo bancário</span>${col(emp,true)}</div>`:''}
+    ${tar?`<div class="dre-item"><span>(−) Tarifas Sicoob</span>${col(tar,true)}</div>`:''}
+    <div class="dre-resultado"><span>Resultado do mês</span>${col(resultado)}</div>
+  `;
+}
+
+function finExportarDRE(){
+  showToast('Exportação em PDF em breve', 'warn');
+}
+
+// ── Validação ─────────────────────────────────────────────────────────
+function finValidar(){
+  const el=document.getElementById('fin-validacao'); if(!el)return;
+  const mes=finMesAtual(), hj=finHoje();
+  const rec=finLancs.filter(l=>l.tipo==='receita'&&l.data&&l.data.startsWith(mes));
+  const des=finLancs.filter(l=>l.tipo==='despesa'&&l.data&&l.data.startsWith(mes));
+  const tRec=rec.reduce((s,l)=>s+Number(l.valor||0),0);
+  const tDes=des.reduce((s,l)=>s+Number(l.valor||0),0);
+  const saldo=tRec-tDes;
+  const vencidas=finLancs.filter(l=>l.tipo==='despesa'&&l.vencimento&&l.vencimento<hj&&!l.pago);
+  const pct=tRec>0?Math.round((tDes/tRec)*100):0;
+  const checks=[
+    {dot:saldo>=0?'ok':'err', txt:saldo>=0?`Saldo positivo: ${finFmt(saldo)}`:`Saldo negativo: ${finFmt(saldo)} — revise as despesas`},
+    {dot:vencidas.length===0?'ok':'err', txt:vencidas.length===0?'Sem contas vencidas em aberto':`${vencidas.length} conta(s) vencida(s) — regularize`},
+    {dot:rec.length>0?'ok':'warn', txt:rec.length>0?`${rec.length} receita(s) lançada(s) no mês`:'Nenhuma receita lançada ainda'},
+    {dot:pct<=70?'ok':pct<=90?'warn':'err', txt:pct<=70?`Despesas em ${pct}% da receita — saudável`:pct<=90?`Despesas em ${pct}% — atenção ao controle`:`Despesas em ${pct}% — acima do recomendável`},
+  ];
+  el.innerHTML=checks.map(c=>`<div class="fin-valid-item"><div class="fin-valid-dot ${c.dot}"></div><span>${c.txt}</span></div>`).join('');
+}
+
+// ── Lembretes ─────────────────────────────────────────────────────────
 function finChecarLembretes(){
-  const hj = hoje();
-  const em3 = new Date(); em3.setDate(em3.getDate()+3); const em3s=em3.toISOString().slice(0,10);
-  const urgentes = finLancamentos.filter(l=>
-    l.tipo==='despesa' && l.vencimento && !l.pago &&
-    l.lembrete !== false &&
-    (l.vencimento<=em3s)
-  );
-  if(!urgentes.length) return;
-  const msg = urgentes.length===1
-    ? `Lembrete: "${urgentes[0].descricao||urgentes[0].categoria}" vence em breve (${urgentes[0].vencimento}).`
-    : `${urgentes.length} contas vencem nos próximos 3 dias.`;
-  showToast(msg, 'warn');
+  const hj=finHoje();
+  const em3=new Date(); em3.setDate(em3.getDate()+3); const em3s=em3.toISOString().slice(0,10);
+  const urg=finLancs.filter(l=>l.tipo==='despesa'&&l.vencimento&&!l.pago&&l.lembrete!==false&&l.vencimento<=em3s);
+  if(!urg.length)return;
+  const msg=urg.length===1?`Lembrete: "${urg[0].descricao||urg[0].categoria_dre}" vence em breve.`:`${urg.length} conta(s) vencem nos próximos 3 dias.`;
+  showToast(msg,'warn');
 }
 
-// ── MODAL LANÇAMENTO ──────────────────────────────────────────────────
-function finOpenModal(tipo){
-  finSetTipo(tipo||'receita');
-  document.getElementById('fin-desc').value='';
-  document.getElementById('fin-valor').value='';
-  document.getElementById('fin-data').value=hoje();
-  document.getElementById('fin-obs').value='';
-  document.getElementById('fin-venc').value='';
-  document.getElementById('fin-recorrente').checked=false;
-  document.getElementById('fin-lembrete').checked=true;
-  finSetPay('pix');
-  document.getElementById('fin-modal-ov').classList.add('on');
-  setTimeout(()=>document.getElementById('fin-desc').focus(),100);
+// ── Resumo IA ─────────────────────────────────────────────────────────
+async function finGerarResumoAuto(){
+  const el=document.getElementById('fin-ia-resumo'); if(!el)return;
+  const mes=finMesAtual(), hj=finHoje();
+  const rec=finLancs.filter(l=>l.tipo==='receita'&&l.data&&l.data.startsWith(mes));
+  const des=finLancs.filter(l=>l.tipo==='despesa'&&l.data&&l.data.startsWith(mes));
+  const tRec=rec.reduce((s,l)=>s+Number(l.valor||0),0);
+  const tDes=des.reduce((s,l)=>s+Number(l.valor||0),0);
+  const venc=finLancs.filter(l=>l.tipo==='despesa'&&l.vencimento&&l.vencimento<hj&&!l.pago);
+  if(!finLancs.length){el.textContent='Sem lançamentos registrados. Adicione receitas e despesas para ver o resumo.';return;}
+  el.textContent='Analisando...';
+  const ctx=`Você é assistente financeiro da Clínica Luisa Costa. Faça um resumo executivo CURTO (2-3 frases) do mês atual sem formatação markdown. Dados: Receitas ${finFmt(tRec)} (${rec.length} lançamentos), Despesas ${finFmt(tDes)} (${des.length} lançamentos), Saldo ${finFmt(tRec-tDes)}, Contas vencidas ${venc.length}. Seja direto e objetivo.`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:200,system:ctx,messages:[{role:'user',content:'Resumo executivo do dia.'}]})
+    });
+    const j=await r.json();
+    el.textContent=j.content?.[0]?.text||'Análise indisponível no momento.';
+  }catch(e){
+    el.textContent=`Receitas ${finFmt(tRec)} · Despesas ${finFmt(tDes)} · Saldo ${finFmt(tRec-tDes)}${venc.length?' · '+venc.length+' conta(s) vencida(s)':''}.`;
+  }
 }
-function finCloseModal(){ document.getElementById('fin-modal-ov').classList.remove('on'); }
+
+async function finGerarResumo(){
+  await finGerarResumoAuto();
+}
+
+// ── IA Chat ───────────────────────────────────────────────────────────
+async function finEnviarIA(){
+  const input=document.getElementById('fin-ia-input');
+  const pergunta=input?.value.trim(); if(!pergunta)return;
+  input.value='';
+  const msgs=document.getElementById('fin-ia-chat'); if(!msgs)return;
+  msgs.innerHTML+=`<div class="fin-ia-msg user">${pergunta}</div>`;
+  msgs.innerHTML+=`<div class="fin-ia-msg ai" id="fin-ia-typing"><div class="fin-ia-lbl">Assistente</div>Analisando...</div>`;
+  msgs.scrollTop=msgs.scrollHeight;
+  const mes=finMesAtual();
+  const rec=finLancs.filter(l=>l.tipo==='receita'&&l.data&&l.data.startsWith(mes));
+  const des=finLancs.filter(l=>l.tipo==='despesa'&&l.data&&l.data.startsWith(mes));
+  const tRec=rec.reduce((s,l)=>s+Number(l.valor||0),0);
+  const tDes=des.reduce((s,l)=>s+Number(l.valor||0),0);
+  const sys=`Assistente financeiro da Clínica Luisa Costa. Responda de forma direta e clara, sem jargões. Dados do mês: Receitas ${finFmt(tRec)} (${rec.length}), Despesas ${finFmt(tDes)} (${des.length}), Saldo ${finFmt(tRec-tDes)}. Últimos lançamentos: ${finLancs.slice(0,5).map(l=>`${l.tipo} ${finFmt(l.valor)} (${l.descricao||l.categoria_dre})`).join('; ')}.`;
+  finIaHist.push({role:'user',content:pergunta});
+  if(finIaHist.length>10)finIaHist=finIaHist.slice(-10);
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:400,system:sys,messages:finIaHist})
+    });
+    const j=await r.json();
+    const resp=j.content?.[0]?.text||'Não consegui processar. Tente novamente.';
+    finIaHist.push({role:'assistant',content:resp});
+    const t=document.getElementById('fin-ia-typing');
+    if(t){t.removeAttribute('id');t.innerHTML=`<div class="fin-ia-lbl">Assistente</div>${resp}`;}
+  }catch(e){
+    const t=document.getElementById('fin-ia-typing');
+    if(t){t.removeAttribute('id');t.innerHTML='<div class="fin-ia-lbl">Assistente</div>Erro de conexão.';}
+  }
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────
+function finAbrirModal(tipoInicial){
+  finSetTipo(tipoInicial||'receita');
+  const d=document.getElementById('fin-data'); if(d)d.value=finHoje();
+  const desc=document.getElementById('fin-desc'); if(desc)desc.value='';
+  const val=document.getElementById('fin-valor'); if(val)val.value='';
+  const obs=document.getElementById('fin-obs'); if(obs)obs.value='';
+  const pac=document.getElementById('fin-paciente'); if(pac)pac.value='';
+  const venc=document.getElementById('fin-venc'); if(venc)venc.value='';
+  const rec=document.getElementById('fin-recorrente'); if(rec)rec.checked=false;
+  const lem=document.getElementById('fin-lembrete'); if(lem)lem.checked=true;
+  finSetPay('pix');
+  finRenderFavs();
+  const ov=document.getElementById('fin-modal-ov'); if(ov)ov.classList.add('on');
+  setTimeout(()=>document.getElementById('fin-desc')?.focus(),100);
+}
+
+function finFecharModal(){
+  const ov=document.getElementById('fin-modal-ov'); if(ov)ov.classList.remove('on');
+}
+
+function finRenderFavs(){
+  const el=document.getElementById('fin-favs-lista'); if(!el)return;
+  el.innerHTML=finFavs.map(f=>`<div class="fin-fav" onclick="finAplicarFav(${f.id})">${f.label}</div>`).join('')
+    +`<div class="fin-fav add" onclick="finCriarFav()">+ Criar favorito</div>`;
+}
+
+function finAplicarFav(id){
+  const fav=finFavs.find(f=>f.id===id); if(!fav)return;
+  finSetTipo(fav.tipo);
+  const desc=document.getElementById('fin-desc'); if(desc)desc.value=fav.label;
+  const cat=document.getElementById('fin-cat'); if(cat)cat.value=fav.cat;
+  finSetPay(fav.pay||'pix');
+  document.querySelectorAll('.fin-fav').forEach(el=>el.classList.remove('on'));
+  event.target.classList.add('on');
+}
+
+function finCriarFav(){
+  const desc=document.getElementById('fin-desc')?.value.trim();
+  if(!desc){showToast('Preencha a descrição primeiro','warn');return;}
+  const cat=document.getElementById('fin-cat')?.value||'';
+  const id=Date.now();
+  finFavs.push({id,label:desc,tipo:finTipo,cat,pay:finPay});
+  finSalvarFavs();
+  finRenderFavs();
+  showToast('Favorito criado!');
+}
 
 function finSetTipo(t){
   finTipo=t;
   document.getElementById('fin-tipo-rec').className='fin-tipo-btn'+(t==='receita'?' on rec':'');
   document.getElementById('fin-tipo-des').className='fin-tipo-btn des'+(t==='despesa'?' on':'');
-  document.getElementById('fin-pagto-sec').style.display=t==='receita'?'':'none';
-  document.getElementById('fin-venc-sec').style.display=t==='despesa'?'':'none';
-  finRenderCats();
+  document.getElementById('fin-pagto-bloco').style.display=t==='receita'?'':'none';
+  document.getElementById('fin-venc-bloco').style.display=t==='despesa'?'':'none';
+  finPopularCats();
 }
 
-function finRenderCats(){
-  const cats = finTipo==='receita'?FIN_CATS_REC:FIN_CATS_DES;
-  const el = document.getElementById('fin-cats');
-  el.innerHTML = cats.map((c,i)=>`<span class="pill${i===0?' on':''}" onclick="finSelCat(this,'${c}')">${c}</span>`).join('');
-}
-
-function finSelCat(el,cat){
-  document.querySelectorAll('#fin-cats .pill').forEach(p=>p.classList.remove('on'));
-  el.classList.add('on');
+function finPopularCats(){
+  const sel=document.getElementById('fin-cat'); if(!sel)return;
+  const lista=finTipo==='receita'?FIN_CATS_REC:FIN_CATS_DES;
+  sel.innerHTML=lista.map(c=>`<option value="${c.cod}">${c.label}</option>`).join('');
 }
 
 function finSetPay(p){
   finPay=p;
   ['pix','cartao','dinheiro','boleto'].forEach(f=>{
     const el=document.getElementById('fp-'+f);
-    if(el) el.classList.toggle('on',f===p);
+    if(el)el.classList.toggle('on',f===p);
   });
+  ['pix','cartao','dinheiro','boleto'].forEach(f=>{
+    const det=document.getElementById('fin-det-'+f);
+    if(det)det.style.display=f===p?'':'none';
+  });
+  if(p==='dinheiro'){
+    const valor=document.getElementById('fin-valor');
+    const recebido=document.getElementById('fin-din-recebido');
+    const troco=document.getElementById('fin-din-troco');
+    if(recebido&&troco&&valor){
+      recebido.oninput=()=>{
+        const t=Number(recebido.value||0)-Number(valor.value||0);
+        troco.value=t>0?t.toFixed(2):'0.00';
+      };
+    }
+  }
 }
 
-async function finSalvarLancamento(){
-  const desc = document.getElementById('fin-desc').value.trim();
-  const valor = parseFloat(document.getElementById('fin-valor').value)||0;
-  const data = document.getElementById('fin-data').value;
-  const obs = document.getElementById('fin-obs').value.trim();
-  const catEl = document.querySelector('#fin-cats .pill.on');
-  const cat = catEl?catEl.textContent:'Outro';
-  const venc = finTipo==='despesa'?document.getElementById('fin-venc').value:'';
-  const recorrente = finTipo==='despesa'&&document.getElementById('fin-recorrente').checked;
-  const lembrete = finTipo==='despesa'&&document.getElementById('fin-lembrete').checked;
-
+async function finSalvar(){
+  const desc=document.getElementById('fin-desc')?.value.trim();
+  const valor=parseFloat(document.getElementById('fin-valor')?.value)||0;
+  const data=document.getElementById('fin-data')?.value;
+  const cat=document.getElementById('fin-cat')?.value||'';
+  const obs=document.getElementById('fin-obs')?.value.trim()||'';
+  const pac=document.getElementById('fin-paciente')?.value.trim()||'';
   if(!valor){showToast('Informe o valor','err');return;}
   if(!data){showToast('Informe a data','err');return;}
+  if(!desc){showToast('Informe a descrição','err');return;}
 
-  const payload = {
-    tipo:finTipo, categoria:cat, descricao:desc||cat,
-    valor, data, obs,
+  let extras={};
+  if(finTipo==='receita'&&finPay==='pix'){
+    extras.pix_banco=document.getElementById('fin-pix-banco')?.value||'';
+    extras.pix_tipo=document.getElementById('fin-pix-tipo')?.value||'total';
+    if(extras.pix_tipo==='sinal'||extras.pix_tipo==='complemento'){
+      extras.saldo_devedor=0;
+    }
+  }
+  if(finTipo==='receita'&&finPay==='cartao'){
+    extras.cartao_bandeira=document.getElementById('fin-cartao-band')?.value||'';
+    extras.cartao_parcelas=parseInt(document.getElementById('fin-cartao-parc')?.value)||1;
+    extras.cartao_taxa=parseFloat(document.getElementById('fin-cartao-taxa')?.value)||0;
+  }
+  const venc=finTipo==='despesa'?document.getElementById('fin-venc')?.value:'';
+  const recorrente=finTipo==='despesa'&&document.getElementById('fin-recorrente')?.checked;
+  const lembrete=finTipo==='despesa'&&document.getElementById('fin-lembrete')?.checked;
+
+  const payload={
+    tipo:finTipo, descricao:desc, categoria_dre:cat,
+    valor, data, obs, paciente:pac,
     forma_pagamento:finTipo==='receita'?finPay:null,
-    vencimento:venc||null, recorrente, lembrete,
-    pago:false,
-    user_id: USER?.id||null
+    vencimento:venc||null, recorrente, lembrete, pago:false,
+    user_id:USER?.id||null,
+    setor: finInferirSetor(cat, desc),
+    ...extras
   };
 
+  const btn=document.getElementById('fin-btn-salvar');
+  if(btn){btn.textContent='Salvando...';btn.disabled=true;}
+
   try{
-    const {data:row,error} = await db.from('fin_lancamentos').insert(payload).select().single();
-    if(error){
-      // Tabela pode não existir — salva localmente
-      finLancamentos.unshift({...payload,id:Date.now()});
-      showToast('Salvo localmente (tabela não encontrada no banco)','warn');
-    } else {
-      finLancamentos.unshift(row);
-      showToast('Lançamento salvo com sucesso!');
-    }
+    const {data:row,error}=await db.from('fin_lancamentos').insert(payload).select().single();
+    if(error) throw error;
+    finLancs.unshift(row);
+    showToast('Lançamento salvo!');
   }catch(e){
-    finLancamentos.unshift({...payload,id:Date.now()});
-    showToast('Salvo localmente','warn');
+    finLancs.unshift({...payload,id:'local-'+Date.now()});
+    showToast('Salvo localmente (verifique a tabela no Supabase)','warn');
   }
 
-  finCloseModal();
-  finRenderBanner();
-  finRenderKpis();
-  finRenderChart();
-  finRenderLancamentos();
-  finRenderContas();
-  finRenderPayBar();
-  finValidarFluxo();
-  finChecarLembretes();
+  if(btn){btn.textContent='Salvar lançamento';btn.disabled=false;}
+  finFecharModal();
+  finRenderDash();
 }
 
-// ── IA FINANCEIRA ─────────────────────────────────────────────────────
-async function finEnviarIA(){
-  const input = document.getElementById('fin-ia-input');
-  const pergunta = input.value.trim();
-  if(!pergunta) return;
-  input.value='';
+function finInferirSetor(cat, desc){
+  const d=(desc||'').toLowerCase();
+  if(d.includes('dermatolog')) return 'dermatologia';
+  if(d.includes('nutri')) return 'nutricao';
+  if(d.includes('protocolo')||cat.startsWith('1.')) return 'protocolos';
+  return 'geral';
+}
 
-  const msgsEl = document.getElementById('fin-ia-msgs');
-  msgsEl.innerHTML += `<div class="fin-ia-msg user">${pergunta}</div>`;
-  msgsEl.innerHTML += `<div class="fin-ia-msg ai" id="fin-ia-typing"><div class="fin-ia-lbl">Assistente</div>Analisando...</div>`;
-  msgsEl.scrollTop=msgsEl.scrollHeight;
-
-  // Contexto financeiro resumido para a IA
-  const mes = mesAtual();
-  const rec = finLancamentos.filter(l=>l.tipo==='receita'&&l.data&&l.data.startsWith(mes));
-  const des = finLancamentos.filter(l=>l.tipo==='despesa'&&l.data&&l.data.startsWith(mes));
-  const totalRec = rec.reduce((s,l)=>s+Number(l.valor||0),0);
-  const totalDes = des.reduce((s,l)=>s+Number(l.valor||0),0);
-  const hj = hoje();
-  const vencidas = finLancamentos.filter(l=>l.tipo==='despesa'&&l.vencimento&&l.vencimento<hj&&!l.pago).length;
-
-  const contexto = `Você é um assistente financeiro da Clínica Luisa Costa. Responda de forma direta, objetiva e sem jargões contábeis. Dados do mês atual: Receitas: ${fmtMoeda(totalRec)} (${rec.length} lançamentos). Despesas: ${fmtMoeda(totalDes)} (${des.length} lançamentos). Saldo: ${fmtMoeda(totalRec-totalDes)}. Contas vencidas: ${vencidas}. Últimos lançamentos: ${finLancamentos.slice(0,5).map(l=>`${l.tipo} de ${fmtMoeda(l.valor)} em ${l.data} (${l.categoria})`).join('; ')||'nenhum ainda'}.`;
-
+// ── Estorno seguro ────────────────────────────────────────────────────
+async function finAbrirEstorno(id){
+  if(NIVEL!=='admin'&&NIVEL!=='financeiro'){showToast('Acesso restrito ao financeiro','err');return;}
+  const lanc=finLancs.find(l=>l.id==id); if(!lanc)return;
+  const motivo=prompt(`Estornar: "${lanc.descricao}" (${finFmt(lanc.valor)})
+Motivo do estorno:`);
+  if(!motivo)return;
+  const estorno={
+    tipo:lanc.tipo==='receita'?'despesa':'receita',
+    descricao:`ESTORNO — ${lanc.descricao}`,
+    categoria_dre:lanc.categoria_dre,
+    valor:lanc.valor, data:finHoje(),
+    obs:`Estorno do lançamento ${id}. Motivo: ${motivo}`,
+    forma_pagamento:lanc.forma_pagamento,
+    estorno_ref:String(id), pago:false,
+    user_id:USER?.id||null
+  };
   try{
-    const resp = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:400,
-        system: contexto,
-        messages:[...finIaHistorico,{role:'user',content:pergunta}]
-      })
-    });
-    const json = await resp.json();
-    const resposta = json.content?.[0]?.text||'Não consegui processar. Tente novamente.';
-    finIaHistorico.push({role:'user',content:pergunta});
-    finIaHistorico.push({role:'assistant',content:resposta});
-    if(finIaHistorico.length>10) finIaHistorico=finIaHistorico.slice(-10);
-    const typing = document.getElementById('fin-ia-typing');
-    if(typing){ typing.id=''; typing.innerHTML=`<div class="fin-ia-lbl">Assistente</div>${resposta}`; }
+    const {data:row,error}=await db.from('fin_lancamentos').insert(estorno).select().single();
+    if(error)throw error;
+    finLancs.unshift(row);
+    showToast('Estorno registrado com sucesso!');
   }catch(e){
-    const typing = document.getElementById('fin-ia-typing');
-    if(typing){ typing.id=''; typing.innerHTML='<div class="fin-ia-lbl">Assistente</div>Erro de conexão. Verifique sua internet.'; }
+    finLancs.unshift({...estorno,id:'local-'+Date.now()});
+    showToast('Estorno salvo localmente','warn');
   }
-  msgsEl.scrollTop=msgsEl.scrollHeight;
+  finRenderDash();
 }
 
 // ── EXPORT / IMPORT ───────────────────────────────────────────────────
