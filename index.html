@@ -431,13 +431,13 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
 
 /* ══ FINANCEIRO ══════════════════════════════════════════════════════ */
 #pg-financeiro{display:none;height:100%;overflow-y:auto;padding:0}
-#pg-financeiro.on{display:flex;flex-direction:column}
+#pg-financeiro.on{display:block}
 .fin-subnav{background:var(--dk2);display:flex;gap:0;padding:0 16px;flex-shrink:0;overflow-x:auto;border-bottom:1px solid var(--dk3)}
 .fin-subnav::-webkit-scrollbar{display:none}
 .fin-sn{font-size:8px;letter-spacing:1.5px;color:rgba(255,255,255,.38);padding:10px 12px;cursor:pointer;font-weight:600;text-transform:uppercase;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
 .fin-sn:hover{color:rgba(255,255,255,.7)}
 .fin-sn.on{color:var(--terra-l);border-bottom-color:var(--terra)}
-.fin-pg{padding:14px 16px}
+.fin-pg{padding:14px 16px;overflow-y:auto;height:calc(100vh - 120px)}
 .fin-pg::-webkit-scrollbar{width:3px}
 .fin-pg::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
 .fin-ia-banner{border:1px solid var(--terra-l);border-radius:var(--r);padding:12px 16px;background:var(--bg2);margin-bottom:12px}
@@ -550,6 +550,69 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
 .fin-valid-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:3px}
 .fin-valid-dot.ok{background:var(--verde)}.fin-valid-dot.warn{background:var(--terra)}.fin-valid-dot.err{background:#8B2020}
 .fin-sub-pg{display:none}.fin-sub-pg.on{display:block}
+
+/* ── FILTROS ──────────────────────────────────────────────────────── */
+.fin-filtros{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px;padding:10px 14px;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r)}
+.fin-filtros input,.fin-filtros select{padding:5px 9px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg);font-size:11px;color:var(--tx);min-width:0}
+.fin-filtros input:focus,.fin-filtros select:focus{outline:none;border-color:var(--terra)}
+.fin-filtros label{font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--tl);white-space:nowrap}
+.fin-filtros-group{display:flex;flex-direction:column;gap:3px;min-width:100px}
+.fin-filtros-group.wide{min-width:150px}
+.fin-f-clear{padding:5px 10px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg3);color:var(--tm);font-size:10px;cursor:pointer;white-space:nowrap}
+.fin-f-clear:hover{border-color:var(--terra);color:var(--terra)}
+.fin-f-count{font-size:10px;color:var(--tl);white-space:nowrap;align-self:flex-end;padding-bottom:2px}
+
+/* ── AUTOCOMPLETE PACIENTE ────────────────────────────────────────── */
+.fin-pac-wrap{position:relative}
+.fin-pac-drop{position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);z-index:9100;max-height:160px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1);display:none}
+.fin-pac-drop.on{display:block}
+.fin-pac-item{padding:7px 10px;font-size:12px;color:var(--tx);cursor:pointer;border-bottom:1px solid var(--bg3)}
+.fin-pac-item:last-child{border-bottom:none}
+.fin-pac-item:hover{background:var(--terra-xl);color:var(--terra-d)}
+.fin-pac-empty{padding:8px 10px;font-size:11px;color:var(--tl)}
+
+/* ── SALDO RESIDUAL (modal lançamento) ────────────────────────────── */
+.fin-residual-bloco{background:#FFF8F0;border:1px solid var(--terra-l);border-radius:var(--r);padding:10px 12px;margin-top:10px}
+.fin-residual-lbl{font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--terra-d);margin-bottom:8px}
+.fin-residual-toggle{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--tm);cursor:pointer;margin-bottom:0}
+.fin-residual-toggle input{width:auto;cursor:pointer}
+.fin-residual-fields{margin-top:8px;display:none}
+.fin-residual-fields.on{display:block}
+
+/* ── INADIMPLENTES CARDS ──────────────────────────────────────────── */
+.fin-inad-card{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:8px;overflow:hidden}
+.fin-inad-card:last-child{margin-bottom:0}
+.fin-inad-card-hd{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--bg3)}
+.fin-inad-card.urgente .fin-inad-card-hd{border-left:3px solid #8B2020}
+.fin-inad-card.atencao .fin-inad-card-hd{border-left:3px solid var(--terra)}
+.fin-inad-card.recente .fin-inad-card-hd{border-left:3px solid #8B7010}
+.fin-inad-badge{font-size:8px;font-weight:700;letter-spacing:.5px;padding:2px 7px;border-radius:2px;text-transform:uppercase;flex-shrink:0}
+.fin-inad-badge.urgente{background:#FCEBEB;color:#8B2020}
+.fin-inad-badge.atencao{background:var(--terra-xl);color:var(--terra-d)}
+.fin-inad-badge.recente{background:#FFF8E1;color:#8B7010}
+.fin-inad-card-body{padding:10px 14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.fin-inad-stats{display:flex;gap:16px;flex:1}
+.fin-inad-stat{display:flex;flex-direction:column;gap:2px}
+.fin-inad-stat-lbl{font-size:8px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--tl)}
+.fin-inad-stat-val{font-size:14px;font-weight:500;color:var(--tx)}
+.fin-inad-stat-val.red{color:#8B2020}
+.fin-inad-actions{display:flex;gap:5px;flex-wrap:wrap;flex-shrink:0}
+.fin-inad-log{padding:6px 14px 10px;background:var(--bg3);border-top:1px solid var(--bd)}
+.fin-inad-log-title{font-size:8px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--tl);margin-bottom:5px}
+.fin-inad-log-item{font-size:10px;color:var(--tm);padding:3px 0;border-bottom:1px solid var(--bd);display:flex;gap:6px}
+.fin-inad-log-item:last-child{border-bottom:none}
+.fin-inad-log-dt{color:var(--tl);flex-shrink:0}
+.fin-inad-log-add{display:flex;gap:5px;margin-top:6px}
+.fin-inad-log-add input{flex:1;padding:5px 8px;border:1px solid var(--bd2);border-radius:var(--r);font-size:11px;background:var(--bg2);color:var(--tx)}
+.fin-inad-log-add input:focus{outline:none;border-color:var(--terra)}
+
+/* ── MODAL INADIMPLENTE MANUAL ────────────────────────────────────── */
+#fin-inad-modal-ov{display:none;position:fixed;inset:0;background:rgba(26,25,21,.6);z-index:8100;align-items:center;justify-content:center}
+#fin-inad-modal-ov.on{display:flex}
+.fin-inad-modal{background:var(--bg);border-radius:8px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;border:1px solid var(--bd)}
+.fin-inad-filtbtn{padding:4px 12px;border-radius:20px;border:1px solid var(--bd2);background:var(--bg2);color:var(--tm);font-size:10px;font-weight:600;cursor:pointer;letter-spacing:.3px;transition:all .12s}
+.fin-inad-filtbtn:hover{border-color:var(--terra);color:var(--terra)}
+.fin-inad-filtbtn.on{background:var(--terra);color:white;border-color:var(--terra)}
 
 </style>
 </head>
@@ -913,7 +976,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
       </div>
 
       <!-- ══ FINANCEIRO ═════════════════════════════════════════════ -->
-      <div id="pg-financeiro" class="page" style="padding:0">
+      <div id="pg-financeiro" class="page" style="padding:0;display:flex;flex-direction:column">
 
         <!-- Sub-nav -->
         <div class="fin-subnav">
@@ -970,18 +1033,54 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
 
         <!-- ── RECEITAS ── -->
         <div class="fin-sub-pg fin-pg" id="fin-pg-receitas">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-            <div class="sec">Todas as receitas</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div class="sec" style="margin:0">Todas as receitas</div>
             <button class="btn btn-terra btn-sm" onclick="finAbrirModal('receita')">+ Nova receita</button>
+          </div>
+          <div class="fin-filtros">
+            <div class="fin-filtros-group"><label>De</label><input type="date" id="filt-rec-de" oninput="finRenderLista('receita')"></div>
+            <div class="fin-filtros-group"><label>Ate</label><input type="date" id="filt-rec-ate" oninput="finRenderLista('receita')"></div>
+            <div class="fin-filtros-group"><label>Pagamento</label>
+              <select id="filt-rec-pay" onchange="finRenderLista('receita')">
+                <option value="">Todos</option><option value="pix">PIX</option><option value="cartao">Cartao</option><option value="dinheiro">Dinheiro</option><option value="boleto">Boleto</option>
+              </select>
+            </div>
+            <div class="fin-filtros-group wide"><label>Categoria DRE</label>
+              <select id="filt-rec-cat" onchange="finRenderLista('receita')">
+                <option value="">Todas</option>
+                <option value="1.1">1.1 PIX/TED</option><option value="1.2">1.2 Cartao</option><option value="1.3">1.3 Consulta Presencial</option><option value="1.4">1.4 Telemedicina</option><option value="1.5">1.5 Proc. Estetico</option><option value="1.6">1.6 Nutricao</option><option value="1.7">1.7 Implantes</option><option value="1.8">1.8 IV / Infusoes</option>
+              </select>
+            </div>
+            <div class="fin-filtros-group wide"><label>Paciente</label><input type="text" id="filt-rec-pac" placeholder="Nome..." oninput="finRenderLista('receita')"></div>
+            <button class="fin-f-clear" onclick="finLimparFiltros('rec')">Limpar</button>
+            <span class="fin-f-count" id="filt-rec-count"></span>
           </div>
           <div class="fin-card"><div class="fin-card-body" id="fin-rec-lista"><div style="color:var(--tl);font-size:11px">Carregando...</div></div></div>
         </div>
 
         <!-- ── DESPESAS ── -->
         <div class="fin-sub-pg fin-pg" id="fin-pg-despesas">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-            <div class="sec">Todas as despesas</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div class="sec" style="margin:0">Todas as despesas</div>
             <button class="btn btn-dk btn-sm" onclick="finAbrirModal('despesa')">+ Nova despesa</button>
+          </div>
+          <div class="fin-filtros">
+            <div class="fin-filtros-group"><label>De</label><input type="date" id="filt-des-de" oninput="finRenderLista('despesa')"></div>
+            <div class="fin-filtros-group"><label>Ate</label><input type="date" id="filt-des-ate" oninput="finRenderLista('despesa')"></div>
+            <div class="fin-filtros-group wide"><label>Categoria DRE</label>
+              <select id="filt-des-cat" onchange="finRenderLista('despesa')">
+                <option value="">Todas</option>
+                <option value="2.1">2.1 Impostos</option><option value="2.2">2.2 Estornos</option>
+                <option value="3.1">3.1 Medicamentos</option><option value="3.2">3.2 Insumos</option>
+                <option value="4.1">4.1 Salario CLT</option><option value="4.2">4.2 Pro-labore Luisa</option><option value="4.3">4.3 Pro-labore Socio</option><option value="4.4">4.4 Encargos</option>
+                <option value="5.1">5.1 Aluguel</option><option value="5.2">5.2 Software</option><option value="5.3">5.3 Terceirizados</option><option value="5.4">5.4 Mastercard</option><option value="5.5">5.5 Fornecedores</option><option value="5.6">5.6 Utilidades</option><option value="5.7">5.7 Outras</option><option value="5.8">5.8 Marketing</option>
+                <option value="6.1">6.1 Emprestimo</option><option value="6.2">6.2 Tarifas Sicoob</option>
+                <option value="7.1">7.1 Benfeitorias</option><option value="7.2">7.2 Equipamentos</option>
+              </select>
+            </div>
+            <div class="fin-filtros-group wide"><label>Descricao</label><input type="text" id="filt-des-desc" placeholder="Buscar..." oninput="finRenderLista('despesa')"></div>
+            <button class="fin-f-clear" onclick="finLimparFiltros('des')">Limpar</button>
+            <span class="fin-f-count" id="filt-des-count"></span>
           </div>
           <div class="fin-card"><div class="fin-card-body" id="fin-des-lista"><div style="color:var(--tl);font-size:11px">Carregando...</div></div></div>
         </div>
@@ -998,12 +1097,25 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
 
         <!-- ── INADIMPLENTES ── -->
         <div class="fin-sub-pg fin-pg" id="fin-pg-inadimplentes">
-          <div class="fin-kpis" style="grid-template-columns:repeat(3,1fr)">
-            <div class="fin-kpi r"><div class="fk-lbl">Total em aberto</div><div class="fk-val red" id="fk-inad-total">R$ 0</div><div class="fk-sub" id="fk-inad-pac">0 pacientes</div></div>
-            <div class="fin-kpi"><div class="fk-lbl">Sinais sem retorno</div><div class="fk-val" id="fk-inad-sinais">0</div><div class="fk-sub">aguardando consulta</div></div>
-            <div class="fin-kpi r"><div class="fk-lbl">Complemento pendente</div><div class="fk-val red" id="fk-inad-comp">0</div><div class="fk-sub">consulta realizada</div></div>
+          <div class="fin-kpis" style="grid-template-columns:repeat(4,1fr);margin-bottom:12px">
+            <div class="fin-kpi r"><div class="fk-lbl">Total em aberto</div><div class="fk-val red" id="fk-inad-total">R$ 0</div><div class="fk-sub" id="fk-inad-pac">0 registros</div></div>
+            <div class="fin-kpi r"><div class="fk-lbl">Criticos +30 dias</div><div class="fk-val red" id="fk-inad-crit">0</div><div class="fk-sub">acao imediata</div></div>
+            <div class="fin-kpi"><div class="fk-lbl">Atencao 15-30 dias</div><div class="fk-val" id="fk-inad-atenc">0</div><div class="fk-sub">acompanhar</div></div>
+            <div class="fin-kpi v"><div class="fk-lbl">Recuperado no mes</div><div class="fk-val grn" id="fk-inad-rec">R$ 0</div><div class="fk-sub">quitados este mes</div></div>
           </div>
-          <div class="fin-card"><div class="fin-card-hd"><span class="sec">Saldos em aberto por paciente</span></div><div class="fin-card-body" id="fin-inad-lista"><div style="color:var(--tl);font-size:11px">Nenhum saldo em aberto.</div></div></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+            <div style="display:flex;gap:5px;flex-wrap:wrap">
+              <button class="fin-inad-filtbtn on" data-f="todos" onclick="finInadFiltrar('todos',this)">Todos</button>
+              <button class="fin-inad-filtbtn" data-f="urgente" onclick="finInadFiltrar('urgente',this)">Criticos</button>
+              <button class="fin-inad-filtbtn" data-f="atencao" onclick="finInadFiltrar('atencao',this)">Atencao</button>
+              <button class="fin-inad-filtbtn" data-f="recente" onclick="finInadFiltrar('recente',this)">Recentes</button>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center">
+              <input type="text" id="fin-inad-busca" placeholder="Buscar paciente..." oninput="finRenderInad()" style="padding:5px 9px;border:1px solid var(--bd2);border-radius:var(--r);font-size:11px;width:180px">
+              <button class="btn btn-terra btn-sm" onclick="finAbrirInadManual()">+ Adicionar</button>
+            </div>
+          </div>
+          <div id="fin-inad-lista"><div style="color:var(--tl);font-size:11px;padding:20px 0;text-align:center">Nenhum saldo em aberto.</div></div>
         </div>
 
         <!-- ── SETORES ── -->
@@ -1053,6 +1165,50 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
     </div><!-- /content-wrap -->
   </div><!-- /main -->
 </div><!-- /app -->
+
+<!-- ══ MODAL INADIMPLENTE MANUAL ════════════════════════════════════ -->
+<div id="fin-inad-modal-ov" onclick="if(event.target===this)finFecharInadManual()">
+  <div class="fin-inad-modal" onclick="event.stopPropagation()">
+    <div class="fin-m-hd">
+      <div><div class="fin-m-title">Adicionar Inadimplente</div><div class="fin-m-sub">Registro manual de saldo em aberto</div></div>
+      <button onclick="finFecharInadManual()" style="border:none;background:none;color:var(--tl);font-size:18px;cursor:pointer;line-height:1">&#x2715;</button>
+    </div>
+    <div class="fin-m-body">
+      <div class="fin-mf fin-pac-wrap">
+        <label>Paciente</label>
+        <input id="fin-inad-m-pac" type="text" placeholder="Nome da paciente..." autocomplete="off" oninput="finPacAutoCompleteEl(this,'fin-inad-m-pac-drop')" onfocus="finPacAutoCompleteEl(this,'fin-inad-m-pac-drop')">
+        <div class="fin-pac-drop" id="fin-inad-m-pac-drop"></div>
+      </div>
+      <div class="fin-mf">
+        <label>Descricao do debito</label>
+        <input id="fin-inad-m-desc" type="text" placeholder="Ex: Complemento protocolo 6 meses">
+      </div>
+      <div class="fin-mf-row">
+        <div class="fin-mf" style="margin:0">
+          <label>Valor total do servico (R$)</label>
+          <input id="fin-inad-m-total" type="number" min="0" step="10" placeholder="0,00" oninput="finInadCalcSaldo()">
+        </div>
+        <div class="fin-mf" style="margin:0">
+          <label>Valor ja recebido (R$)</label>
+          <input id="fin-inad-m-pago" type="number" min="0" step="10" placeholder="0,00" oninput="finInadCalcSaldo()">
+        </div>
+      </div>
+      <div id="fin-inad-m-saldo-preview" style="margin-bottom:10px;font-size:12px;font-weight:500;color:#8B2020"></div>
+      <div class="fin-mf">
+        <label>Data de origem do debito</label>
+        <input id="fin-inad-m-data" type="date">
+      </div>
+      <div class="fin-mf" style="margin-bottom:0">
+        <label>Observacao</label>
+        <input id="fin-inad-m-obs" type="text" placeholder="Contexto adicional...">
+      </div>
+    </div>
+    <div class="fin-m-ft">
+      <button class="btn" onclick="finFecharInadManual()">Cancelar</button>
+      <button class="btn btn-terra" onclick="finSalvarInadManual()">Adicionar inadimplente</button>
+    </div>
+  </div>
+</div>
 
 <!-- ══ MODAL FINANCEIRO ═══════════════════════════════════════════════ -->
 <div id="fin-modal-ov" onclick="if(event.target===this)finFecharModal()">
@@ -1141,9 +1297,26 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
           </div>
         </div>
         <!-- Paciente -->
-        <div class="fin-mf" style="margin-bottom:0">
+        <div class="fin-mf fin-pac-wrap" style="margin-bottom:0">
           <label>Paciente / cliente (opcional)</label>
-          <input id="fin-paciente" type="text" placeholder="Buscar paciente...">
+          <input id="fin-paciente" type="text" placeholder="Buscar paciente..." autocomplete="off" oninput="finPacAutoComplete(this)" onfocus="finPacAutoComplete(this)">
+          <div class="fin-pac-drop" id="fin-pac-drop"></div>
+        </div>
+        <!-- Saldo residual -->
+        <div class="fin-residual-bloco" id="fin-residual-bloco" style="display:none">
+          <div class="fin-residual-lbl">Saldo residual / inadimplencia</div>
+          <label class="fin-residual-toggle">
+            <input type="checkbox" id="fin-tem-residual" onchange="finToggleResidual(this)">
+            Existe valor ainda em aberto com este paciente?
+          </label>
+          <div class="fin-residual-fields" id="fin-residual-fields">
+            <div class="fin-mf-row" style="margin-top:8px;margin-bottom:0">
+              <div class="fin-mf" style="margin:0"><label>Valor total do servico (R$)</label><input id="fin-res-total" type="number" min="0" step="10" placeholder="0,00" oninput="finCalcResidual()"></div>
+              <div class="fin-mf" style="margin:0"><label>Valor recebido agora (R$)</label><input id="fin-res-pago" type="number" min="0" step="10" placeholder="0,00" oninput="finCalcResidual()"></div>
+            </div>
+            <div id="fin-res-preview" style="margin-top:6px;font-size:11px;color:var(--terra-d);font-weight:500"></div>
+            <div class="fin-mf" style="margin-top:8px;margin-bottom:0"><label>Descricao do saldo (para cobr.)</label><input id="fin-res-desc" type="text" placeholder="Ex: Complemento protocolo 6 meses"></div>
+          </div>
         </div>
       </div>
       <!-- Vencimento (despesa) -->
@@ -2615,31 +2788,53 @@ let finIaHist = [];
 let finEditId = null;
 let finFavs = [];
 
+// ── Plano de contas completo ─────────────────────────────────────────
 const FIN_CATS_REC = [
-  {cod:'1.1',label:'1.1 — Atendimentos PIX / TED'},
-  {cod:'1.2',label:'1.2 — Recebimentos de Cartão'},
+  // Grupo 1 — Receita bruta de servicos
+  {cod:'1.1', label:'1.1 — Atendimentos PIX / TED', grupo:'Receita bruta de servicos'},
+  {cod:'1.2', label:'1.2 — Recebimentos de Cartao', grupo:'Receita bruta de servicos'},
+  {cod:'1.3', label:'1.3 — Consulta Presencial', grupo:'Receita bruta de servicos'},
+  {cod:'1.4', label:'1.4 — Telemedicina', grupo:'Receita bruta de servicos'},
+  {cod:'1.5', label:'1.5 — Procedimento Estetico', grupo:'Receita bruta de servicos'},
+  {cod:'1.6', label:'1.6 — Nutricao / Suplementacao', grupo:'Receita bruta de servicos'},
+  {cod:'1.7', label:'1.7 — Implantes Hormonais', grupo:'Receita bruta de servicos'},
+  {cod:'1.8', label:'1.8 — IV / Infusoes / Peptideos', grupo:'Receita bruta de servicos'},
+  {cod:'1.9', label:'1.9 — Protocolos Completos', grupo:'Receita bruta de servicos'},
+  {cod:'1.10',label:'1.10 — Outras Receitas', grupo:'Receita bruta de servicos'},
 ];
 const FIN_CATS_DES = [
-  {cod:'2.1',label:'2.1 — Impostos sobre Receita'},
-  {cod:'2.2',label:'2.2 — Estornos e Devoluções'},
-  {cod:'3.1',label:'3.1 — Compra de Medicamentos'},
-  {cod:'3.2',label:'3.2 — Materiais e Insumos Clínicos'},
-  {cod:'4.1',label:'4.1 — Salário CLT — Ana Eduarda'},
-  {cod:'4.2',label:'4.2 — Pró-labore — Dra. Luisa Costa'},
-  {cod:'4.3',label:'4.3 — Pró-labore — Sócio Gestor'},
-  {cod:'4.4',label:'4.4 — Encargos Trabalhistas'},
-  {cod:'5.1',label:'5.1 — Aluguel / Locação'},
-  {cod:'5.2',label:'5.2 — Sistema / Software Médico'},
-  {cod:'5.3',label:'5.3 — Serviços Terceirizados'},
-  {cod:'5.4',label:'5.4 — Cartão Corporativo Mastercard'},
-  {cod:'5.5',label:'5.5 — Fornecedores Gerais / Boletos'},
-  {cod:'5.6',label:'5.6 — Utilidades (Energia/Água/Tel)'},
-  {cod:'5.7',label:'5.7 — Outras Despesas Operacionais'},
-  {cod:'5.8',label:'5.8 — Marketing / Redes Sociais'},
-  {cod:'6.1',label:'6.1 — Empréstimo Bancário'},
-  {cod:'6.2',label:'6.2 — Tarifas Bancárias Sicoob'},
-  {cod:'7.1',label:'7.1 — Benfeitorias / Obra'},
-  {cod:'7.2',label:'7.2 — Equipamentos Médicos'},
+  // Grupo 2 — Deducoes
+  {cod:'2.1', label:'2.1 — Impostos sobre Receita (DAS/ISS)', grupo:'Deducoes'},
+  {cod:'2.2', label:'2.2 — Estornos e Devolucoes', grupo:'Deducoes'},
+  // Grupo 3 — Custo dos servicos (CMV)
+  {cod:'3.1', label:'3.1 — Compra de Medicamentos', grupo:'Custo dos servicos'},
+  {cod:'3.2', label:'3.2 — Materiais e Insumos Clinicos', grupo:'Custo dos servicos'},
+  {cod:'3.3', label:'3.3 — Implantes e Bioimplantes', grupo:'Custo dos servicos'},
+  {cod:'3.4', label:'3.4 — Kits e Protocolos (custo)', grupo:'Custo dos servicos'},
+  // Grupo 4 — Despesas com pessoal
+  {cod:'4.1', label:'4.1 — Salario CLT — Ana Eduarda', grupo:'Pessoal'},
+  {cod:'4.2', label:'4.2 — Pro-labore — Dra. Luisa Costa', grupo:'Pessoal'},
+  {cod:'4.3', label:'4.3 — Pro-labore — Socio Gestor', grupo:'Pessoal'},
+  {cod:'4.4', label:'4.4 — Encargos Trabalhistas (FGTS/INSS)', grupo:'Pessoal'},
+  {cod:'4.5', label:'4.5 — Beneficios (VT/VA/Plano saude)', grupo:'Pessoal'},
+  // Grupo 5 — Despesas operacionais
+  {cod:'5.1', label:'5.1 — Aluguel / Locacao', grupo:'Operacional'},
+  {cod:'5.2', label:'5.2 — Sistema / Software Medico', grupo:'Operacional'},
+  {cod:'5.3', label:'5.3 — Servicos Terceirizados', grupo:'Operacional'},
+  {cod:'5.4', label:'5.4 — Cartao Corporativo Mastercard', grupo:'Operacional'},
+  {cod:'5.5', label:'5.5 — Fornecedores Gerais / Boletos', grupo:'Operacional'},
+  {cod:'5.6', label:'5.6 — Utilidades (Energia/Agua/Tel)', grupo:'Operacional'},
+  {cod:'5.7', label:'5.7 — Outras Despesas Operacionais', grupo:'Operacional'},
+  {cod:'5.8', label:'5.8 — Marketing / Redes Sociais', grupo:'Operacional'},
+  {cod:'5.9', label:'5.9 — Manutencao e Conservacao', grupo:'Operacional'},
+  // Grupo 6 — Despesas financeiras
+  {cod:'6.1', label:'6.1 — Emprestimo Bancario (parcela)', grupo:'Financeiro'},
+  {cod:'6.2', label:'6.2 — Tarifas Bancarias Sicoob', grupo:'Financeiro'},
+  {cod:'6.3', label:'6.3 — IOF / Juros / Multas', grupo:'Financeiro'},
+  // Grupo 7 — Investimentos
+  {cod:'7.1', label:'7.1 — Benfeitorias / Obra', grupo:'Investimentos'},
+  {cod:'7.2', label:'7.2 — Equipamentos Medicos', grupo:'Investimentos'},
+  {cod:'7.3', label:'7.3 — Moveis e Utensilios', grupo:'Investimentos'},
 ];
 
 function finFmt(v){ return 'R$ '+Math.round(Number(v||0)).toLocaleString('pt-BR'); }
@@ -2791,25 +2986,49 @@ function finRenderPayBar(){
   }).join('');
 }
 
-// ── Listas completas ──────────────────────────────────────────────────
+// ── Listas completas com filtros ─────────────────────────────────────
+function finLimparFiltros(pref){
+  ['de','ate','pay','cat','pac','desc'].forEach(f=>{
+    const el=document.getElementById('filt-'+pref+'-'+f); if(el)el.value='';
+  });
+  finRenderLista(pref==='rec'?'receita':'despesa');
+}
+
 function finRenderLista(tipo){
+  const pref=tipo==='receita'?'rec':'des';
   const id=tipo==='receita'?'fin-rec-lista':'fin-des-lista';
   const el=document.getElementById(id); if(!el)return;
-  const lista=finLancs.filter(l=>l.tipo===tipo);
-  if(!lista.length){el.innerHTML=`<div style="color:var(--tl);font-size:11px;padding:8px 0">Nenhum(a) ${tipo} registrada.</div>`;return;}
+  const fDe=(document.getElementById('filt-'+pref+'-de')?.value)||'';
+  const fAte=(document.getElementById('filt-'+pref+'-ate')?.value)||'';
+  const fPay=(document.getElementById('filt-'+pref+'-pay')?.value)||'';
+  const fCat=(document.getElementById('filt-'+pref+'-cat')?.value)||'';
+  const fPac=(document.getElementById('filt-'+pref+'-pac')?.value||'').toLowerCase();
+  const fDesc=(document.getElementById('filt-'+pref+'-desc')?.value||'').toLowerCase();
+  let lista=finLancs.filter(l=>l.tipo===tipo);
+  if(fDe) lista=lista.filter(l=>l.data&&l.data>=fDe);
+  if(fAte) lista=lista.filter(l=>l.data&&l.data<=fAte);
+  if(fPay) lista=lista.filter(l=>l.forma_pagamento===fPay);
+  if(fCat) lista=lista.filter(l=>l.categoria_dre&&l.categoria_dre.startsWith(fCat));
+  if(fPac) lista=lista.filter(l=>l.paciente&&l.paciente.toLowerCase().includes(fPac));
+  if(fDesc) lista=lista.filter(l=>(l.descricao||'').toLowerCase().includes(fDesc));
+  const countEl=document.getElementById('filt-'+pref+'-count');
+  if(countEl) countEl.textContent=lista.length+' registro(s)';
+  if(!lista.length){el.innerHTML=`<div style="color:var(--tl);font-size:11px;padding:16px 0;text-align:center">Nenhum resultado com os filtros.</div>`;return;}
+  const allCats=[...FIN_CATS_REC,...FIN_CATS_DES];
   el.innerHTML=lista.map(l=>{
     const pos=tipo==='receita';
     const dt=l.data?new Date(l.data+'T12:00').toLocaleDateString('pt-BR'):'';
     const badge=l.forma_pagamento?`<span class="fbadge ${l.forma_pagamento}">${l.forma_pagamento}</span>`:'';
-    const editBtn=NIVEL==='admin'||NIVEL==='financeiro'?`<button onclick="finAbrirEstorno('${l.id}')" style="border:none;background:none;color:var(--tl);font-size:10px;cursor:pointer;padding:2px 6px;border:1px solid var(--bd2);border-radius:var(--r)" title="Estornar este lançamento">Estornar</button>`:'';
+    const catLabel=(allCats.find(c=>c.cod===l.categoria_dre)||{}).label||l.categoria_dre||'';
+    const editBtn=NIVEL==='admin'||NIVEL==='financeiro'?`<button onclick="finAbrirEstorno('${l.id}')" style="border:none;background:none;color:var(--tl);font-size:10px;cursor:pointer;padding:2px 6px;border:1px solid var(--bd2);border-radius:var(--r)">Estornar</button>`:'';
     return `<div class="fin-lr">
       <div class="fin-lr-ico" style="background:${pos?'var(--verde-l)':'#FCEBEB'};color:${pos?'var(--verde)':'#8B2020'}">${pos?'+':'−'}</div>
       <div class="fin-lr-info">
-        <div class="fin-lr-desc">${l.descricao||l.categoria_dre||'—'}</div>
-        <div class="fin-lr-meta">${dt} ${badge}${l.paciente?' · '+l.paciente:''} · <em style="color:var(--tl)">${l.categoria_dre||''}</em></div>
+        <div class="fin-lr-desc">${l.descricao||catLabel||'—'}</div>
+        <div class="fin-lr-meta">${dt} ${badge}${l.paciente?' · '+l.paciente:''} · <em style="color:var(--tl);font-size:9px">${catLabel}</em></div>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
-        <div class="fin-lr-val ${pos?'pos':'neg'}">${pos?'+':'-'} ${finFmt(l.valor)}</div>
+        <div class="fin-lr-val ${pos?'pos':'neg'}">${pos?'+':'−'} ${finFmt(l.valor)}</div>
         ${editBtn}
       </div>
     </div>`;
@@ -2860,31 +3079,256 @@ async function finMarcarPago(id){
 }
 
 // ── Inadimplentes ─────────────────────────────────────────────────────
+// ── Estado inadimplentes ─────────────────────────────────────────────
+let finInadFiltro = 'todos';
+let finInadLogs = {}; // {id: [{dt, canal, nota}]}
+
+function finCarregarInadLogs(){
+  try{ finInadLogs=JSON.parse(localStorage.getItem('fin_inad_logs')||'{}'); }catch(e){ finInadLogs={}; }
+}
+function finSalvarInadLogs(){
+  try{ localStorage.setItem('fin_inad_logs',JSON.stringify(finInadLogs)); }catch(e){}
+}
+
+function finInadFiltrar(f, el){
+  finInadFiltro=f;
+  document.querySelectorAll('.fin-inad-filtbtn').forEach(b=>b.classList.remove('on'));
+  if(el)el.classList.add('on');
+  finRenderInad();
+}
+
+function finDiasAberto(dataStr){
+  if(!dataStr) return 0;
+  const d=new Date(dataStr+'T12:00');
+  const hoje=new Date(); hoje.setHours(12,0,0,0);
+  return Math.floor((hoje-d)/(1000*60*60*24));
+}
+
+function finClasseInad(dias){
+  if(dias>30) return 'urgente';
+  if(dias>15) return 'atencao';
+  return 'recente';
+}
+
 function finRenderInad(){
-  const abertos=finLancs.filter(l=>l.tipo==='receita'&&l.pix_tipo&&(l.pix_tipo==='sinal'||l.pix_tipo==='complemento')&&!l.quitado);
-  const sinais=abertos.filter(l=>l.pix_tipo==='sinal');
-  const comps=abertos.filter(l=>l.pix_tipo==='complemento');
-  const totalAb=abertos.reduce((s,l)=>s+Number(l.saldo_devedor||0),0);
+  finCarregarInadLogs();
+  // Inadimplentes = lancamentos com saldo_devedor > 0 E nao quitados
+  // + inadimplentes manuais (stored in localStorage)
+  let inadManuais = [];
+  try{ inadManuais=JSON.parse(localStorage.getItem('fin_inad_manuais')||'[]'); }catch(e){}
+
+  // De lancamentos: receitas com residual marcado
+  const doLanc = finLancs.filter(l=>
+    l.tipo==='receita' && Number(l.saldo_devedor||0)>0 && !l.quitado
+  ).map(l=>({
+    id: 'lanc-'+l.id,
+    paciente: l.paciente||'—',
+    descricao: l.descricao||l.categoria_dre||'',
+    valor_total: Number(l.valor_total_servico||l.valor||0),
+    valor_pago: Number(l.valor||0),
+    saldo: Number(l.saldo_devedor||0),
+    data: l.data,
+    origem: 'lancamento',
+    lanc_id: l.id
+  }));
+
+  const todos = [...doLanc, ...inadManuais];
+  const busca = (document.getElementById('fin-inad-busca')?.value||'').toLowerCase();
+
+  let lista = todos;
+  if(busca) lista = lista.filter(x=>(x.paciente||'').toLowerCase().includes(busca)||(x.descricao||'').toLowerCase().includes(busca));
+  if(finInadFiltro!=='todos') lista = lista.filter(x=>finClasseInad(finDiasAberto(x.data))===finInadFiltro);
+
+  // KPIs
+  const totalAb = todos.reduce((s,x)=>s+Number(x.saldo||0),0);
+  const criticos = todos.filter(x=>finDiasAberto(x.data)>30).length;
+  const atencao = todos.filter(x=>{const d=finDiasAberto(x.data);return d>15&&d<=30;}).length;
+  // Recuperado no mes: lancamentos marcados como quitados este mes
+  const mes=finMesAtual();
+  const recMes = finLancs.filter(l=>l.tipo==='receita'&&l.quitado&&l.data&&l.data.startsWith(mes)).reduce((s,l)=>s+Number(l.valor||0),0);
   const setSafe=(id,v)=>{ const el=document.getElementById(id); if(el)el.textContent=v; };
   setSafe('fk-inad-total',finFmt(totalAb));
-  setSafe('fk-inad-pac',String(abertos.length)+' registro(s)');
-  setSafe('fk-inad-sinais',String(sinais.length));
-  setSafe('fk-inad-comp',String(comps.length));
+  setSafe('fk-inad-pac',todos.length+' registro(s)');
+  setSafe('fk-inad-crit',String(criticos));
+  setSafe('fk-inad-atenc',String(atencao));
+  setSafe('fk-inad-rec',finFmt(recMes));
+
   const el=document.getElementById('fin-inad-lista'); if(!el)return;
-  if(!abertos.length){el.innerHTML='<div style="color:var(--tl);font-size:11px">Nenhum saldo em aberto.</div>';return;}
-  el.innerHTML=abertos.map(l=>{
-    const ini=l.paciente?l.paciente.slice(0,2).toUpperCase():'??';
-    const saldo=Number(l.saldo_devedor||0);
-    const tipoBadge=l.pix_tipo==='sinal'?'<span style="background:#E6F4EF;color:#1A5C35;font-size:8px;font-weight:600;padding:1px 5px;border-radius:2px">SINAL</span>':'<span style="background:var(--terra-xl);color:var(--terra-d);font-size:8px;font-weight:600;padding:1px 5px;border-radius:2px">COMPLEMENTO</span>';
-    return `<div class="fin-inad-row">
-      <div class="fin-inad-av">${ini}</div>
-      <div class="fin-inad-info">
-        <div class="fin-inad-nome">${l.paciente||'—'}</div>
-        <div class="fin-inad-meta">${l.descricao||''} ${tipoBadge}</div>
+  if(!lista.length){
+    el.innerHTML='<div style="color:var(--tl);font-size:11px;padding:28px 0;text-align:center">Nenhum inadimplente encontrado.</div>';
+    return;
+  }
+
+  el.innerHTML=lista.map(x=>{
+    const dias=finDiasAberto(x.data);
+    const cls=finClasseInad(dias);
+    const badges={urgente:'urgente',atencao:'atencao',recente:'recente'};
+    const badgeLbl={urgente:'Critico +30d',atencao:'Atencao',recente:'Recente'};
+    const ini=(x.paciente||'?').slice(0,2).toUpperCase();
+    const dt=x.data?new Date(x.data+'T12:00').toLocaleDateString('pt-BR'):'—';
+    const logs=finInadLogs[x.id]||[];
+    const logsHtml=logs.length?logs.slice(-3).map(lg=>`<div class="fin-inad-log-item"><span class="fin-inad-log-dt">${lg.dt}</span><span>${lg.canal} — ${lg.nota}</span></div>`).join(''):'<div style="font-size:10px;color:var(--tl)">Sem contatos registrados.</div>';
+    const pct=x.valor_total>0?Math.round((x.valor_pago/x.valor_total)*100):0;
+    return `<div class="fin-inad-card ${cls}" id="inadcard-${x.id}">
+      <div class="fin-inad-card-hd">
+        <div class="fin-inad-av">${ini}</div>
+        <div class="fin-inad-info" style="flex:1;min-width:0">
+          <div class="fin-inad-nome">${x.paciente||'—'}</div>
+          <div class="fin-inad-meta">${x.descricao||''} · desde ${dt}</div>
+        </div>
+        <span class="fin-inad-badge ${badges[cls]}">${badgeLbl[cls]} · ${dias}d</span>
       </div>
-      <div class="fin-inad-val"><div class="fin-inad-saldo">${finFmt(saldo)}</div><div class="fin-inad-dias">saldo restante</div></div>
+      <div class="fin-inad-card-body">
+        <div class="fin-inad-stats">
+          <div class="fin-inad-stat">
+            <div class="fin-inad-stat-lbl">Valor total</div>
+            <div class="fin-inad-stat-val">${x.valor_total>0?finFmt(x.valor_total):'—'}</div>
+          </div>
+          <div class="fin-inad-stat">
+            <div class="fin-inad-stat-lbl">Recebido</div>
+            <div class="fin-inad-stat-val">${finFmt(x.valor_pago)}${x.valor_total>0?' ('+pct+'%)':''}</div>
+          </div>
+          <div class="fin-inad-stat">
+            <div class="fin-inad-stat-lbl">Saldo devedor</div>
+            <div class="fin-inad-stat-val red">${finFmt(x.saldo)}</div>
+          </div>
+          <div class="fin-inad-stat">
+            <div class="fin-inad-stat-lbl">Dias em aberto</div>
+            <div class="fin-inad-stat-val" style="color:${cls==='urgente'?'#8B2020':cls==='atencao'?'var(--terra)':'#8B7010'}">${dias} dias</div>
+          </div>
+        </div>
+        <div class="fin-inad-actions">
+          <button class="btn btn-xs btn-verde" onclick="finInadWhatsApp('${x.id}')" title="Enviar WhatsApp">📱 WhatsApp</button>
+          <button class="btn btn-xs btn-terra" onclick="finInadQuitar('${x.id}')" title="Registrar quitacao">✓ Quitar</button>
+          <button class="btn btn-xs" onclick="finInadToggleLog('${x.id}')" title="Ver historico">📋 Historico</button>
+          ${x.origem==='manual'?`<button class="btn btn-xs btn-danger" onclick="finInadRemover('${x.id}')">✕</button>`:''}
+        </div>
+      </div>
+      <div class="fin-inad-log" id="inad-log-${x.id}" style="display:none">
+        <div class="fin-inad-log-title">Historico de contatos</div>
+        ${logsHtml}
+        <div class="fin-inad-log-add">
+          <select id="inad-canal-${x.id}" style="padding:4px 6px;border:1px solid var(--bd2);border-radius:var(--r);font-size:10px;background:var(--bg2)">
+            <option value="WhatsApp">WhatsApp</option>
+            <option value="Ligacao">Ligacao</option>
+            <option value="Email">Email</option>
+            <option value="Presencial">Presencial</option>
+          </select>
+          <input type="text" id="inad-nota-${x.id}" placeholder="O que aconteceu? (ex: prometeu pagar 5a)">
+          <button class="btn btn-xs btn-terra" onclick="finInadLogContato('${x.id}')">Salvar</button>
+        </div>
+      </div>
     </div>`;
   }).join('');
+}
+
+function finInadToggleLog(id){
+  const el=document.getElementById('inad-log-'+id);
+  if(!el)return;
+  el.style.display=el.style.display==='none'?'block':'none';
+}
+
+function finInadLogContato(id){
+  const canal=document.getElementById('inad-canal-'+id)?.value||'WhatsApp';
+  const nota=document.getElementById('inad-nota-'+id)?.value.trim();
+  if(!nota){showToast('Descreva o contato','warn');return;}
+  if(!finInadLogs[id])finInadLogs[id]=[];
+  const dt=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+  finInadLogs[id].push({dt,canal,nota});
+  finSalvarInadLogs();
+  finRenderInad();
+  showToast('Contato registrado!');
+}
+
+function finInadWhatsApp(id){
+  let x=null;
+  // Busca no local
+  let manuais=[];
+  try{manuais=JSON.parse(localStorage.getItem('fin_inad_manuais')||'[]');}catch(e){}
+  x=manuais.find(m=>m.id===id);
+  if(!x){
+    const lancId=id.replace('lanc-','');
+    const lanc=finLancs.find(l=>String(l.id)===String(lancId));
+    if(lanc) x={paciente:lanc.paciente,descricao:lanc.descricao,saldo:Number(lanc.saldo_devedor||0)};
+  }
+  if(!x){showToast('Registro nao encontrado','err');return;}
+  const msg=`Ola ${x.paciente||''}! Passando para lembrar que existe um saldo em aberto de ${finFmt(x.saldo)} referente a "${x.descricao||'servico'}". Quando preferir, podemos verificar a melhor forma de quitar. Obrigada!`;
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+}
+
+async function finInadQuitar(id){
+  let manuais=[];
+  try{manuais=JSON.parse(localStorage.getItem('fin_inad_manuais')||'[]');}catch(e){}
+  const manual=manuais.find(m=>m.id===id);
+  if(manual){
+    // Quitar manual: remove da lista
+    const idx=manuais.indexOf(manual);
+    manuais.splice(idx,1);
+    localStorage.setItem('fin_inad_manuais',JSON.stringify(manuais));
+    showToast('Quitado! Registre o recebimento na aba Receitas.');
+    finRenderInad();
+    return;
+  }
+  // Quitar lancamento: abre modal pre-preenchido
+  const lancId=id.replace('lanc-','');
+  const lanc=finLancs.find(l=>String(l.id)===String(lancId));
+  if(!lanc){showToast('Lancamento nao encontrado','err');return;}
+  finAbrirModal('receita');
+  setTimeout(()=>{
+    const desc=document.getElementById('fin-desc'); if(desc)desc.value='Complemento — '+(lanc.descricao||'');
+    const pac=document.getElementById('fin-paciente'); if(pac)pac.value=lanc.paciente||'';
+    const val=document.getElementById('fin-valor'); if(val)val.value=lanc.saldo_devedor||'';
+    const obs=document.getElementById('fin-obs'); if(obs)obs.value='Quitacao do saldo ref. lancamento '+lancId;
+  },150);
+}
+
+function finInadRemover(id){
+  if(!confirm('Remover este inadimplente da lista?'))return;
+  let manuais=[];
+  try{manuais=JSON.parse(localStorage.getItem('fin_inad_manuais')||'[]');}catch(e){}
+  manuais=manuais.filter(m=>m.id!==id);
+  localStorage.setItem('fin_inad_manuais',JSON.stringify(manuais));
+  showToast('Removido.');
+  finRenderInad();
+}
+
+// ── Modal inadimplente manual ─────────────────────────────────────────
+function finAbrirInadManual(){
+  const ov=document.getElementById('fin-inad-modal-ov'); if(!ov)return;
+  ov.classList.add('on');
+  // Pre-preencher data com hoje
+  const dt=document.getElementById('fin-inad-m-data'); if(dt)dt.value=finHoje();
+}
+
+function finFecharInadManual(){
+  const ov=document.getElementById('fin-inad-modal-ov'); if(!ov)return;
+  ov.classList.remove('on');
+}
+
+function finSalvarInadManual(){
+  const pac=document.getElementById('fin-inad-m-pac')?.value.trim();
+  const desc=document.getElementById('fin-inad-m-desc')?.value.trim();
+  const total=parseFloat(document.getElementById('fin-inad-m-total')?.value)||0;
+  const pago=parseFloat(document.getElementById('fin-inad-m-pago')?.value)||0;
+  const data=document.getElementById('fin-inad-m-data')?.value;
+  const obs=document.getElementById('fin-inad-m-obs')?.value.trim()||'';
+  if(!pac){showToast('Informe o paciente','err');return;}
+  if(!total){showToast('Informe o valor total','err');return;}
+  if(!data){showToast('Informe a data','err');return;}
+  const saldo=total-pago;
+  if(saldo<=0){showToast('Saldo devedor deve ser positivo','err');return;}
+  let manuais=[];
+  try{manuais=JSON.parse(localStorage.getItem('fin_inad_manuais')||'[]');}catch(e){}
+  manuais.unshift({
+    id:'manual-'+Date.now(),
+    paciente:pac, descricao:desc||'Divida em aberto',
+    valor_total:total, valor_pago:pago, saldo,
+    data, obs, origem:'manual'
+  });
+  localStorage.setItem('fin_inad_manuais',JSON.stringify(manuais));
+  finFecharInadManual();
+  finRenderInad();
+  showToast('Inadimplente adicionado!');
 }
 
 // ── Setores ───────────────────────────────────────────────────────────
@@ -2917,60 +3361,129 @@ function finRenderDRE(){
   const mes=finMesAtual();
   const setSafe=(id,v)=>{ const el=document.getElementById(id); if(el)el.textContent=v; };
   setSafe('fin-dre-mes', new Date().toLocaleDateString('pt-BR',{month:'long',year:'numeric'}));
-  const getTotal=(cod)=>finLancs.filter(l=>l.data&&l.data.startsWith(mes)&&l.categoria_dre&&l.categoria_dre.startsWith(cod)).reduce((s,l)=>s+Number(l.valor||0),0);
-  const rec11=getTotal('1.1'), rec12=getTotal('1.2');
-  const recBruta=rec11+rec12;
+  const getTotal=(cod)=>finLancs.filter(l=>l.data&&l.data.startsWith(mes)&&l.categoria_dre&&l.categoria_dre===cod).reduce((s,l)=>s+Number(l.valor||0),0);
+  const getGroup=(prefix)=>finLancs.filter(l=>l.data&&l.data.startsWith(mes)&&l.categoria_dre&&l.categoria_dre.startsWith(prefix)).reduce((s,l)=>s+Number(l.valor||0),0);
+
+  // 1. Receita bruta — todas as subcategorias
+  const rec11=getTotal('1.1'), rec12=getTotal('1.2'), rec13=getTotal('1.3'),
+        rec14=getTotal('1.4'), rec15=getTotal('1.5'), rec16=getTotal('1.6'),
+        rec17=getTotal('1.7'), rec18=getTotal('1.8'), rec19=getTotal('1.9'),
+        rec110=getTotal('1.10');
+  const recBruta=rec11+rec12+rec13+rec14+rec15+rec16+rec17+rec18+rec19+rec110;
+
+  // 2. Deducoes
   const imp=getTotal('2.1'), est=getTotal('2.2');
-  const recLiq=recBruta-imp+est;
-  const med=getTotal('3.1'), ins=getTotal('3.2');
-  const lucroBruto=recLiq-med-ins;
-  const sal=getTotal('4.1'), pro1=getTotal('4.2'), pro2=getTotal('4.3'), enc=getTotal('4.4');
-  const resPessoal=lucroBruto-sal-pro1-pro2-enc;
+  const recLiq=recBruta-imp-est;
+
+  // 3. Custo dos servicos (CMV)
+  const med=getTotal('3.1'), ins=getTotal('3.2'), impl=getTotal('3.3'), kits=getTotal('3.4');
+  const totalCMV=med+ins+impl+kits;
+  const lucroBruto=recLiq-totalCMV;
+
+  // 4. Pessoal
+  const sal=getTotal('4.1'), pro1=getTotal('4.2'), pro2=getTotal('4.3'),
+        enc=getTotal('4.4'), ben=getTotal('4.5');
+  const totalPessoal=sal+pro1+pro2+enc+ben;
+  const resPessoal=lucroBruto-totalPessoal;
+
+  // 5. Operacional
   const alug=getTotal('5.1'), soft=getTotal('5.2'), terc=getTotal('5.3'),
         mast=getTotal('5.4'), forn=getTotal('5.5'), util=getTotal('5.6'),
-        outr=getTotal('5.7'), mkt=getTotal('5.8');
-  const totalOp=alug+soft+terc+mast+forn+util+outr+mkt;
+        outr=getTotal('5.7'), mkt=getTotal('5.8'), manut=getTotal('5.9');
+  const totalOp=alug+soft+terc+mast+forn+util+outr+mkt+manut;
   const resOp=resPessoal-totalOp;
-  const emp=getTotal('6.1'), tar=getTotal('6.2');
-  const resultado=resOp-emp-tar;
-  const col=(v,neg=false)=>`<span style="color:${neg?(v>0?'#8B2020':'var(--verde)'):(v>=0?'var(--verde)':'#8B2020')}">${neg&&v>0?'−':v<0?'−':''}${finFmt(Math.abs(v))}</span>`;
+
+  // 6. Financeiro
+  const emp=getTotal('6.1'), tar=getTotal('6.2'), iof=getTotal('6.3');
+  const totalFin=emp+tar+iof;
+
+  // EBITDA / Resultado
+  const resultado=resOp-totalFin;
+  const margemBruta=recBruta>0?Math.round((lucroBruto/recBruta)*100):0;
+  const margemLiq=recBruta>0?Math.round((resultado/recBruta)*100):0;
+
+  // 7. Investimentos (informativo)
+  const benf=getTotal('7.1'), equip=getTotal('7.2'), moveis=getTotal('7.3');
+  const totalInv=benf+equip+moveis;
+
+  const col=(v,neg=false)=>`<span style="font-weight:500;color:${neg?(v>0?'#8B2020':'var(--verde)'):(v>=0?'var(--verde)':'#8B2020')}">${neg&&v>0?'(':''}${finFmtDec(Math.abs(v))}${neg&&v>0?')':''}</span>`;
+  const row=(lbl,v,neg=false,indent=true)=>v!==0?`<div class="dre-item"${indent?' style="padding-left:16px"':''}><span>${lbl}</span>${col(v,neg)}</div>`:'';;
+
   const el=document.getElementById('fin-dre-corpo'); if(!el)return;
   el.innerHTML=`
-    <div style="display:flex;justify-content:space-between;padding:4px 0 10px;border-bottom:1px solid var(--bd);margin-bottom:6px">
-      <span style="font-size:8px;letter-spacing:1.5px;font-weight:600;text-transform:uppercase;color:var(--tl)">Regime de caixa</span>
-      <span style="font-size:9px;color:var(--tl)">${new Date().toLocaleDateString('pt-BR')}</span>
+    <div style="display:flex;justify-content:space-between;padding:4px 0 10px;border-bottom:2px solid var(--bd);margin-bottom:8px">
+      <div>
+        <div style="font-size:8px;letter-spacing:1.5px;font-weight:700;text-transform:uppercase;color:var(--tl)">DRE Gerencial — Regime de Caixa</div>
+        <div style="font-size:10px;color:var(--tm);margin-top:2px">${new Date().toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:9px;color:var(--tl)">Margem bruta: <strong style="color:${margemBruta>=0?'var(--verde)':'#8B2020'}">${margemBruta}%</strong></div>
+        <div style="font-size:9px;color:var(--tl)">Margem liquida: <strong style="color:${margemLiq>=0?'var(--verde)':'#8B2020'}">${margemLiq}%</strong></div>
+      </div>
     </div>
-    <div class="dre-grupo">1. Receita bruta de serviços</div>
-    <div class="dre-item"><span>Atendimentos — PIX / TED</span>${col(rec11)}</div>
-    <div class="dre-item"><span>Recebimentos de Cartão</span>${col(rec12)}</div>
-    <div class="dre-total"><span>Receita bruta total</span>${col(recBruta)}</div>
-    <div class="dre-grupo">2. Deduções</div>
-    <div class="dre-item"><span>(−) Impostos sobre receita</span>${col(imp,true)}</div>
-    <div class="dre-total"><span>Receita líquida</span>${col(recLiq)}</div>
-    <div class="dre-grupo">3. Custo dos serviços</div>
-    <div class="dre-item"><span>(−) Medicamentos</span>${col(med,true)}</div>
-    <div class="dre-item"><span>(−) Insumos clínicos</span>${col(ins,true)}</div>
-    <div class="dre-total"><span>Lucro bruto</span>${col(lucroBruto)}</div>
-    <div class="dre-grupo">4. Despesas com pessoal</div>
-    <div class="dre-item"><span>(−) Salário CLT</span>${col(sal,true)}</div>
-    <div class="dre-item"><span>(−) Pró-labore Dra. Luisa</span>${col(pro1,true)}</div>
-    <div class="dre-item"><span>(−) Pró-labore Sócio Gestor</span>${col(pro2,true)}</div>
-    <div class="dre-item"><span>(−) Encargos trabalhistas</span>${col(enc,true)}</div>
-    <div class="dre-total"><span>Resultado após pessoal</span>${col(resPessoal)}</div>
-    <div class="dre-grupo">5. Despesas operacionais</div>
-    ${alug?`<div class="dre-item"><span>(−) Aluguel</span>${col(alug,true)}</div>`:''}
-    ${soft?`<div class="dre-item"><span>(−) Software / Sistema</span>${col(soft,true)}</div>`:''}
-    ${terc?`<div class="dre-item"><span>(−) Serviços terceirizados</span>${col(terc,true)}</div>`:''}
-    ${mast?`<div class="dre-item"><span>(−) Cartão Mastercard</span>${col(mast,true)}</div>`:''}
-    ${forn?`<div class="dre-item"><span>(−) Fornecedores / Boletos</span>${col(forn,true)}</div>`:''}
-    ${util?`<div class="dre-item"><span>(−) Utilidades</span>${col(util,true)}</div>`:''}
-    ${mkt?`<div class="dre-item"><span>(−) Marketing</span>${col(mkt,true)}</div>`:''}
-    ${outr?`<div class="dre-item"><span>(−) Outras despesas</span>${col(outr,true)}</div>`:''}
-    <div class="dre-total"><span>Resultado operacional</span>${col(resOp)}</div>
-    <div class="dre-grupo">6. Despesas financeiras</div>
-    ${emp?`<div class="dre-item"><span>(−) Empréstimo bancário</span>${col(emp,true)}</div>`:''}
-    ${tar?`<div class="dre-item"><span>(−) Tarifas Sicoob</span>${col(tar,true)}</div>`:''}
-    <div class="dre-resultado"><span>Resultado do mês</span>${col(resultado)}</div>
+
+    <div class="dre-grupo">1. Receita Bruta de Servicos</div>
+    ${row('Atendimentos PIX / TED',rec11)}
+    ${row('Recebimentos de Cartao',rec12)}
+    ${row('Consultas Presenciais',rec13)}
+    ${row('Telemedicina',rec14)}
+    ${row('Procedimentos Esteticos',rec15)}
+    ${row('Nutricao / Suplementacao',rec16)}
+    ${row('Implantes Hormonais',rec17)}
+    ${row('IV / Infusoes / Peptideos',rec18)}
+    ${row('Protocolos Completos',rec19)}
+    ${row('Outras Receitas',rec110)}
+    <div class="dre-total"><span>( = ) Receita Bruta Total</span>${col(recBruta)}</div>
+
+    <div class="dre-grupo">2. Deducoes da Receita</div>
+    ${row('(−) Impostos (DAS / ISS)',imp,true)}
+    ${row('(−) Estornos e Devolucoes',est,true)}
+    <div class="dre-total"><span>( = ) Receita Liquida</span>${col(recLiq)}</div>
+
+    <div class="dre-grupo">3. Custo dos Servicos Prestados (CSP)</div>
+    ${row('(−) Medicamentos',med,true)}
+    ${row('(−) Insumos Clinicos',ins,true)}
+    ${row('(−) Implantes e Bioimplantes',impl,true)}
+    ${row('(−) Kits / Protocolos (custo)',kits,true)}
+    <div class="dre-total"><span>( = ) Lucro Bruto</span>${col(lucroBruto)} <span style="font-size:9px;color:var(--tl);margin-left:6px">Margem ${margemBruta}%</span></div>
+
+    <div class="dre-grupo">4. Despesas com Pessoal</div>
+    ${row('(−) Salario CLT — Ana Eduarda',sal,true)}
+    ${row('(−) Pro-labore Dra. Luisa',pro1,true)}
+    ${row('(−) Pro-labore Socio Gestor',pro2,true)}
+    ${row('(−) Encargos (FGTS / INSS)',enc,true)}
+    ${row('(−) Beneficios',ben,true)}
+    <div class="dre-total"><span>( = ) Resultado apos Pessoal</span>${col(resPessoal)}</div>
+
+    <div class="dre-grupo">5. Despesas Operacionais</div>
+    ${row('(−) Aluguel / Locacao',alug,true)}
+    ${row('(−) Software / Sistema',soft,true)}
+    ${row('(−) Servicos Terceirizados',terc,true)}
+    ${row('(−) Cartao Corporativo Mastercard',mast,true)}
+    ${row('(−) Fornecedores / Boletos',forn,true)}
+    ${row('(−) Utilidades (Energia/Agua/Tel)',util,true)}
+    ${row('(−) Marketing / Redes Sociais',mkt,true)}
+    ${row('(−) Manutencao e Conservacao',manut,true)}
+    ${row('(−) Outras Despesas',outr,true)}
+    <div class="dre-total"><span>( = ) Resultado Operacional (EBIT)</span>${col(resOp)}</div>
+
+    <div class="dre-grupo">6. Resultado Financeiro</div>
+    ${row('(−) Emprestimo Bancario',emp,true)}
+    ${row('(−) Tarifas Bancarias Sicoob',tar,true)}
+    ${row('(−) IOF / Juros / Multas',iof,true)}
+
+    <div class="dre-resultado" style="margin-top:8px">
+      <span>( = ) RESULTADO LIQUIDO DO MES</span>${col(resultado)}
+    </div>
+
+    ${totalInv>0?`
+    <div style="margin-top:16px;padding-top:10px;border-top:1px dashed var(--bd)">
+      <div style="font-size:8px;letter-spacing:1px;font-weight:600;text-transform:uppercase;color:var(--tl);margin-bottom:6px">7. Investimentos (nao impacta DRE)</div>
+      ${row('Benfeitorias / Obra',benf,false,false)}
+      ${row('Equipamentos Medicos',equip,false,false)}
+      ${row('Moveis e Utensilios',moveis,false,false)}
+      <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:600;padding:5px 0;color:var(--tm)"><span>Total investido</span>${col(totalInv)}</div>
+    </div>`:''}
   `;
 }
 
@@ -3093,6 +3606,72 @@ function finFecharModal(){
   const ov=document.getElementById('fin-modal-ov'); if(ov)ov.classList.remove('on');
 }
 
+// ── Autocomplete paciente ─────────────────────────────────────────────
+function finPacAutoComplete(inputEl){
+  finPacAutoCompleteEl(inputEl,'fin-pac-drop');
+  // Mostrar bloco residual se paciente selecionado
+  const val=inputEl.value.trim();
+  const bloco=document.getElementById('fin-residual-bloco');
+  if(bloco) bloco.style.display=val?'':'none';
+}
+
+function finPacAutoCompleteEl(inputEl, dropId){
+  const drop=document.getElementById(dropId); if(!drop)return;
+  const q=(inputEl.value||'').trim().toLowerCase();
+  if(!q){drop.classList.remove('on');return;}
+  const matches=pacientes.filter(p=>p.nome&&p.nome.toLowerCase().includes(q)).slice(0,8);
+  if(!matches.length){
+    drop.innerHTML='<div class="fin-pac-empty">Nenhuma paciente encontrada</div>';
+    drop.classList.add('on');
+    return;
+  }
+  drop.innerHTML=matches.map(p=>`<div class="fin-pac-item" onclick="finPacSelecionar(this,'${p.nome}','${dropId}','${inputEl.id}')">${p.nome}</div>`).join('');
+  drop.classList.add('on');
+  // Fechar ao clicar fora
+  document.addEventListener('click',function fechaDrop(e){
+    if(!drop.contains(e.target)&&e.target!==inputEl){
+      drop.classList.remove('on');
+      document.removeEventListener('click',fechaDrop);
+    }
+  });
+}
+
+function finPacSelecionar(itemEl, nome, dropId, inputId){
+  const input=document.getElementById(inputId); if(input)input.value=nome;
+  const drop=document.getElementById(dropId); if(drop)drop.classList.remove('on');
+  // Mostrar bloco residual no modal principal
+  const bloco=document.getElementById('fin-residual-bloco');
+  if(bloco) bloco.style.display='';
+}
+
+function finToggleResidual(cb){
+  const fields=document.getElementById('fin-residual-fields');
+  if(fields) fields.classList.toggle('on',cb.checked);
+}
+
+function finCalcResidual(){
+  const total=parseFloat(document.getElementById('fin-res-total')?.value)||0;
+  const pago=parseFloat(document.getElementById('fin-res-pago')?.value)||0;
+  const prev=document.getElementById('fin-res-preview');
+  if(!prev)return;
+  if(total>0&&pago>=0){
+    const saldo=total-pago;
+    prev.textContent=saldo>0?`Saldo devedor: ${finFmtDec(saldo)} (${Math.round((pago/total)*100)}% pago)`:'Sem saldo devedor — pagamento integral.';
+    prev.style.color=saldo>0?'#8B2020':'var(--verde)';
+  } else {
+    prev.textContent='';
+  }
+}
+
+function finInadCalcSaldo(){
+  const total=parseFloat(document.getElementById('fin-inad-m-total')?.value)||0;
+  const pago=parseFloat(document.getElementById('fin-inad-m-pago')?.value)||0;
+  const prev=document.getElementById('fin-inad-m-saldo-preview');
+  if(!prev)return;
+  const saldo=total-pago;
+  prev.textContent=saldo>0?`Saldo devedor: ${finFmtDec(saldo)}`:'';
+}
+
 function finRenderFavs(){
   const el=document.getElementById('fin-favs-lista'); if(!el)return;
   el.innerHTML=finFavs.map(f=>`<div class="fin-fav" onclick="finAplicarFav(${f.id})">${f.label}</div>`).join('')
@@ -3132,7 +3711,16 @@ function finSetTipo(t){
 function finPopularCats(){
   const sel=document.getElementById('fin-cat'); if(!sel)return;
   const lista=finTipo==='receita'?FIN_CATS_REC:FIN_CATS_DES;
-  sel.innerHTML=lista.map(c=>`<option value="${c.cod}">${c.label}</option>`).join('');
+  // Agrupar por grupo
+  const grupos={};
+  lista.forEach(c=>{
+    const g=c.grupo||'Outros';
+    if(!grupos[g])grupos[g]=[];
+    grupos[g].push(c);
+  });
+  sel.innerHTML=Object.entries(grupos).map(([g,cats])=>
+    `<optgroup label="${g}">${cats.map(c=>`<option value="${c.cod}">${c.label}</option>`).join('')}</optgroup>`
+  ).join('');
 }
 
 function finSetPay(p){
@@ -3167,21 +3755,32 @@ async function finSalvar(){
   const pac=document.getElementById('fin-paciente')?.value.trim()||'';
   if(!valor){showToast('Informe o valor','err');return;}
   if(!data){showToast('Informe a data','err');return;}
-  if(!desc){showToast('Informe a descrição','err');return;}
+  if(!desc){showToast('Informe a descricao','err');return;}
 
   let extras={};
   if(finTipo==='receita'&&finPay==='pix'){
     extras.pix_banco=document.getElementById('fin-pix-banco')?.value||'';
     extras.pix_tipo=document.getElementById('fin-pix-tipo')?.value||'total';
-    if(extras.pix_tipo==='sinal'||extras.pix_tipo==='complemento'){
-      extras.saldo_devedor=0;
-    }
   }
   if(finTipo==='receita'&&finPay==='cartao'){
     extras.cartao_bandeira=document.getElementById('fin-cartao-band')?.value||'';
     extras.cartao_parcelas=parseInt(document.getElementById('fin-cartao-parc')?.value)||1;
     extras.cartao_taxa=parseFloat(document.getElementById('fin-cartao-taxa')?.value)||0;
   }
+
+  // Saldo residual
+  const temResidual=finTipo==='receita'&&document.getElementById('fin-tem-residual')?.checked;
+  if(temResidual){
+    const totalServico=parseFloat(document.getElementById('fin-res-total')?.value)||0;
+    const saldo=totalServico-valor;
+    if(totalServico>0&&saldo>0){
+      extras.valor_total_servico=totalServico;
+      extras.saldo_devedor=saldo;
+      extras.res_descricao=document.getElementById('fin-res-desc')?.value.trim()||desc;
+      extras.quitado=false;
+    }
+  }
+
   const venc=finTipo==='despesa'?document.getElementById('fin-venc')?.value:'';
   const recorrente=finTipo==='despesa'&&document.getElementById('fin-recorrente')?.checked;
   const lembrete=finTipo==='despesa'&&document.getElementById('fin-lembrete')?.checked;
@@ -3192,33 +3791,32 @@ async function finSalvar(){
     forma_pagamento:finTipo==='receita'?finPay:null,
     vencimento:venc||null, recorrente, lembrete, pago:false,
     user_id:USER?.id||null,
-    setor: finInferirSetor(cat, desc),
+    setor:finInferirSetor(cat,desc),
     ...extras
   };
 
   const btn=document.getElementById('fin-btn-salvar');
   if(btn){btn.textContent='Salvando...';btn.disabled=true;}
-
   try{
     const {data:row,error}=await db.from('fin_lancamentos').insert(payload).select().single();
     if(error) throw error;
     finLancs.unshift(row);
-    showToast('Lançamento salvo!');
+    showToast('Lancamento salvo!'+(temResidual?' Saldo residual registrado nos inadimplentes.':''));
   }catch(e){
     finLancs.unshift({...payload,id:'local-'+Date.now()});
     showToast('Salvo localmente (verifique a tabela no Supabase)','warn');
   }
-
-  if(btn){btn.textContent='Salvar lançamento';btn.disabled=false;}
+  if(btn){btn.textContent='Salvar lancamento';btn.disabled=false;}
   finFecharModal();
   finRenderDash();
 }
 
 function finInferirSetor(cat, desc){
   const d=(desc||'').toLowerCase();
-  if(d.includes('dermatolog')) return 'dermatologia';
-  if(d.includes('nutri')) return 'nutricao';
-  if(d.includes('protocolo')||cat.startsWith('1.')) return 'protocolos';
+  if(d.includes('dermatolog')||cat==='1.5') return 'dermatologia';
+  if(d.includes('nutri')||cat==='1.6') return 'nutricao';
+  if(d.includes('protocolo')||cat==='1.9'||cat==='1.3'||cat==='1.4') return 'protocolos';
+  if(cat==='1.7'||cat==='1.8') return 'geral';
   return 'geral';
 }
 
