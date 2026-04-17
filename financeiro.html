@@ -794,7 +794,7 @@ function showToast(msg,tipo='ok'){
 }
 
 // ── AUTH ───────────────────────────────────────────────────────
-db.auth.onAuthStateChanged(async({data:{session}})=>{
+db.auth.onAuthStateChange(async(event, session)=>{
   if(session) await iniciar(session.user);
   else{S('login-wrap').style.display='flex';S('app').classList.remove('on');}
 });
