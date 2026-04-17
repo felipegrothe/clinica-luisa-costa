@@ -15,7 +15,7 @@
   --dk:#1A1714; --dk2:#221F1B; --dk3:#2E2A26;
   --bg:#F8F5F0; --bg2:#FFFFFF; --bg3:#F0EBE3;
   --bd:#EAE4DC; --bd2:#DDD6CC;
-  --tx:#2C2420; --tm:#6B5A4E; --tl:#9E8E82; --txw:#E8D5BC;
+  --tx:#2C2420; --tm:#6B5A4E; --tl:#9E8E82; --txw:#E8aD5BC;
   --r:6px; --sb:58px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -2788,7 +2788,6 @@ function showToast(msg, type='ok'){
 let finLancs = [];
 let finTipo = 'receita';
 let finPay = 'pix';
-let finIaHist = [];
 let finEditId = null;
 let finFavs = [];
 
@@ -2912,6 +2911,127 @@ function finRenderDash(){
   finRenderContasSide();
   finRenderPayBar();
   finGerarResumoAuto();
+}
+
+
+// ── Funções auxiliares ────────────────────────────────────────────────
+function finInferirSetor(cat, desc){
+  const d=(desc||'').toLowerCase();
+  if(d.includes('dermatolog')) return 'dermatologia';
+  if(d.includes('nutri')) return 'nutricao';
+  if(cat&&(cat.startsWith('1.4')||d.includes('protocolo'))) return 'protocolos';
+  if(cat&&cat.startsWith('1.')) return 'protocolos';
+  return 'geral';
+}
+
+function finChecarLembretes(){
+  const hj=finHoje();
+  const em3=new Date(); em3.setDate(em3.getDate()+3); const em3s=em3.toISOString().slice(0,10);
+  const urg=finLancs.filter(l=>l.tipo==='despesa'&&l.vencimento&&!l.pago&&l.lembrete!==false&&l.vencimento<=em3s);
+  if(!urg.length) return;
+  const msg=urg.length===1?`Lembrete: "${urg[0].descricao||urg[0].categoria_dre}" vence em breve.`:`${urg.length} conta(s) vencem nos próximos 3 dias.`;
+  showToast(msg,'warn');
+}
+
+function finValidar(){
+  const el=document.getElementById('fin-validacao'); if(!el)return;
+  const mes=finMesAtual(), hj=finHoje();
+  const rec=finLancs.filter(l=>l.tipo==='receita'&&l.data&&l.data.startsWith(mes));
+  const des=finLancs.filter(l=>l.tipo==='despesa'&&l.data&&l.data.startsWith(mes));
+  const tRec=rec.reduce((s,l)=>s+Number(l.valor||0),0);
+  const tDes=des.reduce((s,l)=>s+Number(l.valor||0),0);
+  const saldo=tRec-tDes;
+  const vencidas=finLancs.filter(l=>l.tipo==='despesa'&&l.vencimento&&l.vencimento<hj&&!l.pago);
+  const pct=tRec>0?Math.round((tDes/tRec)*100):0;
+  const checks=[
+    {dot:saldo>=0?'ok':'err', txt:saldo>=0?`Saldo positivo: ${finFmt(saldo)}`:`Saldo negativo: ${finFmt(saldo)} — revise as despesas`},
+    {dot:vencidas.length===0?'ok':'err', txt:vencidas.length===0?'Sem contas vencidas em aberto':`${vencidas.length} conta(s) vencida(s) — regularize`},
+    {dot:rec.length>0?'ok':'warn', txt:rec.length>0?`${rec.length} receita(s) lançada(s) no mês`:'Nenhuma receita lançada ainda'},
+    {dot:pct<=70?'ok':pct<=90?'warn':'err', txt:pct<=70?`Despesas em ${pct}% da receita — saudável`:pct<=90?`Despesas em ${pct}% — atenção`:`Despesas em ${pct}% — acima do recomendável`},
+  ];
+  el.innerHTML=checks.map(c=>`<div class="fin-valid-item"><div class="fin-valid-dot ${c.dot}"></div><span>${c.txt}</span></div>`).join('');
+}
+
+function finRenderSetores(){
+  const mes=finMesAtual();
+  const rec=finLancs.filter(l=>l.tipo==='receita'&&l.data&&l.data.startsWith(mes));
+  const setor=(cat)=>rec.filter(l=>l.setor===cat).reduce((s,l)=>s+Number(l.valor||0),0);
+  const tProt=setor('protocolos'), tDerm=setor('dermatologia'), tNutr=setor('nutricao');
+  const tGeral=rec.filter(l=>!l.setor||l.setor==='geral').reduce((s,l)=>s+Number(l.valor||0),0);
+  const max=Math.max(tProt,tDerm,tNutr,tGeral,1);
+  const setSafe=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  setSafe('fset-prot',finFmt(tProt)); setSafe('fset-prot-sub',rec.filter(l=>l.setor==='protocolos').length+' consultas');
+  setSafe('fset-derm',finFmt(tDerm)); setSafe('fset-derm-sub',rec.filter(l=>l.setor==='dermatologia').length+' consultas');
+  setSafe('fset-nutr',finFmt(tNutr)); setSafe('fset-nutr-sub',rec.filter(l=>l.setor==='nutricao').length+' consultas');
+  setSafe('fset-geral',finFmt(tGeral)); setSafe('fset-geral-sub',rec.filter(l=>!l.setor||l.setor==='geral').length+' atendimentos');
+  ['prot','derm','nutr','geral'].forEach((k,i)=>{
+    const vals=[tProt,tDerm,tNutr,tGeral];
+    const bar=document.getElementById('fset-'+k+'-bar');
+    if(bar) bar.style.width=Math.round((vals[i]/max)*100)+'%';
+  });
+}
+
+// ── IA financeira ─────────────────────────────────────────────────────
+let finIaHist = [];
+
+async function finGerarResumoAuto(){
+  const el=document.getElementById('fin-ia-resumo'); if(!el)return;
+  const mes=finMesAtual(), hj=finHoje();
+  const rec=finLancs.filter(l=>l.tipo==='receita'&&l.data&&l.data.startsWith(mes));
+  const des=finLancs.filter(l=>l.tipo==='despesa'&&l.data&&l.data.startsWith(mes));
+  const tRec=rec.reduce((s,l)=>s+Number(l.valor||0),0);
+  const tDes=des.reduce((s,l)=>s+Number(l.valor||0),0);
+  const venc=finLancs.filter(l=>l.tipo==='despesa'&&l.vencimento&&l.vencimento<hj&&!l.pago);
+  if(!finLancs.length){el.textContent='Sem lançamentos registrados. Adicione receitas e despesas para ver o resumo.';return;}
+  el.textContent='Analisando...';
+  const ctx=`Assistente financeiro da Clínica Luisa Costa. Faça um resumo executivo CURTO (2-3 frases) sem markdown. Dados do mês: Receitas ${finFmt(tRec)} (${rec.length} lançamentos), Despesas ${finFmt(tDes)} (${des.length} lançamentos), Saldo ${finFmt(tRec-tDes)}, Contas vencidas ${venc.length}. Seja direto e objetivo.`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:200,system:ctx,messages:[{role:'user',content:'Resumo executivo do dia.'}]})
+    });
+    const j=await r.json();
+    el.textContent=j.content?.[0]?.text||`Receitas ${finFmt(tRec)} · Despesas ${finFmt(tDes)} · Saldo ${finFmt(tRec-tDes)}.`;
+  }catch(e){
+    el.textContent=`Receitas ${finFmt(tRec)} · Despesas ${finFmt(tDes)} · Saldo ${finFmt(tRec-tDes)}${venc.length?' · '+venc.length+' vencida(s)':''}.`;
+  }
+}
+
+async function finGerarResumo(){ await finGerarResumoAuto(); }
+
+async function finEnviarIA(){
+  const input=document.getElementById('fin-ia-input');
+  const pergunta=input?.value.trim(); if(!pergunta)return;
+  input.value='';
+  const msgs=document.getElementById('fin-ia-chat'); if(!msgs)return;
+  msgs.innerHTML+=`<div class="fin-ia-msg user">${pergunta}</div>`;
+  msgs.innerHTML+=`<div class="fin-ia-msg ai" id="fin-ia-typing"><div class="fin-ia-lbl">Assistente</div>Analisando...</div>`;
+  msgs.scrollTop=msgs.scrollHeight;
+  const mes=finMesAtual();
+  const rec=finLancs.filter(l=>l.tipo==='receita'&&l.data&&l.data.startsWith(mes));
+  const des=finLancs.filter(l=>l.tipo==='despesa'&&l.data&&l.data.startsWith(mes));
+  const tRec=rec.reduce((s,l)=>s+Number(l.valor||0),0);
+  const tDes=des.reduce((s,l)=>s+Number(l.valor||0),0);
+  const sys=`Assistente financeiro da Clínica Luisa Costa. Responda de forma direta e clara. Dados do mês: Receitas ${finFmt(tRec)}, Despesas ${finFmt(tDes)}, Saldo ${finFmt(tRec-tDes)}.`;
+  finIaHist.push({role:'user',content:pergunta});
+  if(finIaHist.length>10) finIaHist=finIaHist.slice(-10);
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:400,system:sys,messages:finIaHist})
+    });
+    const j=await r.json();
+    const resp=j.content?.[0]?.text||'Não consegui processar.';
+    finIaHist.push({role:'assistant',content:resp});
+    const t=document.getElementById('fin-ia-typing');
+    if(t){t.removeAttribute('id');t.innerHTML=`<div class="fin-ia-lbl">Assistente</div>${resp}`;}
+  }catch(e){
+    const t=document.getElementById('fin-ia-typing');
+    if(t){t.removeAttribute('id');t.innerHTML='<div class="fin-ia-lbl">Assistente</div>Erro de conexão.';}
+  }
+  msgs.scrollTop=msgs.scrollHeight;
 }
 
 
@@ -3231,16 +3351,16 @@ async function finRemoverLanc(){
 let finPacsCache = [];
 
 async function finCarregarPacs(){
+  // Tenta pacientes, depois fallback nos nomes dos protocolos
   try{
     const {data,error}=await db.from('pacientes').select('id,nome,cpf').order('nome');
-    if(!error&&data) finPacsCache=data;
-    // Fallback: tentar tabela perfis se pacientes vazia
-    if(!finPacsCache.length){
-      const r2=await db.from('protocolos').select('paciente_nome').limit(100);
-      if(r2.data){
-        const nomes=[...new Set(r2.data.map(p=>p.paciente_nome).filter(Boolean))].sort();
-        finPacsCache=nomes.map((n,i)=>({id:i,nome:n}));
-      }
+    if(!error&&data&&data.length) { finPacsCache=data; return; }
+  }catch(e){}
+  try{
+    const {data}=await db.from('protocolos').select('paciente_nome').limit(200);
+    if(data){
+      const nomes=[...new Set(data.map(p=>p.paciente_nome).filter(Boolean))].sort();
+      finPacsCache=nomes.map((n,i)=>({id:i,nome:n,cpf:''}));
     }
   }catch(e){ finPacsCache=[]; }
 }
