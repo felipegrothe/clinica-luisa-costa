@@ -3028,7 +3028,7 @@ function finRenderDRE(){
     const isNeg=neg?(v>0):(v<0);
     return `<span style="color:${isNeg?'#8B2020':'var(--verde)'}">${neg&&v>0?'−':v<0?'−':''}${finFmt(Math.abs(v))}</span>`;
   };
-  const item=(label,v,neg=false)=>v?`<div class="dre-item"><span>${label}</span>${col(v,neg)}</div>`:'';
+  const item=(label,v,neg=false)=>`<div class="dre-item"><span>${label}</span>${col(v,neg)}</div>`;
 
   el.innerHTML=`
     <div style="display:flex;justify-content:space-between;padding:4px 0 10px;border-bottom:1px solid var(--bd);margin-bottom:6px">
