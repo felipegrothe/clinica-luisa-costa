@@ -1536,46 +1536,71 @@ async function salvarEdicao(){
   if(!isAdmin()){showToast('Acesso negado','err');return;}
   const motivo=S('ed-motivo')?.value.trim();
   if(!motivo){showToast('Informe o motivo da edição','err');return;}
-  const l=LANCS.find(x=>String(x.id)===String(DET_ID)); if(!l)return;
-  // Se é local, só atualiza array
-  if(String(DET_ID).startsWith('local-')){
-    const payload2={descricao:S('ed-desc')?.value.trim()||l.descricao,valor:parseFloat(S('ed-valor')?.value)||l.valor,data:S('ed-data')?.value||l.data,categoria_dre:S('ed-cat')?.value||l.categoria_dre,paciente:S('ed-pac')?.value.trim()||l.paciente};
-    LANCS=LANCS.map(x=>String(x.id)===String(DET_ID)?{...x,...payload2}:x);
-    showToast('Editado!'); fecharDet(); renderDash(); return;
-  }
-  const payload={
+  const l=LANCS.find(x=>String(x.id)===String(DET_ID));
+  if(!l){showToast('Lançamento não encontrado','err');return;}
+
+  const novoPayload={
     descricao:S('ed-desc')?.value.trim()||l.descricao,
     valor:parseFloat(S('ed-valor')?.value)||l.valor,
     data:S('ed-data')?.value||l.data,
     categoria_dre:S('ed-cat')?.value||l.categoria_dre,
-    paciente:S('ed-pac')?.value.trim()||l.paciente,
-    obs:(l.obs?l.obs+' | ':'')+`[EDITADO ${new Date().toLocaleDateString('pt-BR')} por ${PERFIL?.nome||'admin'}]: ${motivo}`,
+    paciente:S('ed-pac')?.value.trim()||l.paciente||null,
+    obs:(l.obs?l.obs+' | ':'')+('[EDITADO '+new Date().toLocaleDateString('pt-BR')+' por '+(PERFIL?.nome||'admin')+']: '+motivo),
   };
+
+  // Lançamento local
+  if(String(DET_ID).startsWith('local-')){
+    LANCS=LANCS.map(x=>String(x.id)===String(DET_ID)?{...x,...novoPayload}:x);
+    showToast('Editado!'); fecharDet(); renderDash(); return;
+  }
+  // Salvar no Supabase
   try{
-    const{error}=await db.from('fin_lancamentos').update(payload).eq('id',DET_ID);
-    if(error)throw error;
-    LANCS=LANCS.map(x=>String(x.id)===String(DET_ID)?{...x,...payload}:x);
+    const resp=await db.from('fin_lancamentos').update(novoPayload).eq('id',String(DET_ID));
+    if(resp.error){
+      showToast('Erro: '+resp.error.message,'err');
+      console.error('Update error:',resp.error);
+      return;
+    }
+    LANCS=LANCS.map(x=>String(x.id)===String(DET_ID)?{...x,...novoPayload}:x);
     showToast('Lançamento editado!');
-    fecharDet(); renderDash();
-  }catch(e){showToast('Erro ao editar: '+e.message,'err');}
+    fecharDet();
+    await carregar();
+    renderDash();
+  }catch(e){
+    showToast('Erro ao editar','err');
+    console.error('salvarEdicao error:',e);
+  }
 }
 async function removerLanc(){
   if(!isAdmin()){showToast('Acesso negado','err');return;}
-  const l=LANCS.find(x=>String(x.id)===String(DET_ID)); if(!l)return;
-  if(!confirm(`Remover "${l.descricao||'este lançamento'}" de ${fmt(l.valor)}?`))return;
-  // Se é local (não salvo no Supabase), só remove do array
+  const l=LANCS.find(x=>String(x.id)===String(DET_ID));
+  if(!l){showToast('Lançamento não encontrado','err');return;}
+  if(!confirm('Remover "'+( l.descricao||'este lançamento')+'" de '+fmt(l.valor)+'?'))return;
+
+  // Lançamento local (não salvo no banco)
   if(String(DET_ID).startsWith('local-')){
     LANCS=LANCS.filter(x=>String(x.id)!==String(DET_ID));
     showToast('Removido.');
     fecharDet(); renderDash(); return;
   }
+
+  // Lançamento no Supabase
   try{
-    const{error}=await db.from('fin_lancamentos').delete().eq('id',DET_ID);
-    if(error)throw error;
+    const resp=await db.from('fin_lancamentos').delete().eq('id',String(DET_ID));
+    if(resp.error){
+      showToast('Erro: '+resp.error.message,'err');
+      console.error('Delete error:',resp.error);
+      return;
+    }
     LANCS=LANCS.filter(x=>String(x.id)!==String(DET_ID));
-    showToast('Removido.');
-    fecharDet(); renderDash();
-  }catch(e){showToast('Erro ao remover: '+e.message,'err');}
+    showToast('Lançamento removido!');
+    fecharDet();
+    await carregar();
+    renderDash();
+  }catch(e){
+    showToast('Erro ao remover','err');
+    console.error('removerLanc error:',e);
+  }
 }
 
 // ── DRE ───────────────────────────────────────────────────────
