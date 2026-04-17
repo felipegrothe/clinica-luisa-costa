@@ -926,6 +926,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
           <div class="fin-sn" onclick="finGoSub('inadimplentes',this)">Inadimplentes</div>
           <div class="fin-sn" onclick="finGoSub('dre',this)">DRE</div>
           <div class="fin-sn" onclick="finGoSub('ia',this)">Assistente IA</div>
+          <div class="fin-sn" onclick="finGoSub('config',this)">Configurações</div>
         </div>
 
         <!-- ── DASHBOARD ── -->
@@ -1045,6 +1046,30 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
             <div class="fin-ia-row">
               <input id="fin-ia-input" type="text" placeholder="Ex: Qual meu maior gasto este mês?" onkeydown="if(event.key==='Enter')finEnviarIA()">
               <button class="btn btn-terra btn-sm" onclick="finEnviarIA()" style="font-size:10px;white-space:nowrap">Enviar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── CONFIGURAÇÕES ── -->
+        <div class="fin-sub-pg fin-pg" id="fin-pg-config">
+          <div class="fin-card" style="margin-bottom:12px">
+            <div class="fin-card-hd">
+              <span class="sec">Categorias de receita (DRE)</span>
+              <button class="btn btn-xs btn-terra" onclick="finAddCatRec()">+ Nova categoria</button>
+            </div>
+            <div class="fin-card-body" id="fin-config-rec"></div>
+          </div>
+          <div class="fin-card" style="margin-bottom:12px">
+            <div class="fin-card-hd">
+              <span class="sec">Categorias de despesa (DRE)</span>
+              <button class="btn btn-xs btn-dk" onclick="finAddCatDes()">+ Nova categoria</button>
+            </div>
+            <div class="fin-card-body" id="fin-config-des"></div>
+          </div>
+          <div class="fin-card">
+            <div class="fin-card-hd"><span class="sec">Sobre o plano de contas</span></div>
+            <div class="fin-card-body">
+              <p style="font-size:11px;color:var(--tl);line-height:1.7">As categorias definem como cada lançamento aparece no DRE. O código numérico (ex: 1.1) determina o grupo. Categorias adicionadas ficam disponíveis no modal de lançamento imediatamente.</p>
             </div>
           </div>
         </div>
@@ -2547,6 +2572,7 @@ function finIsAdmin(){ return finIsAdmin()||NIVEL==='administrador'||NIVEL==='Ad
 function finIsFinanceiro(){ return finIsAdmin()||NIVEL==='financeiro'; }
 
 async function finInit(){
+  finCarregarCats();
   await finCarregar();
   finCarregarFavs();
   finCarregarPacs();
@@ -2748,6 +2774,7 @@ function finGoSub(id,el){
   if(id==='inadimplentes') finRenderInad();
   if(id==='setores') finRenderSetores();
   if(id==='dre') finRenderDRE();
+  if(id==='config') finRenderConfig();
 }
 
 // ── Dashboard ─────────────────────────────────────────────────────────
@@ -2901,6 +2928,71 @@ async function finEnviarIA(){
     if(t){t.removeAttribute('id');t.innerHTML='<div class="fin-ia-lbl">Assistente</div>Erro de conexão.';}
   }
   msgs.scrollTop=msgs.scrollHeight;
+}
+
+
+// ── Configurações — gestão de categorias ─────────────────────────────
+function finRenderConfig(){
+  finRenderCatList('fin-config-rec', FIN_CATS_REC, 'receita');
+  finRenderCatList('fin-config-des', FIN_CATS_DES, 'despesa');
+}
+
+function finRenderCatList(elId, lista, tipo){
+  const el=document.getElementById(elId); if(!el)return;
+  if(!lista.length){el.innerHTML='<div style="color:var(--tl);font-size:11px;padding:8px 0">Nenhuma categoria.</div>';return;}
+  el.innerHTML=lista.map((c,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bg3)">
+      <div style="font-size:11px;font-weight:600;color:var(--terra-d);width:36px;flex-shrink:0">${c.cod}</div>
+      <div style="flex:1;font-size:12px;color:var(--tx)">${c.label.replace(c.cod+' — ','')}</div>
+      <button onclick="finRemoverCat('${tipo}',${i})" style="border:none;background:none;color:var(--tl);font-size:11px;cursor:pointer;padding:2px 6px;border:1px solid var(--bd2);border-radius:var(--r)">Remover</button>
+    </div>`).join('');
+}
+
+function finAddCatRec(){
+  const label=prompt('Nome da nova categoria de receita (ex: Consulta Retorno):');
+  if(!label||!label.trim())return;
+  const novaCod='1.'+(FIN_CATS_REC.length+1);
+  FIN_CATS_REC.push({cod:novaCod, label:novaCod+' — '+label.trim()});
+  finSalvarCats();
+  finRenderConfig();
+  showToast('Categoria adicionada!');
+}
+function finAddCatDes(){
+  const label=prompt('Nome da nova categoria de despesa (ex: Seguro do consultório):');
+  if(!label||!label.trim())return;
+  const grupo=prompt('Grupo (2=Deduções, 3=CSP, 4=Pessoal, 5=Operacional, 6=Financeiro, 7=Invest):');
+  if(!grupo||!grupo.trim())return;
+  const g=grupo.trim().split(' ')[0];
+  const existentes=FIN_CATS_DES.filter(c=>c.cod.startsWith(g+'.'));
+  const novaCod=g+'.'+(existentes.length+1);
+  FIN_CATS_DES.push({cod:novaCod, label:novaCod+' — '+label.trim()});
+  finSalvarCats();
+  finRenderConfig();
+  showToast('Categoria adicionada!');
+}
+function finRemoverCat(tipo, idx){
+  if(!confirm('Remover esta categoria? Os lançamentos existentes não serão afetados.'))return;
+  if(tipo==='receita') FIN_CATS_REC.splice(idx,1);
+  else FIN_CATS_DES.splice(idx,1);
+  finSalvarCats();
+  finRenderConfig();
+  showToast('Categoria removida.');
+}
+
+function finSalvarCats(){
+  try{
+    localStorage.setItem('fin_cats_rec', JSON.stringify(FIN_CATS_REC));
+    localStorage.setItem('fin_cats_des', JSON.stringify(FIN_CATS_DES));
+  }catch(e){}
+}
+
+function finCarregarCats(){
+  try{
+    const r=localStorage.getItem('fin_cats_rec');
+    const d=localStorage.getItem('fin_cats_des');
+    if(r) { const parsed=JSON.parse(r); if(parsed.length) FIN_CATS_REC.splice(0,FIN_CATS_REC.length,...parsed); }
+    if(d) { const parsed=JSON.parse(d); if(parsed.length) FIN_CATS_DES.splice(0,FIN_CATS_DES.length,...parsed); }
+  }catch(e){}
 }
 
 
