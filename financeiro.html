@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Financeiro — Clínica Luisa Costa</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 /* ── RESET & BASE ─────────────────────────────────────────── */
 *{box-sizing:border-box;margin:0;padding:0}
@@ -733,7 +733,8 @@ body{min-height:100vh;display:flex;flex-direction:column}
 <script>
 const SUPA_URL = 'https://eeianweavbnrikzqquxq.supabase.co';
 const SUPA_KEY = 'sb_publishable_RWouef1R4SySi3PyBxq0lQ_AEEpGHly';
-const db = supabase.createClient(SUPA_URL, SUPA_KEY);
+const _supa = window.supabase || supabase;
+const db = _supa.createClient(SUPA_URL, SUPA_KEY);
 
 let USER=null, PERFIL=null, NIVEL=null;
 let LANCS=[], INAD_MANUAIS=[], PACS_CACHE=[], FAVS=[];
@@ -794,9 +795,15 @@ function showToast(msg,tipo='ok'){
 }
 
 // ── AUTH ───────────────────────────────────────────────────────
-db.auth.onAuthStateChange(async(event, session)=>{
-  if(session) await iniciar(session.user);
-  else{S('login-wrap').style.display='flex';S('app').classList.remove('on');}
+// Verificar sessão existente ao carregar
+db.auth.getSession().then(({data:{session}})=>{
+  if(session) iniciar(session.user);
+  else{ S('login-wrap').style.display='flex'; }
+});
+
+// Ouvir mudanças de auth
+db.auth.onAuthStateChange((event, session)=>{
+  if(event==='SIGNED_OUT'){ S('login-wrap').style.display='flex'; S('app').classList.remove('on'); }
 });
 
 async function fazerLogin(){
