@@ -948,7 +948,14 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
               <div class="fin-card">
                 <div class="fin-card-hd">
                   <span class="sec">Lançamentos recentes</span>
-                  <button class="btn btn-xs btn-terra" onclick="finAbrirModal()">+ Novo</button>
+                  <div style="display:flex;gap:6px;align-items:center">
+                    <select id="fin-dash-filtro" onchange="finRenderLancRecentes()" style="padding:4px 8px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:10px;color:var(--tx)">
+                      <option value="">Todos</option>
+                      <option value="receita">Receitas</option>
+                      <option value="despesa">Despesas</option>
+                    </select>
+                    <button class="btn btn-xs btn-terra" onclick="finAbrirModal()">+ Novo</button>
+                  </div>
                 </div>
                 <div class="fin-card-body" id="fin-lanc-lista"><div style="color:var(--tl);font-size:11px">Carregando...</div></div>
               </div>
@@ -972,9 +979,28 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
 
         <!-- ── RECEITAS ── -->
         <div class="fin-sub-pg fin-pg" id="fin-pg-receitas">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
             <div class="sec">Todas as receitas</div>
             <button class="btn btn-terra btn-sm" onclick="finAbrirModal('receita')">+ Nova receita</button>
+          </div>
+          <!-- Filtros receitas -->
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center">
+            <select id="fin-filtro-cat" onchange="finAplicarFiltros()" style="padding:6px 10px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:11px;color:var(--tx)">
+              <option value="">Todas as categorias</option>
+            </select>
+            <select id="fin-filtro-pay" onchange="finAplicarFiltros()" style="padding:6px 10px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:11px;color:var(--tx)">
+              <option value="">Todas as formas</option>
+              <option value="pix">PIX</option>
+              <option value="cartao">Cartão</option>
+              <option value="dinheiro">Dinheiro</option>
+              <option value="boleto">Boleto</option>
+            </select>
+            <input id="fin-filtro-pac" type="text" placeholder="Buscar paciente..." oninput="finAplicarFiltros()" style="padding:6px 10px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:11px;color:var(--tx);min-width:160px">
+            <select id="fin-filtro-mes" onchange="finAplicarFiltros()" style="padding:6px 10px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:11px;color:var(--tx)">
+              <option value="">Todos os meses</option>
+            </select>
+            <button onclick="finLimparFiltros()" style="padding:6px 10px;border:1px solid var(--bd2);border-radius:var(--r);background:none;font-size:11px;color:var(--tl);cursor:pointer">Limpar</button>
+            <span id="fin-filtro-total" style="font-size:11px;color:var(--tl);margin-left:4px"></span>
           </div>
           <div class="fin-card"><div class="fin-card-body" id="fin-rec-lista"><div style="color:var(--tl);font-size:11px">Carregando...</div></div></div>
         </div>
@@ -983,7 +1009,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
         <div class="fin-sub-pg fin-pg" id="fin-pg-despesas">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
             <div class="sec">Todas as despesas</div>
-            <button class="btn btn-dk btn-sm" onclick="finAbrirModal('despesa')">+ Nova despesa</button>
+            <button class="btn btn-terra btn-sm" onclick="finAbrirModal('despesa')">+ Nova despesa</button>
           </div>
           <div class="fin-card"><div class="fin-card-body" id="fin-des-lista"><div style="color:var(--tl);font-size:11px">Carregando...</div></div></div>
         </div>
@@ -2772,7 +2798,7 @@ function finGoSub(id,el){
   const pg=document.getElementById('fin-pg-'+id);
   if(pg) pg.classList.add('on');
   if(id==='dashboard'){ finCarregar().then(()=>finRenderDash()); }
-  if(id==='receitas'){ finCarregar().then(()=>finRenderLista('receita')); }
+  if(id==='receitas'){ finCarregar().then(()=>{ finRenderLista('receita'); finPopularFiltrosCat(); finPopularFiltrosMes(); }); }
   if(id==='despesas'){ finCarregar().then(()=>finRenderLista('despesa')); }
   if(id==='contas') finRenderContas();
   if(id==='inadimplentes'){ finCarregar().then(()=>finRenderInad()); }
@@ -3080,9 +3106,76 @@ function finExportarDRE(){
   showToast('Exportação em PDF em breve','warn');
 }
 
+// ── Filtros de receitas ───────────────────────────────────────────────
+function finPopularFiltrosMes(){
+  const sel=document.getElementById('fin-filtro-mes'); if(!sel)return;
+  const meses=[...new Set(finLancs.filter(l=>l.tipo==='receita'&&l.data).map(l=>l.data.slice(0,7)))].sort().reverse();
+  const atual=sel.value;
+  sel.innerHTML='<option value="">Todos os meses</option>'+
+    meses.map(m=>{
+      const d=new Date(m+'-01');
+      const label=d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+      return `<option value="${m}"${m===atual?' selected':''}>${label}</option>`;
+    }).join('');
+}
+
+function finPopularFiltrosCat(){
+  const sel=document.getElementById('fin-filtro-cat'); if(!sel)return;
+  const cats=[...new Set(finLancs.filter(l=>l.tipo==='receita'&&l.categoria_dre).map(l=>l.categoria_dre))].sort();
+  const atual=sel.value;
+  sel.innerHTML='<option value="">Todas as categorias</option>'+
+    cats.map(c=>`<option value="${c}"${c===atual?' selected':''}>${c}</option>`).join('');
+}
+
+function finAplicarFiltros(){
+  const cat=document.getElementById('fin-filtro-cat')?.value||'';
+  const pay=document.getElementById('fin-filtro-pay')?.value||'';
+  const pac=(document.getElementById('fin-filtro-pac')?.value||'').toLowerCase().trim();
+  const mes=document.getElementById('fin-filtro-mes')?.value||'';
+
+  let lista=finLancs.filter(l=>l.tipo==='receita');
+  if(cat) lista=lista.filter(l=>l.categoria_dre&&l.categoria_dre.startsWith(cat.split(' ')[0]));
+  if(pay) lista=lista.filter(l=>l.forma_pagamento===pay);
+  if(pac) lista=lista.filter(l=>l.paciente&&l.paciente.toLowerCase().includes(pac));
+  if(mes) lista=lista.filter(l=>l.data&&l.data.startsWith(mes));
+
+  const total=lista.reduce((s,l)=>s+Number(l.valor||0),0);
+  const totEl=document.getElementById('fin-filtro-total');
+  if(totEl) totEl.textContent=lista.length+' resultado(s) · '+finFmt(total);
+
+  const el=document.getElementById('fin-rec-lista'); if(!el)return;
+  if(!lista.length){
+    el.innerHTML='<div style="color:var(--tl);font-size:11px;padding:8px 0">Nenhuma receita encontrada com esses filtros.</div>';
+    return;
+  }
+  el.innerHTML=lista.map(l=>{
+    const dt=l.data?new Date(l.data+'T12:00').toLocaleDateString('pt-BR'):'';
+    const badge=l.forma_pagamento?`<span class="fbadge ${l.forma_pagamento}">${l.forma_pagamento}</span>`:'';
+    return `<div class="fin-lr" style="cursor:pointer" onclick="finAbrirDetalhe('${l.id}')">
+      <div class="fin-lr-ico" style="background:var(--verde-l);color:var(--verde)">+</div>
+      <div class="fin-lr-info">
+        <div class="fin-lr-desc">${l.descricao||l.categoria_dre||'—'}</div>
+        <div class="fin-lr-meta">${dt} ${badge}${l.paciente?' · '+l.paciente:''} · <em style="color:var(--tl);font-style:normal">${l.categoria_dre||''}</em></div>
+      </div>
+      <div class="fin-lr-val pos">+ ${finFmt(l.valor)}</div>
+    </div>`;
+  }).join('');
+}
+
+function finLimparFiltros(){
+  const ids=['fin-filtro-cat','fin-filtro-pay','fin-filtro-mes'];
+  ids.forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const pac=document.getElementById('fin-filtro-pac');if(pac)pac.value='';
+  const tot=document.getElementById('fin-filtro-total');if(tot)tot.textContent='';
+  finRenderLista('receita');
+}
+
+
 function finRenderLancRecentes(){
   const el=document.getElementById('fin-lanc-lista'); if(!el)return;
-  const lista=finLancs.slice(0,8);
+  const filtro=document.getElementById('fin-dash-filtro')?.value||'';
+  const todos=filtro?finLancs.filter(l=>l.tipo===filtro):finLancs;
+  const lista=todos.slice(0,10);
   if(!lista.length){el.innerHTML='<div style="color:var(--tl);font-size:11px;padding:8px 0">Nenhum lançamento. Clique em + Novo.</div>';return;}
   el.innerHTML=lista.map(l=>{
     const pos=l.tipo==='receita';
@@ -3544,40 +3637,49 @@ async function finConfirmarQuit(){
 
   if(!valor||valor<=0){showToast('Informe o valor','err');return;}
 
-  // Criar lançamento de receita no financeiro
+  // 1. Criar lançamento de receita
   const payload={
     tipo:'receita',
-    descricao:`Quitação — ${pac}`,
+    descricao:'Quitação — '+pac,
     categoria_dre:'1.4',
     valor, data,
     forma_pagamento:forma,
     paciente:pac,
-    obs:`${obs} | Ref: ${desc}`,
+    obs:obs+' | Ref: '+desc,
     user_id:USER?.id||null
   };
-
   try{
     const {data:row,error}=await db.from('fin_lancamentos').insert(payload).select().single();
     if(error)throw error;
     finLancs.unshift(row);
-  }catch(e){ showToast('Erro ao criar lançamento de receita','err'); return; }
+  }catch(e){ showToast('Erro ao criar lançamento','err'); return; }
 
-  // Atualizar saldo do inadimplente manual
+  // 2. Atualizar inadimplente manual no Supabase E localmente
   if(finQuitOrigem==='manual'){
     try{
-      const reg=finInadManuais.find(i=>String(i.id)===finQuitId);
+      const reg=finInadManuais.find(i=>String(i.id)===String(finQuitId));
       if(reg){
         const novoPago=Number(reg.valor_pago||0)+valor;
         const novoSaldo=Math.max(0,Number(reg.valor_total||0)-novoPago);
-        await db.from('fin_inadimplentes')
+        const {error}=await db.from('fin_inadimplentes')
           .update({valor_pago:novoPago,saldo_devedor:novoSaldo})
           .eq('id',finQuitId);
+        if(!error){
+          // Atualizar localmente também
+          reg.valor_pago=novoPago;
+          reg.saldo_devedor=novoSaldo;
+        }
       }
     }catch(e){}
   }
 
-  showToast('Quitação registrada! Lançamento de receita criado.');
+  // 3. Para protocolo: registrar pagamento vinculado ao paciente
+  // (já reflete automaticamente pois finRenderInad cruza finLancs)
+
+  showToast('Quitação registrada! Saldo atualizado.');
   finFecharQuit();
+  // Recarregar dados frescos do Supabase antes de renderizar
+  await finCarregar();
   await finRenderInad();
   finRenderDash();
 }
