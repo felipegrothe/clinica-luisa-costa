@@ -432,9 +432,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
 /* ══ FINANCEIRO ══════════════════════════════════════════════════════ */
 #pg-financeiro{display:none;height:100%;overflow-y:auto;padding:0}
 #pg-financeiro.on{display:block}
-.fin-subnav{background:var(--dk2);display:flex;gap:0;padding:0 16px;flex-shrink:0;overflow-x:auto;border-bottom:1px solid var(--dk3)}
+.fin-subnav{background:var(--dk2);display:flex;gap:0;padding:0;flex-shrink:0;overflow-x:auto;border-bottom:1px solid var(--dk3);justify-content:center}
 .fin-subnav::-webkit-scrollbar{display:none}
-.fin-sn{font-size:10px;letter-spacing:1.2px;color:rgba(255,255,255,.5);padding:11px 14px;cursor:pointer;font-weight:600;text-transform:uppercase;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
+.fin-sn{font-size:11px;letter-spacing:1px;color:rgba(255,255,255,.6);padding:13px 20px;cursor:pointer;font-weight:600;text-transform:uppercase;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
 .fin-sn:hover{color:rgba(255,255,255,.7)}
 .fin-sn.on{color:var(--terra-l);border-bottom-color:var(--terra)}
 .fin-pg{padding:14px 16px;overflow-y:auto}
@@ -999,12 +999,81 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
 
         <!-- ── INADIMPLENTES ── -->
         <div class="fin-sub-pg fin-pg" id="fin-pg-inadimplentes">
-          <div class="fin-kpis" style="grid-template-columns:repeat(3,1fr)">
-            <div class="fin-kpi r"><div class="fk-lbl">Total em aberto</div><div class="fk-val red" id="fk-inad-total">R$ 0</div><div class="fk-sub" id="fk-inad-pac">0 pacientes</div></div>
-            <div class="fin-kpi"><div class="fk-lbl">Sinais sem retorno</div><div class="fk-val" id="fk-inad-sinais">0</div><div class="fk-sub">aguardando consulta</div></div>
-            <div class="fin-kpi r"><div class="fk-lbl">Complemento pendente</div><div class="fk-val red" id="fk-inad-comp">0</div><div class="fk-sub">consulta realizada</div></div>
+          <div class="fin-kpis" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:12px">
+            <div class="fin-kpi r"><div class="fk-lbl">Total em aberto</div><div class="fk-val red" id="fk-inad-total">R$ 0</div><div class="fk-sub" id="fk-inad-sub">0 registros</div></div>
+            <div class="fin-kpi"><div class="fk-lbl">Via protocolos</div><div class="fk-val" id="fk-inad-prot">0</div><div class="fk-sub">precificador</div></div>
+            <div class="fin-kpi r"><div class="fk-lbl">Adicionados manualmente</div><div class="fk-val red" id="fk-inad-man">0</div><div class="fk-sub">registro direto</div></div>
           </div>
-          <div class="fin-card"><div class="fin-card-hd"><span class="sec">Saldos em aberto por paciente</span></div><div class="fin-card-body" id="fin-inad-lista"><div style="color:var(--tl);font-size:11px">Nenhum saldo em aberto.</div></div></div>
+          <div class="fin-card">
+            <div class="fin-card-hd">
+              <span class="sec">Inadimplentes</span>
+              <button class="btn btn-xs btn-terra" onclick="finAbrirModalInad()">+ Adicionar</button>
+            </div>
+            <div class="fin-card-body" id="fin-inad-lista">
+              <div style="color:var(--tl);font-size:11px;padding:8px 0">Carregando...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal inadimplente -->
+        <div id="fin-inad-ov" onclick="if(event.target===this)finFecharModalInad()" style="display:none;position:fixed;inset:0;background:rgba(26,25,21,.6);z-index:9000;align-items:center;justify-content:center">
+          <div class="fin-modal" onclick="event.stopPropagation()" style="max-width:400px">
+            <div class="fin-m-hd">
+              <div><div class="fin-m-title">Adicionar inadimplente</div><div class="fin-m-sub">Registro manual de débito em aberto</div></div>
+              <button onclick="finFecharModalInad()" style="border:none;background:none;color:var(--tl);font-size:18px;cursor:pointer">✕</button>
+            </div>
+            <div class="fin-m-body">
+              <div class="fin-mf"><label>Paciente</label><input id="inad-paciente" type="text" placeholder="Nome do paciente"></div>
+              <div class="fin-mf"><label>Descrição do débito</label><input id="inad-desc" type="text" placeholder="Ex: Protocolo — 3 meses"></div>
+              <div class="fin-mf-row">
+                <div class="fin-mf" style="margin:0"><label>Valor total (R$)</label><input id="inad-total" type="number" min="0" step="10" oninput="finCalcSaldoInad()"></div>
+                <div class="fin-mf" style="margin:0"><label>Já pago (R$)</label><input id="inad-pago" type="number" min="0" step="10" value="0" oninput="finCalcSaldoInad()"></div>
+              </div>
+              <div style="background:var(--bg3);border:1px solid var(--bd);border-radius:var(--r);padding:10px 12px;margin-bottom:10px">
+                <div style="font-size:8px;letter-spacing:1.5px;font-weight:600;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Saldo em aberto</div>
+                <div id="inad-saldo-calc" style="font-size:22px;font-weight:500;color:#8B2020">R$ 0</div>
+              </div>
+              <div class="fin-mf" style="margin-bottom:0"><label>Observação</label><input id="inad-obs" type="text" placeholder="Ex: Combinado boleto, não pagou"></div>
+            </div>
+            <div class="fin-m-ft">
+              <button class="btn" onclick="finFecharModalInad()">Cancelar</button>
+              <button class="btn btn-terra" onclick="finSalvarInad()">Salvar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal quitação inadimplente -->
+        <div id="fin-quit-ov" onclick="if(event.target===this)finFecharQuit()" style="display:none;position:fixed;inset:0;background:rgba(26,25,21,.6);z-index:9100;align-items:center;justify-content:center">
+          <div class="fin-modal" onclick="event.stopPropagation()" style="max-width:380px">
+            <div class="fin-m-hd">
+              <div><div class="fin-m-title">Registrar quitação</div><div class="fin-m-sub" id="fin-quit-sub">Pagamento do saldo em aberto</div></div>
+              <button onclick="finFecharQuit()" style="border:none;background:none;color:var(--tl);font-size:18px;cursor:pointer">✕</button>
+            </div>
+            <div class="fin-m-body">
+              <div style="background:var(--bg3);border:1px solid var(--bd);border-radius:var(--r);padding:10px 12px;margin-bottom:12px">
+                <div style="font-size:9px;color:var(--tl);margin-bottom:4px">Paciente</div>
+                <div style="font-size:13px;font-weight:500;color:var(--tx)" id="fin-quit-pac">—</div>
+                <div style="font-size:11px;color:var(--tl);margin-top:2px" id="fin-quit-desc">—</div>
+              </div>
+              <div class="fin-mf-row">
+                <div class="fin-mf" style="margin:0"><label>Valor pago agora (R$)</label><input id="fin-quit-valor" type="number" min="0" step="10"></div>
+                <div class="fin-mf" style="margin:0"><label>Data do pagamento</label><input id="fin-quit-data" type="date"></div>
+              </div>
+              <div class="fin-mf"><label>Forma de pagamento</label>
+                <select id="fin-quit-forma">
+                  <option value="pix">PIX</option>
+                  <option value="cartao">Cartão</option>
+                  <option value="dinheiro">Dinheiro</option>
+                  <option value="boleto">Boleto</option>
+                </select>
+              </div>
+              <div class="fin-mf" style="margin-bottom:0"><label>Observação</label><input id="fin-quit-obs" type="text" placeholder="Ex: Quitação total via PIX"></div>
+            </div>
+            <div class="fin-m-ft">
+              <button class="btn" onclick="finFecharQuit()">Cancelar</button>
+              <button class="btn btn-verde" onclick="finConfirmarQuit()">Confirmar quitação</button>
+            </div>
+          </div>
         </div>
 
         <!-- ── SETORES ── -->
@@ -1142,9 +1211,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
           </div>
         </div>
         <!-- Paciente -->
-        <div class="fin-mf" style="margin-bottom:0">
+        <div class="fin-mf" style="margin-bottom:0;position:relative">
           <label>Paciente / cliente (opcional)</label>
-          <input id="fin-paciente" type="text" placeholder="Buscar paciente...">
+          <input id="fin-paciente" type="text" placeholder="Buscar paciente..." autocomplete="off" oninput="finBuscarPaciente(this.value)">
+          <div id="fin-pac-drop" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);z-index:100;max-height:160px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1)"></div>
         </div>
       </div>
       <!-- Vencimento (despesa) -->
@@ -1174,8 +1244,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
 
 
 <!-- ══ MODAL DETALHE / EDIÇÃO LANÇAMENTO ═══════════════════════════ -->
-<div id="fin-det-ov" onclick="if(event.target===this)finFecharDetalhe()">
-  <div class="fin-modal" onclick="event.stopPropagation()" style="max-width:420px">
+<div id="fin-det-ov" onclick="if(event.target===this)finFecharDetalhe()" style="display:none;position:fixed;inset:0;background:rgba(26,25,21,.6);z-index:9000;align-items:center;justify-content:center">
+  <div class="fin-modal" onclick="event.stopPropagation()" style="max-width:460px">
     <div class="fin-m-hd">
       <div>
         <div class="fin-m-title" id="fin-det-title">Detalhe do lançamento</div>
@@ -1183,10 +1253,33 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
       </div>
       <button onclick="finFecharDetalhe()" style="border:none;background:none;color:var(--tl);font-size:18px;cursor:pointer">✕</button>
     </div>
-    <div class="fin-m-body" id="fin-det-body"></div>
-    <div class="fin-m-ft" id="fin-det-ft">
-      <button class="btn" onclick="finFecharDetalhe()">Fechar</button>
-      <button class="btn btn-terra" id="fin-det-edit-btn" style="display:none" onclick="finEditarLanc()">Editar</button>
+    <!-- Vista de detalhe -->
+    <div id="fin-det-view">
+      <div class="fin-m-body" id="fin-det-body"></div>
+      <div class="fin-m-ft">
+        <button class="btn" onclick="finFecharDetalhe()">Fechar</button>
+        <div id="fin-det-admin-btns" style="display:none;gap:8px;display:none">
+          <button class="btn btn-danger" onclick="finRemoverLanc()" style="color:#8B2020;border-color:#f0aaaa">Remover</button>
+          <button class="btn btn-terra" onclick="finModoEditar()">Editar</button>
+        </div>
+      </div>
+    </div>
+    <!-- Formulário de edição -->
+    <div id="fin-det-edit" style="display:none">
+      <div class="fin-m-body">
+        <div class="fin-mf"><label>Descrição</label><input id="fin-edit-desc" type="text"></div>
+        <div class="fin-mf-row">
+          <div class="fin-mf" style="margin:0"><label>Valor (R$)</label><input id="fin-edit-valor" type="number" step="0.01" min="0"></div>
+          <div class="fin-mf" style="margin:0"><label>Data</label><input id="fin-edit-data" type="date"></div>
+        </div>
+        <div class="fin-mf"><label>Categoria DRE</label><select id="fin-edit-cat"></select></div>
+        <div class="fin-mf"><label>Paciente</label><input id="fin-edit-pac" type="text"></div>
+        <div class="fin-mf" style="margin-bottom:0"><label>Motivo da edição</label><input id="fin-edit-motivo" type="text" placeholder="Obrigatório para auditoria"></div>
+      </div>
+      <div class="fin-m-ft">
+        <button class="btn" onclick="finModoDetalhe()">Cancelar</button>
+        <button class="btn btn-terra" onclick="finSalvarEdicao()">Salvar edição</button>
+      </div>
     </div>
   </div>
 </div>
@@ -2636,8 +2729,12 @@ let finEditId = null;
 let finFavs = [];
 
 const FIN_CATS_REC = [
-  {cod:'1.1',label:'1.1 — Atendimentos PIX / TED'},
-  {cod:'1.2',label:'1.2 — Recebimentos de Cartão'},
+  {cod:'1.1',label:'1.1 — Consulta Dra. Luisa Costa'},
+  {cod:'1.2',label:'1.2 — Consulta Dermatologia'},
+  {cod:'1.3',label:'1.3 — Consulta Nutricional'},
+  {cod:'1.4',label:'1.4 — Protocolo de Tratamento'},
+  {cod:'1.5',label:'1.5 — Procedimento Dermatológico'},
+  {cod:'1.6',label:'1.6 — Procedimento Avulso'},
 ];
 const FIN_CATS_DES = [
   {cod:'2.1',label:'2.1 — Impostos sobre Receita'},
@@ -2672,6 +2769,7 @@ function finMesLabel(){ return new Date().toLocaleDateString('pt-BR',{month:'lon
 async function finInit(){
   await finCarregar();
   finCarregarFavs();
+  finCarregarPacs();
   finRenderDash();
   finChecarLembretes();
 }
@@ -2882,103 +2980,311 @@ function finAbrirDetalhe(id){
   finDetId = id;
   const pos = l.tipo==='receita';
   const ov = document.getElementById('fin-det-ov'); if(!ov)return;
-
   document.getElementById('fin-det-title').textContent = l.descricao||l.categoria_dre||'Lançamento';
   document.getElementById('fin-det-sub').textContent = (pos?'Receita':'Despesa')+' · '+finFmt(l.valor);
-
   const dt = l.data?new Date(l.data+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'}):'—';
   const rows = [
     ['Tipo', pos?'Receita':'Despesa'],
     ['Valor', finFmt(l.valor)],
     ['Data', dt],
     ['Categoria DRE', l.categoria_dre||'—'],
-    ['Forma de pagamento', l.forma_pagamento||'—'],
+    ['Pagamento', l.forma_pagamento||'—'],
     ['Banco PIX', l.pix_banco||'—'],
     ['Paciente', l.paciente||'—'],
-    ['Sinal de consulta', l.eh_sinal?'Sim':'Não'],
+    ['Sinal de consulta', l.eh_sinal?'Sim':'—'],
     ['Observação', l.obs||'—'],
-    ['Registrado por', l.user_id?'Usuário do sistema':'—'],
   ].filter(r=>r[1]&&r[1]!=='—');
-
-  document.getElementById('fin-det-body').innerHTML = `
-    <div style="display:flex;flex-direction:column;gap:0">
-      ${rows.map(r=>`
-        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bg3);font-size:12px">
-          <span style="color:var(--tl)">${r[0]}</span>
-          <span style="color:var(--tx);font-weight:${r[0]==='Valor'?'500':'400'};${r[0]==='Valor'?(pos?'color:#2E6B5E':'color:#8B2020'):''}">${r[1]}</span>
-        </div>`).join('')}
-    </div>`;
-
-  // Mostrar botão editar só para admin
-  const editBtn = document.getElementById('fin-det-edit-btn');
-  if(editBtn) editBtn.style.display = (NIVEL==='admin')?'':'none';
-
-  ov.classList.add('on');
+  document.getElementById('fin-det-body').innerHTML =
+    rows.map(r=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bg3);font-size:12px">
+      <span style="color:var(--tl)">${r[0]}</span>
+      <span style="color:${r[0]==='Valor'?(pos?'var(--verde)':'#8B2020'):'var(--tx)'};font-weight:${r[0]==='Valor'?'500':'400'}">${r[1]}</span>
+    </div>`).join('');
+  // Admin: mostra botões editar e remover
+  const adminBtns = document.getElementById('fin-det-admin-btns');
+  if(adminBtns) adminBtns.style.display = (NIVEL==='admin')?'flex':'none';
+  finModoDetalhe();
+  ov.style.display='flex';
 }
 
 function finFecharDetalhe(){
   const ov=document.getElementById('fin-det-ov');
-  if(ov) ov.classList.remove('on');
+  if(ov) ov.style.display='none';
   finDetId=null;
 }
 
-async function finEditarLanc(){
+function finModoDetalhe(){
+  document.getElementById('fin-det-view').style.display='block';
+  document.getElementById('fin-det-edit').style.display='none';
+}
+
+function finModoEditar(){
   if(NIVEL!=='admin'){showToast('Apenas administradores podem editar','err');return;}
-  const l=finLancs.find(x=>String(x.id)===String(finDetId));
-  if(!l)return;
+  const l=finLancs.find(x=>String(x.id)===String(finDetId)); if(!l)return;
+  // Preencher form de edição
+  document.getElementById('fin-edit-desc').value=l.descricao||'';
+  document.getElementById('fin-edit-valor').value=l.valor||0;
+  document.getElementById('fin-edit-data').value=l.data||finHoje();
+  document.getElementById('fin-edit-pac').value=l.paciente||'';
+  document.getElementById('fin-edit-motivo').value='';
+  // Popular categorias
+  const sel=document.getElementById('fin-edit-cat');
+  const lista=l.tipo==='receita'?FIN_CATS_REC:FIN_CATS_DES;
+  sel.innerHTML=lista.map(c=>`<option value="${c.cod}"${l.categoria_dre===c.cod?' selected':''}>${c.label}</option>`).join('');
+  document.getElementById('fin-det-view').style.display='none';
+  document.getElementById('fin-det-edit').style.display='block';
+}
 
-  const novoValor = prompt('Novo valor (R$):', l.valor);
-  if(novoValor===null)return;
-  const novaDesc = prompt('Nova descrição:', l.descricao||'');
-  if(novaDesc===null)return;
-  const novaObs = prompt('Observação da edição:', '');
-
-  const payload = {
-    valor: parseFloat(novoValor)||l.valor,
-    descricao: novaDesc||l.descricao,
-    obs: (l.obs?l.obs+' | ':'')+'[EDITADO '+new Date().toLocaleDateString('pt-BR')+']: '+(novaObs||'sem motivo'),
+async function finSalvarEdicao(){
+  if(NIVEL!=='admin'){showToast('Acesso negado','err');return;}
+  const motivo=document.getElementById('fin-edit-motivo')?.value.trim();
+  if(!motivo){showToast('Informe o motivo da edição','err');return;}
+  const l=finLancs.find(x=>String(x.id)===String(finDetId)); if(!l)return;
+  const payload={
+    descricao:document.getElementById('fin-edit-desc')?.value.trim()||l.descricao,
+    valor:parseFloat(document.getElementById('fin-edit-valor')?.value)||l.valor,
+    data:document.getElementById('fin-edit-data')?.value||l.data,
+    categoria_dre:document.getElementById('fin-edit-cat')?.value||l.categoria_dre,
+    paciente:document.getElementById('fin-edit-pac')?.value.trim()||l.paciente,
+    obs:(l.obs?l.obs+' | ':'')+`[EDITADO ${new Date().toLocaleDateString('pt-BR')} por ${PERFIL?.nome||'admin'}]: ${motivo}`,
   };
-
   try{
     const {error}=await db.from('fin_lancamentos').update(payload).eq('id',finDetId);
     if(error)throw error;
     finLancs=finLancs.map(x=>String(x.id)===String(finDetId)?{...x,...payload}:x);
-    showToast('Lançamento editado!');
+    showToast('Lançamento editado com sucesso!');
     finFecharDetalhe();
     finRenderDash();
-    if(document.getElementById('fin-pg-receitas')?.classList.contains('on')) finRenderLista('receita');
-    if(document.getElementById('fin-pg-despesas')?.classList.contains('on')) finRenderLista('despesa');
-  }catch(e){
-    showToast('Erro ao editar','err');
-  }
+    finRenderLista('receita');
+    finRenderLista('despesa');
+  }catch(e){ showToast('Erro ao editar: '+e.message,'err'); }
+}
+
+async function finRemoverLanc(){
+  if(NIVEL!=='admin'){showToast('Acesso negado','err');return;}
+  const l=finLancs.find(x=>String(x.id)===String(finDetId)); if(!l)return;
+  if(!confirm(`Remover "${l.descricao||'este lançamento'}" de ${finFmt(l.valor)}?
+Esta ação não pode ser desfeita.`))return;
+  try{
+    const {error}=await db.from('fin_lancamentos').delete().eq('id',finDetId);
+    if(error)throw error;
+    finLancs=finLancs.filter(x=>String(x.id)!==String(finDetId));
+    showToast('Lançamento removido.');
+    finFecharDetalhe();
+    finRenderDash();
+    finRenderLista('receita');
+    finRenderLista('despesa');
+  }catch(e){ showToast('Erro ao remover: '+e.message,'err'); }
+}
+
+// ── Busca paciente do sistema ─────────────────────────────────────────
+let finPacsCache = [];
+async function finCarregarPacs(){
+  if(finPacsCache.length) return;
+  try{
+    const {data}=await db.from('pacientes').select('id,nome,cpf').order('nome');
+    if(data) finPacsCache=data;
+  }catch(e){}
+}
+
+function finBuscarPaciente(q){
+  const drop=document.getElementById('fin-pac-drop'); if(!drop)return;
+  if(!q.trim()){drop.style.display='none';return;}
+  const matches=finPacsCache.filter(p=>p.nome&&p.nome.toLowerCase().includes(q.toLowerCase())).slice(0,8);
+  if(!matches.length){drop.style.display='none';return;}
+  drop.innerHTML=matches.map(p=>`
+    <div onclick="finSelPac('${p.nome.replace(/'/g,"\'")}');this.parentElement.style.display='none'"
+      style="padding:8px 12px;cursor:pointer;font-size:12px;color:var(--tx);border-bottom:1px solid var(--bg3)"
+      onmouseover="this.style.background='var(--terra-xl)'" onmouseout="this.style.background=''">
+      ${p.nome}${p.cpf?` <span style="color:var(--tl);font-size:10px">· ${p.cpf}</span>`:''}
+    </div>`).join('');
+  drop.style.display='block';
+}
+
+function finSelPac(nome){
+  const inp=document.getElementById('fin-paciente');
+  if(inp) inp.value=nome;
+  const drop=document.getElementById('fin-pac-drop');
+  if(drop) drop.style.display='none';
 }
 
 // ── Inadimplentes ─────────────────────────────────────────────────────
-function finRenderInad(){
-  const abertos=finLancs.filter(l=>l.tipo==='receita'&&l.pix_tipo&&(l.pix_tipo==='sinal'||l.pix_tipo==='complemento')&&!l.quitado);
-  const sinais=abertos.filter(l=>l.pix_tipo==='sinal');
-  const comps=abertos.filter(l=>l.pix_tipo==='complemento');
-  const totalAb=abertos.reduce((s,l)=>s+Number(l.saldo_devedor||0),0);
-  const setSafe=(id,v)=>{ const el=document.getElementById(id); if(el)el.textContent=v; };
+let finInadManuais = [];
+let finQuitId = null;
+let finQuitOrigem = null;
+
+async function finRenderInad(){
+  // Busca protocolos em andamento do precificador
+  let protAbertos = [];
+  try{
+    const {data,error}=await db.from('protocolos')
+      .select('id,paciente_nome,titulo,valor_total,data_inicio,pagamento')
+      .eq('status','andamento');
+    if(!error&&data) protAbertos=data;
+  }catch(e){}
+
+  // Cruzar com pagamentos em finLancs por nome de paciente
+  const inadProt = protAbertos.map(p=>{
+    const pago=finLancs
+      .filter(l=>l.tipo==='receita'&&l.paciente&&
+        l.paciente.trim().toLowerCase()===p.paciente_nome.trim().toLowerCase())
+      .reduce((s,l)=>s+Number(l.valor||0),0);
+    const saldo=Math.max(0,Number(p.valor_total||0)-pago);
+    return {...p,valor_pago:pago,saldo_devedor:saldo,origem:'protocolo'};
+  }).filter(p=>p.saldo_devedor>0.01);
+
+  // Busca inadimplentes manuais do Supabase
+  try{
+    const {data,error}=await db.from('fin_inadimplentes').select('*').order('created_at',{ascending:false});
+    if(!error&&data) finInadManuais=data;
+  }catch(e){ finInadManuais=[]; }
+
+  const todos=[...inadProt, ...finInadManuais.map(i=>({...i,origem:'manual'}))];
+  const totalAb=todos.reduce((s,i)=>s+Number(i.saldo_devedor||0),0);
+
+  const setSafe=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
   setSafe('fk-inad-total',finFmt(totalAb));
-  setSafe('fk-inad-pac',String(abertos.length)+' registro(s)');
-  setSafe('fk-inad-sinais',String(sinais.length));
-  setSafe('fk-inad-comp',String(comps.length));
+  setSafe('fk-inad-sub',todos.length+' registro(s)');
+  setSafe('fk-inad-prot',String(inadProt.length));
+  setSafe('fk-inad-man',String(finInadManuais.length));
+
   const el=document.getElementById('fin-inad-lista'); if(!el)return;
-  if(!abertos.length){el.innerHTML='<div style="color:var(--tl);font-size:11px">Nenhum saldo em aberto.</div>';return;}
-  el.innerHTML=abertos.map(l=>{
-    const ini=l.paciente?l.paciente.slice(0,2).toUpperCase():'??';
-    const saldo=Number(l.saldo_devedor||0);
-    const tipoBadge=l.pix_tipo==='sinal'?'<span style="background:#E6F4EF;color:#1A5C35;font-size:8px;font-weight:600;padding:1px 5px;border-radius:2px">SINAL</span>':'<span style="background:var(--terra-xl);color:var(--terra-d);font-size:8px;font-weight:600;padding:1px 5px;border-radius:2px">COMPLEMENTO</span>';
+  if(!todos.length){
+    el.innerHTML='<div style="color:var(--tl);font-size:11px;padding:8px 0">Nenhum inadimplente registrado.</div>';
+    return;
+  }
+  el.innerHTML=todos.map(i=>{
+    const nome=i.paciente_nome||i.paciente||'—';
+    const ini=nome.slice(0,2).toUpperCase();
+    const desc=i.titulo||i.descricao||'—';
+    const saldo=Number(i.saldo_devedor||0);
+    const pago=Number(i.valor_pago||0);
+    const total=Number(i.valor_total||0);
+    const origemBadge=i.origem==='protocolo'
+      ?'<span style="background:var(--terra-xl);color:var(--terra-d);font-size:8px;font-weight:600;padding:1px 6px;border-radius:2px">PROTOCOLO</span>'
+      :'<span style="background:var(--bg3);color:var(--tm);font-size:8px;font-weight:600;padding:1px 6px;border-radius:2px;border:1px solid var(--bd)">MANUAL</span>';
+    const remBtn=i.origem==='manual'
+      ?`<button onclick="finRemoverInad('${i.id}')" style="font-size:9px;padding:2px 7px;border:1px solid var(--bd2);border-radius:var(--r);background:none;color:var(--tl);cursor:pointer">Remover</button>`:'';
     return `<div class="fin-inad-row">
       <div class="fin-inad-av">${ini}</div>
       <div class="fin-inad-info">
-        <div class="fin-inad-nome">${l.paciente||'—'}</div>
-        <div class="fin-inad-meta">${l.descricao||''} ${tipoBadge}</div>
+        <div class="fin-inad-nome">${nome}</div>
+        <div class="fin-inad-meta">${desc} &nbsp;${origemBadge}${total?' · Total: '+finFmt(total):''}</div>
+        ${pago?`<div style="font-size:9px;color:var(--verde);margin-top:2px">Já pago: ${finFmt(pago)}</div>`:''}
       </div>
-      <div class="fin-inad-val"><div class="fin-inad-saldo">${finFmt(saldo)}</div><div class="fin-inad-dias">saldo restante</div></div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0">
+        <div class="fin-inad-saldo">${finFmt(saldo)}</div>
+        <button onclick="finAbrirQuit('${i.id||i.paciente_nome}','${i.origem}',${JSON.stringify(nome)},${JSON.stringify(desc)},${saldo})"
+          style="font-size:9px;padding:4px 10px;border:1px solid var(--verde);border-radius:var(--r);background:var(--verde-l);color:var(--verde);cursor:pointer;font-weight:600;white-space:nowrap">
+          Registrar quitação
+        </button>
+        ${remBtn}
+      </div>
     </div>`;
   }).join('');
+}
+
+function finAbrirModalInad(){
+  document.getElementById('inad-paciente').value='';
+  document.getElementById('inad-desc').value='';
+  document.getElementById('inad-total').value='';
+  document.getElementById('inad-pago').value='0';
+  document.getElementById('inad-obs').value='';
+  document.getElementById('inad-saldo-calc').textContent='R$ 0';
+  document.getElementById('fin-inad-ov').style.display='flex';
+}
+
+function finFecharModalInad(){
+  document.getElementById('fin-inad-ov').style.display='none';
+}
+
+function finCalcSaldoInad(){
+  const t=parseFloat(document.getElementById('inad-total')?.value)||0;
+  const p=parseFloat(document.getElementById('inad-pago')?.value)||0;
+  const el=document.getElementById('inad-saldo-calc');
+  if(el) el.textContent=finFmt(Math.max(0,t-p));
+}
+
+async function finSalvarInad(){
+  const paciente=document.getElementById('inad-paciente')?.value.trim();
+  const desc=document.getElementById('inad-desc')?.value.trim();
+  const total=parseFloat(document.getElementById('inad-total')?.value)||0;
+  const pago=parseFloat(document.getElementById('inad-pago')?.value)||0;
+  const obs=document.getElementById('inad-obs')?.value.trim()||'';
+  if(!paciente){showToast('Informe o paciente','err');return;}
+  if(!total){showToast('Informe o valor total','err');return;}
+  const payload={paciente,descricao:desc,valor_total:total,valor_pago:pago,saldo_devedor:Math.max(0,total-pago),obs,user_id:USER?.id||null};
+  try{
+    const {data,error}=await db.from('fin_inadimplentes').insert(payload).select().single();
+    if(error)throw error;
+    showToast('Inadimplente registrado!');
+  }catch(e){ showToast('Erro — verifique se a tabela fin_inadimplentes existe no Supabase','warn'); }
+  finFecharModalInad();
+  finRenderInad();
+}
+
+async function finRemoverInad(id){
+  if(!confirm('Remover este registro?'))return;
+  try{
+    await db.from('fin_inadimplentes').delete().eq('id',id);
+    showToast('Removido.');
+  }catch(e){ showToast('Erro ao remover','err'); }
+  finRenderInad();
+}
+
+// ── Quitação ──────────────────────────────────────────────────────────
+function finAbrirQuit(id, origem, nome, desc, saldo){
+  finQuitId=id; finQuitOrigem=origem;
+  document.getElementById('fin-quit-pac').textContent=nome;
+  document.getElementById('fin-quit-desc').textContent=desc+' · Saldo: '+finFmt(saldo);
+  document.getElementById('fin-quit-sub').textContent='Saldo em aberto: '+finFmt(saldo);
+  document.getElementById('fin-quit-valor').value=saldo;
+  document.getElementById('fin-quit-data').value=finHoje();
+  document.getElementById('fin-quit-obs').value='';
+  document.getElementById('fin-quit-ov').style.display='flex';
+}
+
+function finFecharQuit(){
+  document.getElementById('fin-quit-ov').style.display='none';
+  finQuitId=null; finQuitOrigem=null;
+}
+
+async function finConfirmarQuit(){
+  const valor=parseFloat(document.getElementById('fin-quit-valor')?.value)||0;
+  const data=document.getElementById('fin-quit-data')?.value||finHoje();
+  const forma=document.getElementById('fin-quit-forma')?.value||'pix';
+  const obs=document.getElementById('fin-quit-obs')?.value.trim()||'Quitação de débito';
+  const pac=document.getElementById('fin-quit-pac')?.textContent||'';
+  if(!valor){showToast('Informe o valor','err');return;}
+
+  // 1. Criar lançamento de receita
+  const lancPayload={
+    tipo:'receita', descricao:'Quitação — '+pac,
+    categoria_dre:'1.4', valor, data,
+    forma_pagamento:forma, paciente:pac, obs,
+    user_id:USER?.id||null
+  };
+  try{
+    const {data:row,error}=await db.from('fin_lancamentos').insert(lancPayload).select().single();
+    if(error)throw error;
+    finLancs.unshift(row);
+  }catch(e){ showToast('Erro ao criar lançamento','err'); return; }
+
+  // 2. Se manual, atualizar saldo no Supabase
+  if(finQuitOrigem==='manual'){
+    try{
+      const reg=finInadManuais.find(i=>String(i.id)===String(finQuitId));
+      if(reg){
+        const novoPago=Number(reg.valor_pago||0)+valor;
+        const novoSaldo=Math.max(0,Number(reg.valor_total||0)-novoPago);
+        await db.from('fin_inadimplentes').update({valor_pago:novoPago,saldo_devedor:novoSaldo}).eq('id',finQuitId);
+      }
+    }catch(e){}
+  }
+
+  showToast('Quitação registrada e lançamento criado!');
+  finFecharQuit();
+  finRenderDash();
+  finRenderInad();
 }
 
 // ── Setores ───────────────────────────────────────────────────────────
