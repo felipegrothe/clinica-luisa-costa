@@ -948,11 +948,14 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
               <div class="fin-card">
                 <div class="fin-card-hd">
                   <span class="sec">Lançamentos recentes</span>
-                  <div style="display:flex;gap:6px;align-items:center">
-                    <select id="fin-dash-filtro" onchange="finRenderLancRecentes()" style="padding:4px 8px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:10px;color:var(--tx)">
-                      <option value="">Todos</option>
-                      <option value="receita">Receitas</option>
-                      <option value="despesa">Despesas</option>
+                  <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+                    <div style="display:flex;border:1px solid var(--bd2);border-radius:var(--r);overflow:hidden;background:var(--bg2)">
+                      <button id="fd-todos" onclick="finDashFiltro('')" style="padding:4px 10px;border:none;background:var(--terra);color:white;font-size:10px;font-weight:600;cursor:pointer">Todos</button>
+                      <button id="fd-rec" onclick="finDashFiltro('receita')" style="padding:4px 10px;border:none;background:none;color:var(--tm);font-size:10px;font-weight:600;cursor:pointer;border-left:1px solid var(--bd2)">Entradas</button>
+                      <button id="fd-des" onclick="finDashFiltro('despesa')" style="padding:4px 10px;border:none;background:none;color:var(--tm);font-size:10px;font-weight:600;cursor:pointer;border-left:1px solid var(--bd2)">Saídas</button>
+                    </div>
+                    <select id="fin-dash-mes" onchange="finRenderLancRecentes()" style="padding:4px 8px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:10px;color:var(--tx)">
+                      <option value="">Todos os meses</option>
                     </select>
                     <button class="btn btn-xs btn-terra" onclick="finAbrirModal()">+ Novo</button>
                   </div>
@@ -2594,7 +2597,7 @@ function finMesAtual(){ const d=new Date(); return d.getFullYear()+'-'+(String(d
 function finMesLabel(){ return new Date().toLocaleDateString('pt-BR',{month:'long',year:'numeric'}); }
 
 // ── Init ──────────────────────────────────────────────────────────────
-function finIsAdmin(){ return finIsAdmin()||NIVEL==='administrador'||NIVEL==='Administrador'; }
+function finIsAdmin(){ return NIVEL==='admin'||NIVEL==='administrador'||NIVEL==='Administrador'; }
 function finIsFinanceiro(){ return finIsAdmin()||NIVEL==='financeiro'; }
 
 let finJaIniciou = false;
@@ -2797,7 +2800,7 @@ function finGoSub(id,el){
   if(el) el.classList.add('on');
   const pg=document.getElementById('fin-pg-'+id);
   if(pg) pg.classList.add('on');
-  if(id==='dashboard'){ finCarregar().then(()=>finRenderDash()); }
+  if(id==='dashboard'){ finCarregar().then(()=>{ finRenderDash(); finPopularMesDash(); }); }
   if(id==='receitas'){ finCarregar().then(()=>{ finRenderLista('receita'); finPopularFiltrosCat(); finPopularFiltrosMes(); }); }
   if(id==='despesas'){ finCarregar().then(()=>finRenderLista('despesa')); }
   if(id==='contas') finRenderContas();
@@ -2833,6 +2836,7 @@ function finRenderDash(){
   setSafe('fk-venc', String(vencHoje));
   setSafe('fk-venc-sub', vencHoje>0?'requer atenção':'em dia');
 
+  finPopularMesDash();
   finRenderLancRecentes();
   finRenderContasSide();
   finRenderPayBar();
@@ -3171,11 +3175,38 @@ function finLimparFiltros(){
 }
 
 
+let finDashFiltroAtual = '';
+
+function finDashFiltro(tipo){
+  finDashFiltroAtual=tipo;
+  // Atualizar visual dos botões
+  const btns={'':'fd-todos','receita':'fd-rec','despesa':'fd-des'};
+  Object.entries(btns).forEach(([t,id])=>{
+    const b=document.getElementById(id); if(!b)return;
+    b.style.background=t===tipo?'var(--terra)':'';
+    b.style.color=t===tipo?'white':'var(--tm)';
+  });
+  finRenderLancRecentes();
+}
+
+function finPopularMesDash(){
+  const sel=document.getElementById('fin-dash-mes'); if(!sel)return;
+  const atual=sel.value;
+  const meses=[...new Set(finLancs.filter(l=>l.data).map(l=>l.data.slice(0,7)))].sort().reverse();
+  sel.innerHTML='<option value="">Todos os meses</option>'+
+    meses.map(m=>{
+      const d=new Date(m+'-01');
+      const label=d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+      return `<option value="${m}"${m===atual?' selected':''}>${label}</option>`;
+    }).join('');
+}
+
 function finRenderLancRecentes(){
   const el=document.getElementById('fin-lanc-lista'); if(!el)return;
-  const filtro=document.getElementById('fin-dash-filtro')?.value||'';
-  const todos=filtro?finLancs.filter(l=>l.tipo===filtro):finLancs;
-  const lista=todos.slice(0,10);
+  const mes=document.getElementById('fin-dash-mes')?.value||'';
+  let todos=finDashFiltroAtual?finLancs.filter(l=>l.tipo===finDashFiltroAtual):finLancs;
+  if(mes) todos=todos.filter(l=>l.data&&l.data.startsWith(mes));
+  const lista=todos.slice(0,12);
   if(!lista.length){el.innerHTML='<div style="color:var(--tl);font-size:11px;padding:8px 0">Nenhum lançamento. Clique em + Novo.</div>';return;}
   el.innerHTML=lista.map(l=>{
     const pos=l.tipo==='receita';
@@ -3637,8 +3668,8 @@ async function finConfirmarQuit(){
 
   if(!valor||valor<=0){showToast('Informe o valor','err');return;}
 
-  // 1. Criar lançamento de receita
-  const payload={
+  // 1. Criar lançamento de receita no dashboard financeiro
+  const lancPayload={
     tipo:'receita',
     descricao:'Quitação — '+pac,
     categoria_dre:'1.4',
@@ -3649,38 +3680,40 @@ async function finConfirmarQuit(){
     user_id:USER?.id||null
   };
   try{
-    const {data:row,error}=await db.from('fin_lancamentos').insert(payload).select().single();
+    const {data:row,error}=await db.from('fin_lancamentos').insert(lancPayload).select().single();
     if(error)throw error;
     finLancs.unshift(row);
-  }catch(e){ showToast('Erro ao criar lançamento','err'); return; }
+  }catch(e){ showToast('Erro ao criar lançamento de receita','err'); return; }
 
-  // 2. Atualizar inadimplente manual no Supabase E localmente
+  // 2. Atualizar saldo do inadimplente (manual ou protocolo)
   if(finQuitOrigem==='manual'){
-    try{
-      const reg=finInadManuais.find(i=>String(i.id)===String(finQuitId));
-      if(reg){
-        const novoPago=Number(reg.valor_pago||0)+valor;
-        const novoSaldo=Math.max(0,Number(reg.valor_total||0)-novoPago);
-        const {error}=await db.from('fin_inadimplentes')
+    const reg=finInadManuais.find(i=>String(i.id)===String(finQuitId));
+    if(reg){
+      const novoPago=Number(reg.valor_pago||0)+valor;
+      const novoSaldo=Math.max(0,Number(reg.valor_total||0)-novoPago);
+      // Atualizar localmente PRIMEIRO (imediato na tela)
+      reg.valor_pago=novoPago;
+      reg.saldo_devedor=novoSaldo;
+      // Persistir no Supabase
+      try{
+        await db.from('fin_inadimplentes')
           .update({valor_pago:novoPago,saldo_devedor:novoSaldo})
-          .eq('id',finQuitId);
-        if(!error){
-          // Atualizar localmente também
-          reg.valor_pago=novoPago;
-          reg.saldo_devedor=novoSaldo;
-        }
-      }
-    }catch(e){}
+          .eq('id',String(finQuitId));
+      }catch(e){ console.warn('Erro ao persistir quitação no Supabase',e); }
+    }
+  } else if(finQuitOrigem==='protocolo'){
+    // Para protocolos: o lançamento de receita já foi criado acima
+    // finRenderInad vai cruzar automaticamente os pagamentos com o protocolo
   }
 
-  // 3. Para protocolo: registrar pagamento vinculado ao paciente
-  // (já reflete automaticamente pois finRenderInad cruza finLancs)
-
-  showToast('Quitação registrada! Saldo atualizado.');
+  // 3. Atualizar tela imediatamente com dados locais (sem esperar Supabase)
   finFecharQuit();
-  // Recarregar dados frescos do Supabase antes de renderizar
-  await finCarregar();
+  showToast('Quitação registrada! Saldo atualizado.');
+
+  // 4. Re-renderizar inadimplentes com dados locais já atualizados
   await finRenderInad();
+
+  // 5. Atualizar dashboard
   finRenderDash();
 }
 
