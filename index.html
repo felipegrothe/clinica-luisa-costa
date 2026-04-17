@@ -1063,292 +1063,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
     </div><!-- /content-wrap -->
   </div><!-- /main -->
 
-<!-- ══ MODAIS FINANCEIROS ════════════════════════════════════════════ -->
-
-<!-- Modal detalhe/edição lançamento -->
-<div id="fin-det-ov" onclick="if(event.target===this)finFecharDetalhe()" style="display:none;position:fixed;inset:0;background:rgba(26,23,20,.55);z-index:8500;align-items:center;justify-content:center;padding:1rem">
-  <div style="background:var(--bg);border-radius:10px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.4)" onclick="event.stopPropagation()">
-    <div style="padding:18px 22px 14px;border-bottom:1px solid var(--bd);display:flex;align-items:flex-start;justify-content:space-between">
-      <div>
-        <div style="font-family:Georgia,serif;font-size:16px;color:var(--tx)" id="fin-det-title">Lançamento</div>
-        <div style="font-size:10px;color:var(--tl);margin-top:3px;letter-spacing:.5px" id="fin-det-sub"></div>
-      </div>
-      <button onclick="finFecharDetalhe()" style="border:none;background:none;color:var(--tl);font-size:20px;cursor:pointer;line-height:1;padding:0 4px">✕</button>
-    </div>
-    <!-- Vista -->
-    <div id="fin-det-view">
-      <div style="padding:16px 22px" id="fin-det-body"></div>
-      <div style="padding:12px 22px;border-top:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between">
-        <div id="fin-det-admin-btns" style="display:none;gap:8px">
-          <button onclick="finRemoverLanc()" style="padding:8px 14px;border:1px solid #f0aaaa;border-radius:var(--r);background:none;color:#8B2020;font-size:11px;cursor:pointer">Remover</button>
-          <button onclick="finModoEditar()" style="padding:8px 18px;border:none;border-radius:var(--r);background:var(--terra);color:white;font-size:11px;font-weight:600;cursor:pointer">Editar lançamento</button>
-        </div>
-        <button onclick="finFecharDetalhe()" style="padding:8px 16px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);color:var(--tx);font-size:11px;cursor:pointer;margin-left:auto">Fechar</button>
-      </div>
-    </div>
-    <!-- Edição -->
-    <div id="fin-det-edit" style="display:none">
-      <div style="padding:16px 22px">
-        <div style="margin-bottom:10px">
-          <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Descrição</label>
-          <input id="fin-edit-desc" type="text" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)">
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-          <div>
-            <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Valor (R$)</label>
-            <input id="fin-edit-valor" type="number" step="0.01" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)">
-          </div>
-          <div>
-            <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Data</label>
-            <input id="fin-edit-data" type="date" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)">
-          </div>
-        </div>
-        <div style="margin-bottom:10px">
-          <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Categoria DRE</label>
-          <select id="fin-edit-cat" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)"></select>
-        </div>
-        <div style="margin-bottom:10px">
-          <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Paciente</label>
-          <input id="fin-edit-pac" type="text" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)">
-        </div>
-        <div style="background:var(--terra-xl);border:1px solid var(--terra-l);border-radius:var(--r);padding:10px 12px">
-          <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--terra-d);margin-bottom:4px">Motivo da edição (obrigatório para auditoria)</label>
-          <input id="fin-edit-motivo" type="text" placeholder="Ex: valor incorreto digitado" style="width:100%;padding:9px 12px;border:1px solid var(--terra-l);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)">
-        </div>
-      </div>
-      <div style="padding:12px 22px;border-top:1px solid var(--bd);display:flex;gap:8px;justify-content:flex-end">
-        <button onclick="finModoDetalhe()" style="padding:8px 16px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);color:var(--tx);font-size:11px;cursor:pointer">Cancelar</button>
-        <button onclick="finSalvarEdicao()" style="padding:8px 20px;border:none;border-radius:var(--r);background:var(--terra);color:white;font-size:11px;font-weight:600;cursor:pointer">Salvar edição</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Modal inadimplente manual -->
-<div id="fin-inad-ov" onclick="if(event.target===this)finFecharModalInad()" style="display:none;position:fixed;inset:0;background:rgba(26,23,20,.55);z-index:8500;align-items:center;justify-content:center;padding:1rem">
-  <div style="background:var(--bg);border-radius:10px;width:100%;max-width:400px;box-shadow:0 24px 60px rgba(0,0,0,.4)" onclick="event.stopPropagation()">
-    <div style="padding:18px 22px 14px;border-bottom:1px solid var(--bd);display:flex;align-items:flex-start;justify-content:space-between">
-      <div>
-        <div style="font-family:Georgia,serif;font-size:16px;color:var(--tx)">Adicionar inadimplente</div>
-        <div style="font-size:10px;color:var(--tl);margin-top:3px">Registro manual de débito em aberto</div>
-      </div>
-      <button onclick="finFecharModalInad()" style="border:none;background:none;color:var(--tl);font-size:20px;cursor:pointer;padding:0 4px">✕</button>
-    </div>
-    <div style="padding:16px 22px">
-      <div style="margin-bottom:10px">
-        <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Paciente</label>
-        <input id="inad-paciente" type="text" placeholder="Nome do paciente" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)">
-      </div>
-      <div style="margin-bottom:10px">
-        <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Descrição do débito</label>
-        <input id="inad-desc" type="text" placeholder="Ex: Protocolo de longevidade" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)">
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-        <div>
-          <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Valor total (R$)</label>
-          <input id="inad-total" type="number" min="0" step="10" placeholder="0,00" oninput="finCalcSaldoInad()" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)">
-        </div>
-        <div>
-          <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Já pago (R$)</label>
-          <input id="inad-pago" type="number" min="0" step="10" value="0" oninput="finCalcSaldoInad()" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)">
-        </div>
-      </div>
-      <div style="background:var(--bg3);border:1px solid var(--bd);border-radius:var(--r);padding:12px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
-        <span style="font-size:10px;color:var(--tl);font-weight:600;letter-spacing:.5px">SALDO EM ABERTO</span>
-        <span id="inad-saldo-calc" style="font-size:22px;font-weight:500;color:#8B2020">R$ 0</span>
-      </div>
-      <div>
-        <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Observação</label>
-        <input id="inad-obs" type="text" placeholder="Ex: Combinado boleto, não pagou" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)">
-      </div>
-    </div>
-    <div style="padding:12px 22px;border-top:1px solid var(--bd);display:flex;gap:8px;justify-content:flex-end">
-      <button onclick="finFecharModalInad()" style="padding:8px 16px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);color:var(--tx);font-size:11px;cursor:pointer">Cancelar</button>
-      <button onclick="finSalvarInad()" style="padding:8px 20px;border:none;border-radius:var(--r);background:var(--terra);color:white;font-size:11px;font-weight:600;cursor:pointer">Salvar</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal quitação -->
-<div id="fin-quit-ov" onclick="if(event.target===this)finFecharQuit()" style="display:none;position:fixed;inset:0;background:rgba(26,23,20,.55);z-index:8600;align-items:center;justify-content:center;padding:1rem">
-  <div style="background:var(--bg);border-radius:10px;width:100%;max-width:420px;box-shadow:0 24px 60px rgba(0,0,0,.4)" onclick="event.stopPropagation()">
-    <div style="padding:18px 22px 14px;border-bottom:1px solid var(--bd);display:flex;align-items:flex-start;justify-content:space-between">
-      <div>
-        <div style="font-family:Georgia,serif;font-size:16px;color:var(--tx)">Registrar quitação</div>
-        <div style="font-size:10px;color:var(--tl);margin-top:3px" id="fin-quit-sub">Pagamento de débito em aberto</div>
-      </div>
-      <button onclick="finFecharQuit()" style="border:none;background:none;color:var(--tl);font-size:20px;cursor:pointer;padding:0 4px">✕</button>
-    </div>
-    <div style="padding:16px 22px">
-      <div style="background:var(--bg3);border:1px solid var(--bd);border-radius:var(--r);padding:12px 14px;margin-bottom:14px">
-        <div style="font-size:10px;color:var(--tl);margin-bottom:3px">Paciente</div>
-        <div style="font-size:14px;font-weight:500;color:var(--tx)" id="fin-quit-pac">—</div>
-        <div style="font-size:11px;color:var(--tl);margin-top:2px" id="fin-quit-desc">—</div>
-      </div>
-      <!-- Total x parcial -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-        <div onclick="finSetQuitTipo('total')" id="fin-quit-total-btn" style="border:2px solid var(--terra);border-radius:var(--r);padding:10px;cursor:pointer;background:var(--terra-xl);text-align:center">
-          <div style="font-size:10px;font-weight:700;color:var(--terra-d);text-transform:uppercase;letter-spacing:.5px">Quitação total</div>
-          <div style="font-size:9px;color:var(--tl);margin-top:2px">Zera o saldo</div>
-        </div>
-        <div onclick="finSetQuitTipo('parcial')" id="fin-quit-parcial-btn" style="border:1px solid var(--bd2);border-radius:var(--r);padding:10px;cursor:pointer;background:var(--bg2);text-align:center">
-          <div style="font-size:10px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.5px">Pagamento parcial</div>
-          <div style="font-size:9px;color:var(--tl);margin-top:2px">Abate do saldo</div>
-        </div>
-      </div>
-      <div style="margin-bottom:10px">
-        <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Valor recebido (R$)</label>
-        <input id="fin-quit-valor" type="number" min="0" step="10" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:15px;font-weight:500;color:var(--tx)">
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-        <div>
-          <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Data do pagamento</label>
-          <input id="fin-quit-data" type="date" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)">
-        </div>
-        <div>
-          <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Forma de pagamento</label>
-          <select id="fin-quit-forma" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)">
-            <option value="pix">PIX</option>
-            <option value="cartao">Cartão</option>
-            <option value="dinheiro">Dinheiro</option>
-            <option value="boleto">Boleto</option>
-          </select>
-        </div>
-      </div>
-      <div>
-        <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Observação</label>
-        <input id="fin-quit-obs" type="text" placeholder="Ex: Quitação total via PIX" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)">
-      </div>
-    </div>
-    <div style="padding:12px 22px;border-top:1px solid var(--bd);display:flex;gap:8px;justify-content:flex-end">
-      <button onclick="finFecharQuit()" style="padding:8px 16px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);color:var(--tx);font-size:11px;cursor:pointer">Cancelar</button>
-      <button onclick="finConfirmarQuit()" style="padding:10px 24px;border:none;border-radius:var(--r);background:var(--verde);color:white;font-size:11px;font-weight:600;cursor:pointer;letter-spacing:.3px">Confirmar quitação</button>
-    </div>
-  </div>
-</div>
-
-</div><!-- /app -->
-
-<!-- ══ MODAL FINANCEIRO ═══════════════════════════════════════════════ -->
-<div id="fin-modal-ov" onclick="if(event.target===this)finFecharModal()">
-  <div class="fin-modal" onclick="event.stopPropagation()">
-    <div class="fin-m-hd">
-      <div><div class="fin-m-title">Novo lançamento</div><div class="fin-m-sub">Favorito ou preenchimento manual</div></div>
-      <button onclick="finFecharModal()" style="border:none;background:none;color:var(--tl);font-size:18px;cursor:pointer;line-height:1">✕</button>
-    </div>
-    <div class="fin-m-body">
-      <!-- Favoritos -->
-      <div class="sec" style="margin-bottom:6px">Acesso rápido</div>
-      <div class="fin-favs" id="fin-favs-lista"></div>
-      <!-- Tipo -->
-      <div class="fin-tipo-grid">
-        <div class="fin-tipo-btn on rec" id="fin-tipo-rec" onclick="finSetTipo('receita')">
-          <div class="fin-tipo-lbl" style="color:var(--verde)">+ Receita</div>
-          <div class="fin-tipo-sub">consulta, procedimento</div>
-        </div>
-        <div class="fin-tipo-btn des" id="fin-tipo-des" onclick="finSetTipo('despesa')">
-          <div class="fin-tipo-lbl" style="color:#8B2020">− Despesa</div>
-          <div class="fin-tipo-sub">custo, fornecedor</div>
-        </div>
-      </div>
-      <!-- Descrição -->
-      <div class="fin-mf">
-        <label>Descrição da movimentação</label>
-        <input id="fin-desc" type="text" placeholder="Ex: Consulta Dra. Luisa Costa">
-      </div>
-      <!-- Categoria DRE -->
-      <div class="fin-mf">
-        <label>Categoria DRE</label>
-        <select id="fin-cat"></select>
-      </div>
-      <!-- Valor e data -->
-      <div class="fin-mf-row">
-        <div class="fin-mf" style="margin:0"><label>Valor (R$)</label><input id="fin-valor" type="number" min="0" step="10" placeholder="0,00"></div>
-        <div class="fin-mf" style="margin:0"><label>Data</label><input id="fin-data" type="date"></div>
-      </div>
-      <!-- Forma de pagamento -->
-      <div id="fin-pagto-bloco">
-        <div class="sec" style="margin-bottom:6px">Forma de pagamento</div>
-        <div class="fin-pay-grid">
-          <div class="fin-pay-btn on" id="fp-pix" onclick="finSetPay('pix')">PIX</div>
-          <div class="fin-pay-btn" id="fp-cartao" onclick="finSetPay('cartao')">Cartão</div>
-          <div class="fin-pay-btn" id="fp-dinheiro" onclick="finSetPay('dinheiro')">Dinheiro</div>
-          <div class="fin-pay-btn" id="fp-boleto" onclick="finSetPay('boleto')">Boleto</div>
-        </div>
-        <!-- Detalhes dinâmicos por meio -->
-        <div class="fin-extra" id="fin-det-pix">
-          <div class="fin-extra-lbl">Detalhes — PIX</div>
-          <div class="fin-mf-row" style="margin-bottom:0">
-            <div class="fin-mf" style="margin:0"><label>Banco</label>
-              <select id="fin-pix-banco"><option value="">Selecionar...</option><option>Sicoob</option><option>Nubank</option><option>Itaú</option><option>Bradesco</option><option>Inter</option><option>Outro</option></select>
-            </div>
-            <div class="fin-mf" style="margin:0"><label>Tipo</label>
-              <select id="fin-pix-tipo"><option value="total">Pagamento total</option><option value="sinal">Sinal / entrada</option><option value="complemento">Complemento</option></select>
-            </div>
-          </div>
-        </div>
-        <div class="fin-extra" id="fin-det-cartao" style="display:none">
-          <div class="fin-extra-lbl">Detalhes — Cartão</div>
-          <div class="fin-mf-row" style="margin-bottom:0">
-            <div class="fin-mf" style="margin:0"><label>Bandeira</label>
-              <select id="fin-cartao-band"><option>Visa</option><option>Mastercard</option><option>Elo</option><option>Amex</option><option>Outro</option></select>
-            </div>
-            <div class="fin-mf" style="margin:0"><label>Parcelas</label>
-              <select id="fin-cartao-parc"><option value="1">À vista (1x)</option><option value="2">2x</option><option value="3">3x</option><option value="6">6x</option><option value="10">10x</option><option value="12">12x</option></select>
-            </div>
-          </div>
-          <div class="fin-mf" style="margin-top:8px;margin-bottom:0"><label>Taxa maquininha (%)</label><input id="fin-cartao-taxa" type="number" min="0" max="10" step="0.1" value="2.5" placeholder="2.5"></div>
-        </div>
-        <div class="fin-extra" id="fin-det-dinheiro" style="display:none">
-          <div class="fin-extra-lbl">Detalhes — Dinheiro</div>
-          <div class="fin-mf-row" style="margin-bottom:0">
-            <div class="fin-mf" style="margin:0"><label>Valor recebido (R$)</label><input id="fin-din-recebido" type="number" min="0" step="10" placeholder="0,00"></div>
-            <div class="fin-mf" style="margin:0"><label>Troco (R$)</label><input id="fin-din-troco" type="number" min="0" step="1" placeholder="0,00" readonly style="background:var(--bg3)"></div>
-          </div>
-        </div>
-        <div class="fin-extra" id="fin-det-boleto" style="display:none">
-          <div class="fin-extra-lbl">Detalhes — Boleto</div>
-          <div class="fin-mf-row" style="margin-bottom:0">
-            <div class="fin-mf" style="margin:0"><label>Banco</label>
-              <select id="fin-bol-banco"><option>Sicoob</option><option>Bradesco</option><option>Itaú</option><option>Santander</option><option>Outro</option></select>
-            </div>
-            <div class="fin-mf" style="margin:0"><label>Vencimento</label><input id="fin-bol-venc" type="date"></div>
-          </div>
-        </div>
-        <!-- Paciente -->
-        <div class="fin-mf" style="margin-bottom:0;position:relative">
-          <label>Paciente / cliente (opcional)</label>
-          <input id="fin-paciente" type="text" placeholder="Buscar paciente..." autocomplete="off" oninput="finBuscarPaciente(this.value)">
-          <div id="fin-pac-drop" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);z-index:100;max-height:160px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1)"></div>
-        </div>
-      </div>
-      <!-- Vencimento (despesa) -->
-      <div id="fin-venc-bloco" style="display:none">
-        <div class="fin-mf"><label>Vencimento</label><input id="fin-venc" type="date"></div>
-        <div style="display:flex;flex-direction:column;gap:6px">
-          <label style="display:flex;align-items:center;gap:7px;font-size:11px;color:var(--tm);cursor:pointer">
-            <input type="checkbox" id="fin-recorrente" style="width:auto"> Despesa recorrente mensal
-          </label>
-          <label style="display:flex;align-items:center;gap:7px;font-size:11px;color:var(--tm);cursor:pointer">
-            <input type="checkbox" id="fin-lembrete" checked style="width:auto"> Lembrar 3 dias antes do vencimento
-          </label>
-        </div>
-      </div>
-      <!-- Obs -->
-      <div class="fin-mf" style="margin-top:10px;margin-bottom:0">
-        <label>Observação (opcional)</label>
-        <input id="fin-obs" type="text" placeholder="Detalhes adicionais...">
-      </div>
-    </div>
-    <div class="fin-m-ft">
-      <button class="btn" onclick="finFecharModal()">Cancelar</button>
-      <button class="btn btn-terra" onclick="finSalvar()" id="fin-btn-salvar">Salvar lançamento</button>
-    </div>
-  </div>
-</div>
-
-
-
 <!-- ══ MODAIS ══════════════════════════════════════════════════════════ -->
 <div class="modal-ov" id="modal-ov" style="display:none" onclick="if(event.target===this)closeModal()">
   <div class="modal-box" onclick="event.stopPropagation()">
@@ -2865,6 +2579,161 @@ function finSalvarFavs(){
   try{ localStorage.setItem('fin_favs',JSON.stringify(finFavs)); }catch(e){}
 }
 
+// ── Modal lançamento ──────────────────────────────────────────────────
+
+
+function finAbrirModal(tipoInicial){
+  finSetTipo(tipoInicial||'receita');
+  const d=document.getElementById('fin-data'); if(d)d.value=finHoje();
+  const desc=document.getElementById('fin-desc'); if(desc)desc.value='';
+  const val=document.getElementById('fin-valor'); if(val)val.value='';
+  const obs=document.getElementById('fin-obs'); if(obs)obs.value='';
+  const pac=document.getElementById('fin-paciente'); if(pac)pac.value='';
+  const venc=document.getElementById('fin-venc'); if(venc)venc.value='';
+  const rec=document.getElementById('fin-recorrente'); if(rec)rec.checked=false;
+  const lem=document.getElementById('fin-lembrete'); if(lem)lem.checked=true;
+  const sinal=document.getElementById('fin-eh-sinal'); if(sinal)sinal.checked=false;
+  finSetPay('pix');
+  finRenderFavs();
+  const ov=document.getElementById('fin-modal-ov');
+  if(ov){ ov.style.display='flex'; }
+  setTimeout(()=>document.getElementById('fin-desc')?.focus(),150);
+}
+
+function finFecharModal(){
+  const ov=document.getElementById('fin-modal-ov');
+  if(ov) ov.style.display='none';
+}
+
+function finSetTipo(t){
+  finTipo=t;
+  const recBtn=document.getElementById('fin-tipo-rec');
+  const desBtn=document.getElementById('fin-tipo-des');
+  if(recBtn) recBtn.className='fin-tipo-btn'+(t==='receita'?' on rec':'');
+  if(desBtn) desBtn.className='fin-tipo-btn des'+(t==='despesa'?' on':'');
+  const pagtoBloco=document.getElementById('fin-pagto-bloco');
+  const vencBloco=document.getElementById('fin-venc-bloco');
+  if(pagtoBloco) pagtoBloco.style.display=t==='receita'?'':'none';
+  if(vencBloco) vencBloco.style.display=t==='despesa'?'':'none';
+  finPopularCats();
+}
+
+function finPopularCats(){
+  const sel=document.getElementById('fin-cat'); if(!sel)return;
+  const lista=finTipo==='receita'?FIN_CATS_REC:FIN_CATS_DES;
+  sel.innerHTML=lista.map(c=>`<option value="${c.cod}">${c.label}</option>`).join('');
+}
+
+function finSetPay(p){
+  finPay=p;
+  ['pix','cartao','dinheiro','boleto'].forEach(f=>{
+    const el=document.getElementById('fp-'+f);
+    if(el) el.classList.toggle('on',f===p);
+  });
+  ['pix','cartao','dinheiro','boleto'].forEach(f=>{
+    const det=document.getElementById('fin-det-'+f);
+    if(det) det.style.display=f===p?'':'none';
+  });
+  if(p==='dinheiro'){
+    const valor=document.getElementById('fin-valor');
+    const recebido=document.getElementById('fin-din-recebido');
+    const troco=document.getElementById('fin-din-troco');
+    if(recebido&&troco&&valor){
+      recebido.oninput=()=>{
+        const t=Number(recebido.value||0)-Number(valor.value||0);
+        if(troco) troco.value=t>0?t.toFixed(2):'0.00';
+      };
+    }
+  }
+}
+
+function finRenderFavs(){
+  const el=document.getElementById('fin-favs-lista'); if(!el)return;
+  el.innerHTML=finFavs.map(f=>`<div class="fin-fav" onclick="finAplicarFav(${f.id})">${f.label}</div>`).join('')
+    +`<div class="fin-fav add" onclick="finCriarFav()">+ Criar favorito</div>`;
+}
+
+function finAplicarFav(id){
+  const fav=finFavs.find(f=>f.id===id); if(!fav)return;
+  finSetTipo(fav.tipo);
+  const desc=document.getElementById('fin-desc'); if(desc)desc.value=fav.label;
+  const cat=document.getElementById('fin-cat'); if(cat)cat.value=fav.cat;
+  finSetPay(fav.pay||'pix');
+  document.querySelectorAll('.fin-fav').forEach(el=>el.classList.remove('on'));
+  event.target.classList.add('on');
+}
+
+function finCriarFav(){
+  const desc=document.getElementById('fin-desc')?.value.trim();
+  if(!desc){showToast('Preencha a descrição primeiro','warn');return;}
+  const cat=document.getElementById('fin-cat')?.value||'';
+  const id=Date.now();
+  finFavs.push({id,label:desc,tipo:finTipo,cat,pay:finPay});
+  finSalvarFavs();
+  finRenderFavs();
+  showToast('Favorito criado!');
+}
+
+async function finSalvar(){
+  const desc=document.getElementById('fin-desc')?.value.trim();
+  const valor=parseFloat(document.getElementById('fin-valor')?.value)||0;
+  const data=document.getElementById('fin-data')?.value;
+  const cat=document.getElementById('fin-cat')?.value||'';
+  const obs=document.getElementById('fin-obs')?.value.trim()||'';
+  const pac=document.getElementById('fin-paciente')?.value.trim()||'';
+  const ehSinal=document.getElementById('fin-eh-sinal')?.checked||false;
+
+  if(!desc){showToast('Informe a descrição','err');return;}
+  if(!valor){showToast('Informe o valor','err');return;}
+  if(!data){showToast('Informe a data','err');return;}
+
+  let extras={};
+  if(finTipo==='receita'&&finPay==='pix'){
+    extras.pix_banco=document.getElementById('fin-pix-banco')?.value||'';
+  }
+  if(finTipo==='receita'&&finPay==='cartao'){
+    extras.cartao_bandeira=document.getElementById('fin-cartao-band')?.value||'';
+    extras.cartao_parcelas=parseInt(document.getElementById('fin-cartao-parc')?.value)||1;
+    extras.cartao_taxa=parseFloat(document.getElementById('fin-cartao-taxa')?.value)||0;
+  }
+
+  const venc=finTipo==='despesa'?document.getElementById('fin-venc')?.value:'';
+  const recorrente=finTipo==='despesa'&&(document.getElementById('fin-recorrente')?.checked||false);
+  const lembrete=finTipo==='despesa'&&(document.getElementById('fin-lembrete')?.checked||true);
+
+  const payload={
+    tipo:finTipo, descricao:desc, categoria_dre:cat,
+    valor, data, obs, paciente:pac,
+    forma_pagamento:finTipo==='receita'?finPay:null,
+    vencimento:venc||null, recorrente, lembrete, pago:false,
+    eh_sinal:ehSinal,
+    user_id:USER?.id||null,
+    setor:finInferirSetor(cat,desc),
+    ...extras
+  };
+
+  const btn=document.getElementById('fin-btn-salvar');
+  if(btn){btn.textContent='Salvando...';btn.disabled=true;}
+
+  try{
+    const {data:row,error}=await db.from('fin_lancamentos').insert(payload).select().single();
+    if(error)throw error;
+    finLancs.unshift(row);
+    showToast('Lançamento salvo!');
+  }catch(e){
+    finLancs.unshift({...payload,id:'local-'+Date.now()});
+    showToast('Salvo localmente — verifique conexão com Supabase','warn');
+  }
+
+  if(btn){btn.textContent='Salvar lançamento';btn.disabled=false;}
+  finFecharModal();
+  finRenderDash();
+  if(document.getElementById('fin-pg-receitas')?.classList.contains('on')) finRenderLista('receita');
+  if(document.getElementById('fin-pg-despesas')?.classList.contains('on')) finRenderLista('despesa');
+}
+
+
+
 // ── Sub-nav ───────────────────────────────────────────────────────────
 function finGoSub(id,el){
   document.querySelectorAll('.fin-sn').forEach(s=>s.classList.remove('on'));
@@ -3622,5 +3491,323 @@ function importarDados(){
   input.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.prices)Object.assign(prices,d.prices);if(d.costs)Object.assign(costs,d.costs);if(d.ativoObs)Object.assign(ativoObs,d.ativoObs);if(d.pacientes)pacientes=d.pacientes;if(d.semanas)semanas=d.semanas;if(d.sessoes)sessoes=d.sessoes;if(d.selected)Object.assign(selected,d.selected);if(d.duracao!==undefined)duracao=d.duracao;if(d.nomelivre)document.getElementById('nome-livre').value=d.nomelivre;initCatPills();initCatSelects();renderItems();updSummary();renderPacs();renderAtivos();saveState();alert('Importado!');}catch(e){alert('Arquivo inválido.');}};r.readAsText(f);};input.click();
 }
 </script>
+
+<!-- ══ MODAIS FINANCEIROS ════════════════════════════════════════════ -->
+
+<!-- Modal principal: novo lançamento -->
+<div id="fin-modal-ov" onclick="if(event.target===this)finFecharModal()" style="display:none;position:fixed;inset:0;background:rgba(26,23,20,.6);z-index:9500;align-items:center;justify-content:center;padding:16px">
+  <div style="background:var(--bg);border-radius:10px;width:100%;max-width:460px;max-height:92vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.45)" onclick="event.stopPropagation()">
+    <div style="padding:18px 22px 14px;border-bottom:1px solid var(--bd);display:flex;align-items:flex-start;justify-content:space-between;flex-shrink:0">
+      <div>
+        <div style="font-family:Georgia,serif;font-size:17px;color:var(--tx)">Novo lançamento</div>
+        <div style="font-size:10px;color:var(--tl);margin-top:3px">Favorito ou preenchimento manual</div>
+      </div>
+      <button onclick="finFecharModal()" style="border:none;background:none;color:var(--tl);font-size:22px;cursor:pointer;line-height:1;padding:0 2px">✕</button>
+    </div>
+    <div style="padding:16px 22px">
+      <!-- Favoritos -->
+      <div style="font-size:8px;letter-spacing:1.5px;font-weight:600;text-transform:uppercase;color:var(--tl);margin-bottom:6px">Acesso rápido</div>
+      <div id="fin-favs-lista" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px"></div>
+      <!-- Tipo -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+        <div id="fin-tipo-rec" onclick="finSetTipo('receita')" style="border:2px solid var(--verde);border-radius:var(--r);padding:10px 12px;cursor:pointer;background:var(--verde-l)">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--verde)">+ Receita</div>
+          <div style="font-size:9px;color:var(--tl);margin-top:2px">consulta, procedimento</div>
+        </div>
+        <div id="fin-tipo-des" onclick="finSetTipo('despesa')" style="border:1px solid var(--bd2);border-radius:var(--r);padding:10px 12px;cursor:pointer;background:var(--bg2)">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#8B2020">− Despesa</div>
+          <div style="font-size:9px;color:var(--tl);margin-top:2px">custo, fornecedor</div>
+        </div>
+      </div>
+      <!-- Descrição -->
+      <div style="margin-bottom:10px">
+        <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Descrição da movimentação</label>
+        <input id="fin-desc" type="text" placeholder="Ex: Consulta Dra. Luisa Costa" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)">
+      </div>
+      <!-- Categoria DRE -->
+      <div style="margin-bottom:10px">
+        <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Categoria DRE</label>
+        <select id="fin-cat" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)"></select>
+      </div>
+      <!-- Valor e Data -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div>
+          <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Valor (R$)</label>
+          <input id="fin-valor" type="number" min="0" step="10" placeholder="0,00" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:14px;font-weight:500;color:var(--tx)">
+        </div>
+        <div>
+          <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Data</label>
+          <input id="fin-data" type="date" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)">
+        </div>
+      </div>
+      <!-- Pagamento (receita) -->
+      <div id="fin-pagto-bloco">
+        <div style="font-size:8px;letter-spacing:1.5px;font-weight:600;text-transform:uppercase;color:var(--tl);margin-bottom:6px">Forma de pagamento</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px">
+          <div id="fp-pix" onclick="finSetPay('pix')" style="border:2px solid var(--terra);border-radius:var(--r);padding:8px 4px;cursor:pointer;background:var(--terra-xl);text-align:center;font-size:10px;font-weight:700;color:var(--terra-d)">PIX</div>
+          <div id="fp-cartao" onclick="finSetPay('cartao')" style="border:1px solid var(--bd2);border-radius:var(--r);padding:8px 4px;cursor:pointer;background:var(--bg2);text-align:center;font-size:10px;font-weight:600;color:var(--tm)">Cartão</div>
+          <div id="fp-dinheiro" onclick="finSetPay('dinheiro')" style="border:1px solid var(--bd2);border-radius:var(--r);padding:8px 4px;cursor:pointer;background:var(--bg2);text-align:center;font-size:10px;font-weight:600;color:var(--tm)">Dinheiro</div>
+          <div id="fp-boleto" onclick="finSetPay('boleto')" style="border:1px solid var(--bd2);border-radius:var(--r);padding:8px 4px;cursor:pointer;background:var(--bg2);text-align:center;font-size:10px;font-weight:600;color:var(--tm)">Boleto</div>
+        </div>
+        <!-- Detalhes PIX -->
+        <div id="fin-det-pix" style="background:var(--bg3);border:1px solid var(--bd);border-radius:var(--r);padding:10px 12px;margin-bottom:10px">
+          <div style="font-size:8px;letter-spacing:1.2px;font-weight:600;text-transform:uppercase;color:var(--tl);margin-bottom:8px">Detalhes — PIX</div>
+          <div>
+            <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Banco recebedor</label>
+            <select id="fin-pix-banco" style="width:100%;padding:8px 10px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:12px;color:var(--tx)">
+              <option value="">Selecionar...</option><option>Sicoob</option><option>Nubank</option><option>Itaú</option><option>Bradesco</option><option>Inter</option><option>Outro</option>
+            </select>
+          </div>
+        </div>
+        <!-- Detalhes Cartão -->
+        <div id="fin-det-cartao" style="display:none;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--r);padding:10px 12px;margin-bottom:10px">
+          <div style="font-size:8px;letter-spacing:1.2px;font-weight:600;text-transform:uppercase;color:var(--tl);margin-bottom:8px">Detalhes — Cartão</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+            <div>
+              <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Bandeira</label>
+              <select id="fin-cartao-band" style="width:100%;padding:8px 10px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:12px;color:var(--tx)">
+                <option>Visa</option><option>Mastercard</option><option>Elo</option><option>Amex</option><option>Outro</option>
+              </select>
+            </div>
+            <div>
+              <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Parcelas</label>
+              <select id="fin-cartao-parc" style="width:100%;padding:8px 10px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:12px;color:var(--tx)">
+                <option value="1">À vista (1x)</option><option value="2">2x</option><option value="3">3x</option><option value="6">6x</option><option value="10">10x</option><option value="12">12x</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Taxa maquininha (%)</label>
+            <input id="fin-cartao-taxa" type="number" min="0" max="10" step="0.1" value="2.5" style="width:100%;padding:8px 10px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:12px;color:var(--tx)">
+          </div>
+        </div>
+        <!-- Detalhes Dinheiro -->
+        <div id="fin-det-dinheiro" style="display:none;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--r);padding:10px 12px;margin-bottom:10px">
+          <div style="font-size:8px;letter-spacing:1.2px;font-weight:600;text-transform:uppercase;color:var(--tl);margin-bottom:8px">Detalhes — Dinheiro</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div>
+              <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Valor recebido (R$)</label>
+              <input id="fin-din-recebido" type="number" min="0" step="10" placeholder="0,00" style="width:100%;padding:8px 10px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:12px;color:var(--tx)">
+            </div>
+            <div>
+              <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Troco (R$)</label>
+              <input id="fin-din-troco" type="number" readonly placeholder="0,00" style="width:100%;padding:8px 10px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg3);font-size:12px;color:var(--tl)">
+            </div>
+          </div>
+        </div>
+        <!-- Detalhes Boleto -->
+        <div id="fin-det-boleto" style="display:none;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--r);padding:10px 12px;margin-bottom:10px">
+          <div style="font-size:8px;letter-spacing:1.2px;font-weight:600;text-transform:uppercase;color:var(--tl);margin-bottom:8px">Detalhes — Boleto</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div>
+              <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Banco</label>
+              <select id="fin-bol-banco" style="width:100%;padding:8px 10px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:12px;color:var(--tx)">
+                <option>Sicoob</option><option>Bradesco</option><option>Itaú</option><option>Santander</option><option>Outro</option>
+              </select>
+            </div>
+            <div>
+              <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Vencimento</label>
+              <input id="fin-bol-venc" type="date" style="width:100%;padding:8px 10px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:12px;color:var(--tx)">
+            </div>
+          </div>
+        </div>
+        <!-- Sinal de consulta -->
+        <div style="background:var(--bg3);border:1px solid var(--bd);border-radius:var(--r);padding:9px 12px;margin-bottom:10px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--tm)">
+            <input type="checkbox" id="fin-eh-sinal" style="width:auto">
+            <span>Sinal de consulta <span style="color:var(--tl);font-size:10px">(entrada parcial para garantir a vaga)</span></span>
+          </label>
+        </div>
+        <!-- Paciente -->
+        <div style="margin-bottom:10px;position:relative">
+          <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Paciente / cliente (opcional)</label>
+          <input id="fin-paciente" type="text" placeholder="Buscar paciente..." autocomplete="off" oninput="finBuscarPaciente(this.value)" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)">
+          <div id="fin-pac-drop" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);z-index:100;max-height:160px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.12)"></div>
+        </div>
+      </div>
+      <!-- Vencimento (despesa) -->
+      <div id="fin-venc-bloco" style="display:none">
+        <div style="margin-bottom:10px">
+          <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Vencimento</label>
+          <input id="fin-venc" type="date" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:10px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--tm)">
+            <input type="checkbox" id="fin-recorrente" style="width:auto"> Despesa recorrente mensal
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--tm)">
+            <input type="checkbox" id="fin-lembrete" checked style="width:auto"> Lembrar 3 dias antes do vencimento
+          </label>
+        </div>
+      </div>
+      <!-- Observação -->
+      <div style="margin-bottom:0">
+        <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Observação (opcional)</label>
+        <input id="fin-obs" type="text" placeholder="Detalhes adicionais..." style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)">
+      </div>
+    </div>
+    <div style="padding:12px 22px;border-top:1px solid var(--bd);display:flex;gap:8px;justify-content:flex-end;flex-shrink:0">
+      <button onclick="finFecharModal()" style="padding:9px 18px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);color:var(--tx);font-size:12px;cursor:pointer">Cancelar</button>
+      <button id="fin-btn-salvar" onclick="finSalvar()" style="padding:9px 22px;border:none;border-radius:var(--r);background:var(--terra);color:white;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:.3px">Salvar lançamento</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal detalhe/edição lançamento -->
+<div id="fin-det-ov" onclick="if(event.target===this)finFecharDetalhe()" style="display:none;position:fixed;inset:0;background:rgba(26,23,20,.6);z-index:9600;align-items:center;justify-content:center;padding:16px">
+  <div style="background:var(--bg);border-radius:10px;width:100%;max-width:480px;max-height:92vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.4)" onclick="event.stopPropagation()">
+    <div style="padding:18px 22px 14px;border-bottom:1px solid var(--bd);display:flex;align-items:flex-start;justify-content:space-between">
+      <div>
+        <div style="font-family:Georgia,serif;font-size:16px;color:var(--tx)" id="fin-det-title">Lançamento</div>
+        <div style="font-size:10px;color:var(--tl);margin-top:3px" id="fin-det-sub"></div>
+      </div>
+      <button onclick="finFecharDetalhe()" style="border:none;background:none;color:var(--tl);font-size:22px;cursor:pointer;padding:0 4px">✕</button>
+    </div>
+    <div id="fin-det-view">
+      <div style="padding:16px 22px" id="fin-det-body"></div>
+      <div style="padding:12px 22px;border-top:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between">
+        <div id="fin-det-admin-btns" style="display:none;gap:8px">
+          <button onclick="finRemoverLanc()" style="padding:8px 14px;border:1px solid #f0aaaa;border-radius:var(--r);background:none;color:#8B2020;font-size:11px;cursor:pointer">Remover</button>
+          <button onclick="finModoEditar()" style="padding:8px 18px;border:none;border-radius:var(--r);background:var(--terra);color:white;font-size:11px;font-weight:600;cursor:pointer">Editar</button>
+        </div>
+        <button onclick="finFecharDetalhe()" style="padding:8px 16px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);color:var(--tx);font-size:11px;cursor:pointer;margin-left:auto">Fechar</button>
+      </div>
+    </div>
+    <div id="fin-det-edit" style="display:none">
+      <div style="padding:16px 22px">
+        <div style="margin-bottom:10px">
+          <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Descrição</label>
+          <input id="fin-edit-desc" type="text" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <div>
+            <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Valor (R$)</label>
+            <input id="fin-edit-valor" type="number" step="0.01" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)">
+          </div>
+          <div>
+            <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Data</label>
+            <input id="fin-edit-data" type="date" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)">
+          </div>
+        </div>
+        <div style="margin-bottom:10px">
+          <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Categoria DRE</label>
+          <select id="fin-edit-cat" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)"></select>
+        </div>
+        <div style="margin-bottom:10px">
+          <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Paciente</label>
+          <input id="fin-edit-pac" type="text" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)">
+        </div>
+        <div style="background:var(--terra-xl);border:1px solid var(--terra-l);border-radius:var(--r);padding:10px 12px">
+          <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--terra-d);margin-bottom:4px">Motivo da edição (obrigatório)</label>
+          <input id="fin-edit-motivo" type="text" placeholder="Ex: valor incorreto" style="width:100%;padding:9px 12px;border:1px solid var(--terra-l);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)">
+        </div>
+      </div>
+      <div style="padding:12px 22px;border-top:1px solid var(--bd);display:flex;gap:8px;justify-content:flex-end">
+        <button onclick="finModoDetalhe()" style="padding:8px 16px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);color:var(--tx);font-size:11px;cursor:pointer">Cancelar</button>
+        <button onclick="finSalvarEdicao()" style="padding:8px 20px;border:none;border-radius:var(--r);background:var(--terra);color:white;font-size:11px;font-weight:600;cursor:pointer">Salvar edição</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal inadimplente manual -->
+<div id="fin-inad-ov" onclick="if(event.target===this)finFecharModalInad()" style="display:none;position:fixed;inset:0;background:rgba(26,23,20,.6);z-index:9600;align-items:center;justify-content:center;padding:16px">
+  <div style="background:var(--bg);border-radius:10px;width:100%;max-width:400px;box-shadow:0 24px 60px rgba(0,0,0,.4)" onclick="event.stopPropagation()">
+    <div style="padding:18px 22px 14px;border-bottom:1px solid var(--bd);display:flex;align-items:flex-start;justify-content:space-between">
+      <div>
+        <div style="font-family:Georgia,serif;font-size:16px;color:var(--tx)">Adicionar inadimplente</div>
+        <div style="font-size:10px;color:var(--tl);margin-top:3px">Registro manual de débito em aberto</div>
+      </div>
+      <button onclick="finFecharModalInad()" style="border:none;background:none;color:var(--tl);font-size:22px;cursor:pointer;padding:0 4px">✕</button>
+    </div>
+    <div style="padding:16px 22px">
+      <div style="margin-bottom:10px">
+        <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Paciente</label>
+        <input id="inad-paciente" type="text" placeholder="Nome do paciente" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)">
+      </div>
+      <div style="margin-bottom:10px">
+        <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Descrição do débito</label>
+        <input id="inad-desc" type="text" placeholder="Ex: Protocolo de longevidade" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div>
+          <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Valor total (R$)</label>
+          <input id="inad-total" type="number" min="0" step="10" oninput="finCalcSaldoInad()" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)">
+        </div>
+        <div>
+          <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Já pago (R$)</label>
+          <input id="inad-pago" type="number" min="0" step="10" value="0" oninput="finCalcSaldoInad()" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)">
+        </div>
+      </div>
+      <div style="background:var(--bg3);border:1px solid var(--bd);border-radius:var(--r);padding:12px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:10px;color:var(--tl);font-weight:600;letter-spacing:.5px">SALDO EM ABERTO</span>
+        <span id="inad-saldo-calc" style="font-size:22px;font-weight:500;color:#8B2020">R$ 0</span>
+      </div>
+      <div>
+        <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Observação</label>
+        <input id="inad-obs" type="text" placeholder="Ex: Combinado boleto, não pagou" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)">
+      </div>
+    </div>
+    <div style="padding:12px 22px;border-top:1px solid var(--bd);display:flex;gap:8px;justify-content:flex-end">
+      <button onclick="finFecharModalInad()" style="padding:9px 18px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);color:var(--tx);font-size:12px;cursor:pointer">Cancelar</button>
+      <button onclick="finSalvarInad()" style="padding:9px 22px;border:none;border-radius:var(--r);background:var(--terra);color:white;font-size:12px;font-weight:600;cursor:pointer">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal quitação -->
+<div id="fin-quit-ov" onclick="if(event.target===this)finFecharQuit()" style="display:none;position:fixed;inset:0;background:rgba(26,23,20,.6);z-index:9700;align-items:center;justify-content:center;padding:16px">
+  <div style="background:var(--bg);border-radius:10px;width:100%;max-width:420px;box-shadow:0 24px 60px rgba(0,0,0,.4)" onclick="event.stopPropagation()">
+    <div style="padding:18px 22px 14px;border-bottom:1px solid var(--bd);display:flex;align-items:flex-start;justify-content:space-between">
+      <div>
+        <div style="font-family:Georgia,serif;font-size:16px;color:var(--tx)">Registrar quitação</div>
+        <div style="font-size:10px;color:var(--tl);margin-top:3px" id="fin-quit-sub">Pagamento de débito em aberto</div>
+      </div>
+      <button onclick="finFecharQuit()" style="border:none;background:none;color:var(--tl);font-size:22px;cursor:pointer;padding:0 4px">✕</button>
+    </div>
+    <div style="padding:16px 22px">
+      <div style="background:var(--bg3);border:1px solid var(--bd);border-radius:var(--r);padding:12px 14px;margin-bottom:14px">
+        <div style="font-size:10px;color:var(--tl);margin-bottom:3px">Paciente</div>
+        <div style="font-size:14px;font-weight:500;color:var(--tx)" id="fin-quit-pac">—</div>
+        <div style="font-size:11px;color:var(--tl);margin-top:2px" id="fin-quit-desc">—</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+        <div onclick="finSetQuitTipo('total')" id="fin-quit-total-btn" style="border:2px solid var(--terra);border-radius:var(--r);padding:10px;cursor:pointer;background:var(--terra-xl);text-align:center">
+          <div style="font-size:10px;font-weight:700;color:var(--terra-d);text-transform:uppercase;letter-spacing:.5px">Quitação total</div>
+          <div style="font-size:9px;color:var(--tl);margin-top:2px">Zera o saldo</div>
+        </div>
+        <div onclick="finSetQuitTipo('parcial')" id="fin-quit-parcial-btn" style="border:1px solid var(--bd2);border-radius:var(--r);padding:10px;cursor:pointer;background:var(--bg2);text-align:center">
+          <div style="font-size:10px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.5px">Pagamento parcial</div>
+          <div style="font-size:9px;color:var(--tl);margin-top:2px">Abate do saldo</div>
+        </div>
+      </div>
+      <div style="margin-bottom:10px">
+        <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Valor recebido (R$)</label>
+        <input id="fin-quit-valor" type="number" min="0" step="10" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:15px;font-weight:500;color:var(--tx)">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div>
+          <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Data do pagamento</label>
+          <input id="fin-quit-data" type="date" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)">
+        </div>
+        <div>
+          <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Forma de pagamento</label>
+          <select id="fin-quit-forma" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)">
+            <option value="pix">PIX</option><option value="cartao">Cartão</option><option value="dinheiro">Dinheiro</option><option value="boleto">Boleto</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label style="display:block;font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Observação</label>
+        <input id="fin-quit-obs" type="text" placeholder="Ex: Quitação total via PIX" style="width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:13px;color:var(--tx)">
+      </div>
+    </div>
+    <div style="padding:12px 22px;border-top:1px solid var(--bd);display:flex;gap:8px;justify-content:flex-end">
+      <button onclick="finFecharQuit()" style="padding:9px 18px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);color:var(--tx);font-size:12px;cursor:pointer">Cancelar</button>
+      <button onclick="finConfirmarQuit()" style="padding:10px 24px;border:none;border-radius:var(--r);background:var(--verde);color:white;font-size:12px;font-weight:600;cursor:pointer">Confirmar quitação</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
