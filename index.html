@@ -2668,8 +2668,15 @@ function finSetTipo(t){
   finTipo=t;
   const recBtn=document.getElementById('fin-tipo-rec');
   const desBtn=document.getElementById('fin-tipo-des');
-  if(recBtn) recBtn.className='fin-tipo-btn'+(t==='receita'?' on rec':'');
-  if(desBtn) desBtn.className='fin-tipo-btn des'+(t==='despesa'?' on':'');
+  // Usar style inline pois os botões não usam classes CSS
+  if(recBtn){
+    recBtn.style.border=t==='receita'?'2px solid var(--verde)':'1px solid var(--bd2)';
+    recBtn.style.background=t==='receita'?'var(--verde-l)':'var(--bg2)';
+  }
+  if(desBtn){
+    desBtn.style.border=t==='despesa'?'2px solid #8B2020':'1px solid var(--bd2)';
+    desBtn.style.background=t==='despesa'?'#FCEBEB':'var(--bg2)';
+  }
   const pagtoBloco=document.getElementById('fin-pagto-bloco');
   const vencBloco=document.getElementById('fin-venc-bloco');
   if(pagtoBloco) pagtoBloco.style.display=t==='receita'?'':'none';
@@ -2687,7 +2694,12 @@ function finSetPay(p){
   finPay=p;
   ['pix','cartao','dinheiro','boleto'].forEach(f=>{
     const el=document.getElementById('fp-'+f);
-    if(el) el.classList.toggle('on',f===p);
+    if(!el) return;
+    // Usar style inline pois os botões do modal usam style
+    el.style.border=f===p?'2px solid var(--terra)':'1px solid var(--bd2)';
+    el.style.background=f===p?'var(--terra-xl)':'var(--bg2)';
+    el.style.color=f===p?'var(--terra-d)':'var(--tm)';
+    el.style.fontWeight=f===p?'700':'600';
   });
   ['pix','cartao','dinheiro','boleto'].forEach(f=>{
     const det=document.getElementById('fin-det-'+f);
@@ -3440,18 +3452,23 @@ async function finRemoverLanc(){
 let finPacsCache = [];
 
 async function finCarregarPacs(){
-  // Tenta pacientes, depois fallback nos nomes dos protocolos
+  // Tenta protocolos primeiro (mais confiável), depois pacientes
   try{
-    const {data,error}=await db.from('pacientes').select('id,nome,cpf').order('nome');
-    if(!error&&data&&data.length) { finPacsCache=data; return; }
-  }catch(e){}
-  try{
-    const {data}=await db.from('protocolos').select('paciente_nome').limit(200);
-    if(data){
+    const {data}=await db.from('protocolos').select('paciente_nome').limit(300);
+    if(data&&data.length){
       const nomes=[...new Set(data.map(p=>p.paciente_nome).filter(Boolean))].sort();
       finPacsCache=nomes.map((n,i)=>({id:i,nome:n,cpf:''}));
     }
-  }catch(e){ finPacsCache=[]; }
+  }catch(e){}
+  // Complementar com tabela pacientes se existir
+  try{
+    const {data,error}=await db.from('pacientes').select('id,nome,cpf').order('nome');
+    if(!error&&data&&data.length){
+      const nomesExist=new Set(finPacsCache.map(p=>p.nome.toLowerCase()));
+      const novos=data.filter(p=>p.nome&&!nomesExist.has(p.nome.toLowerCase()));
+      finPacsCache=[...finPacsCache,...novos].sort((a,b)=>a.nome.localeCompare(b.nome));
+    }
+  }catch(e){} // silencioso — tabela pode não existir
 }
 
 function finBuscarPaciente(q){
