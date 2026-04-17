@@ -998,12 +998,47 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
 
         <!-- ── INADIMPLENTES ── -->
         <div class="fin-sub-pg fin-pg" id="fin-pg-inadimplentes">
-          <div class="fin-kpis" style="grid-template-columns:repeat(3,1fr)">
-            <div class="fin-kpi r"><div class="fk-lbl">Total em aberto</div><div class="fk-val red" id="fk-inad-total">R$ 0</div><div class="fk-sub" id="fk-inad-pac">0 pacientes</div></div>
-            <div class="fin-kpi"><div class="fk-lbl">Sinais sem retorno</div><div class="fk-val" id="fk-inad-sinais">0</div><div class="fk-sub">aguardando consulta</div></div>
-            <div class="fin-kpi r"><div class="fk-lbl">Complemento pendente</div><div class="fk-val red" id="fk-inad-comp">0</div><div class="fk-sub">consulta realizada</div></div>
+          <div class="fin-kpis" style="grid-template-columns:repeat(3,1fr);margin-bottom:12px">
+            <div class="fin-kpi r"><div class="fk-lbl">Total em aberto</div><div class="fk-val red" id="fk-inad-total">R$ 0</div><div class="fk-sub" id="fk-inad-sub">0 registros</div></div>
+            <div class="fin-kpi"><div class="fk-lbl">Protocolos em aberto</div><div class="fk-val" id="fk-inad-prot">0</div><div class="fk-sub">via precificador</div></div>
+            <div class="fin-kpi r"><div class="fk-lbl">Adicionados manualmente</div><div class="fk-val red" id="fk-inad-man">0</div><div class="fk-sub">registro direto</div></div>
           </div>
-          <div class="fin-card"><div class="fin-card-hd"><span class="sec">Saldos em aberto por paciente</span></div><div class="fin-card-body" id="fin-inad-lista"><div style="color:var(--tl);font-size:11px">Nenhum saldo em aberto.</div></div></div>
+          <div class="fin-card">
+            <div class="fin-card-hd">
+              <span class="sec">Inadimplentes</span>
+              <button class="btn btn-xs btn-terra" onclick="finAbrirModalInad()">+ Adicionar</button>
+            </div>
+            <div class="fin-card-body" id="fin-inad-lista">
+              <div style="color:var(--tl);font-size:11px;padding:8px 0">Carregando...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal inadimplente manual -->
+        <div id="fin-inad-ov" style="display:none;position:fixed;inset:0;background:rgba(26,25,21,.6);z-index:9000;align-items:center;justify-content:center" onclick="if(event.target===this)finFecharModalInad()">
+          <div class="fin-modal" onclick="event.stopPropagation()" style="max-width:400px">
+            <div class="fin-m-hd">
+              <div><div class="fin-m-title">Adicionar inadimplente</div><div class="fin-m-sub">Registro manual de débito em aberto</div></div>
+              <button onclick="finFecharModalInad()" style="border:none;background:none;color:var(--tl);font-size:18px;cursor:pointer">✕</button>
+            </div>
+            <div class="fin-m-body">
+              <div class="fin-mf"><label>Paciente</label><input id="inad-paciente" type="text" placeholder="Nome do paciente"></div>
+              <div class="fin-mf"><label>Descrição do débito</label><input id="inad-desc" type="text" placeholder="Ex: Protocolo de longevidade — 3 meses"></div>
+              <div class="fin-mf-row">
+                <div class="fin-mf" style="margin:0"><label>Valor total (R$)</label><input id="inad-total" type="number" min="0" step="10" placeholder="0,00" oninput="finCalcSaldoInad()"></div>
+                <div class="fin-mf" style="margin:0"><label>Já pago (R$)</label><input id="inad-pago" type="number" min="0" step="10" placeholder="0,00" oninput="finCalcSaldoInad()"></div>
+              </div>
+              <div style="background:var(--bg3);border:1px solid var(--bd);border-radius:var(--r);padding:10px 12px;margin-bottom:10px">
+                <div style="font-size:8px;letter-spacing:1.5px;font-weight:600;text-transform:uppercase;color:var(--tl);margin-bottom:4px">Saldo em aberto</div>
+                <div id="inad-saldo-calc" style="font-size:22px;font-weight:500;color:#8B2020">R$ 0</div>
+              </div>
+              <div class="fin-mf" style="margin-bottom:0"><label>Observação</label><input id="inad-obs" type="text" placeholder="Ex: Combinado boleto, não pagou"></div>
+            </div>
+            <div class="fin-m-ft">
+              <button class="btn" onclick="finFecharModalInad()">Cancelar</button>
+              <button class="btn btn-terra" onclick="finSalvarInad()">Salvar</button>
+            </div>
+          </div>
         </div>
 
         <!-- ── SETORES ── -->
@@ -1103,13 +1138,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
         <!-- Detalhes dinâmicos por meio -->
         <div class="fin-extra" id="fin-det-pix">
           <div class="fin-extra-lbl">Detalhes — PIX</div>
-          <div class="fin-mf-row" style="margin-bottom:0">
-            <div class="fin-mf" style="margin:0"><label>Banco</label>
-              <select id="fin-pix-banco"><option value="">Selecionar...</option><option>Sicoob</option><option>Nubank</option><option>Itaú</option><option>Bradesco</option><option>Inter</option><option>Outro</option></select>
-            </div>
-            <div class="fin-mf" style="margin:0"><label>Tipo</label>
-              <select id="fin-pix-tipo"><option value="total">Pagamento total</option><option value="sinal">Sinal / entrada</option><option value="complemento">Complemento</option></select>
-            </div>
+          <div class="fin-mf" style="margin-bottom:0"><label>Banco recebedor</label>
+            <select id="fin-pix-banco"><option value="">Selecionar...</option><option>Sicoob</option><option>Nubank</option><option>Itaú</option><option>Bradesco</option><option>Inter</option><option>Outro</option></select>
           </div>
         </div>
         <div class="fin-extra" id="fin-det-cartao" style="display:none">
@@ -1139,6 +1169,13 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
             </div>
             <div class="fin-mf" style="margin:0"><label>Vencimento</label><input id="fin-bol-venc" type="date"></div>
           </div>
+        </div>
+        <!-- Sinal de consulta -->
+        <div style="margin-bottom:10px;padding:8px 10px;background:var(--bg3);border:1px solid var(--bd);border-radius:var(--r)">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:11px;color:var(--tm)">
+            <input type="checkbox" id="fin-eh-sinal" style="width:auto">
+            <span>Sinal de consulta <span style="color:var(--tl);font-size:10px">(entrada parcial para garantir a vaga)</span></span>
+          </label>
         </div>
         <!-- Paciente -->
         <div class="fin-mf" style="margin-bottom:0">
@@ -2616,8 +2653,12 @@ let finEditId = null;
 let finFavs = [];
 
 const FIN_CATS_REC = [
-  {cod:'1.1',label:'1.1 — Atendimentos PIX / TED'},
-  {cod:'1.2',label:'1.2 — Recebimentos de Cartão'},
+  {cod:'1.1',label:'1.1 — Consulta Dra. Luisa Costa'},
+  {cod:'1.2',label:'1.2 — Consulta Dermatologia'},
+  {cod:'1.3',label:'1.3 — Consulta Nutricional'},
+  {cod:'1.4',label:'1.4 — Protocolo de Tratamento'},
+  {cod:'1.5',label:'1.5 — Procedimento Dermatológico'},
+  {cod:'1.6',label:'1.6 — Procedimento Avulso'},
 ];
 const FIN_CATS_DES = [
   {cod:'2.1',label:'2.1 — Impostos sobre Receita'},
@@ -2860,31 +2901,127 @@ async function finMarcarPago(id){
 }
 
 // ── Inadimplentes ─────────────────────────────────────────────────────
-function finRenderInad(){
-  const abertos=finLancs.filter(l=>l.tipo==='receita'&&l.pix_tipo&&(l.pix_tipo==='sinal'||l.pix_tipo==='complemento')&&!l.quitado);
-  const sinais=abertos.filter(l=>l.pix_tipo==='sinal');
-  const comps=abertos.filter(l=>l.pix_tipo==='complemento');
-  const totalAb=abertos.reduce((s,l)=>s+Number(l.saldo_devedor||0),0);
+async function finRenderInad(){
+  // Busca protocolos em andamento com valor_total do Supabase
+  let protocolosAbertos = [];
+  try{
+    const {data,error} = await db.from('protocolos')
+      .select('id,paciente_nome,titulo,valor_total,data_inicio,pagamento')
+      .eq('status','andamento');
+    if(!error && data) protocolosAbertos = data;
+  }catch(e){}
+
+  // Para cada protocolo, calcula quanto já foi pago nos lançamentos financeiros
+  const inadProt = protocolosAbertos.map(p=>{
+    const pago = finLancs
+      .filter(l=>l.tipo==='receita' && l.paciente && l.paciente.toLowerCase()===p.paciente_nome.toLowerCase())
+      .reduce((s,l)=>s+Number(l.valor||0),0);
+    const saldo = Number(p.valor_total||0) - pago;
+    return {...p, valor_pago:pago, saldo_devedor:saldo, origem:'protocolo'};
+  }).filter(p=>p.saldo_devedor>0);
+
+  // Busca inadimplentes adicionados manualmente
+  let inadManuais = [];
+  try{
+    const {data,error} = await db.from('fin_inadimplentes').select('*').order('created_at',{ascending:false});
+    if(!error && data) inadManuais = data;
+  }catch(e){ inadManuais=[]; }
+
+  const todos = [...inadProt, ...inadManuais.map(i=>({...i,origem:'manual'}))];
+  const totalAb = todos.reduce((s,i)=>s+Number(i.saldo_devedor||0),0);
+
   const setSafe=(id,v)=>{ const el=document.getElementById(id); if(el)el.textContent=v; };
-  setSafe('fk-inad-total',finFmt(totalAb));
-  setSafe('fk-inad-pac',String(abertos.length)+' registro(s)');
-  setSafe('fk-inad-sinais',String(sinais.length));
-  setSafe('fk-inad-comp',String(comps.length));
+  setSafe('fk-inad-total', finFmt(totalAb));
+  setSafe('fk-inad-sub', todos.length+' registro(s)');
+  setSafe('fk-inad-prot', String(inadProt.length));
+  setSafe('fk-inad-man', String(inadManuais.length));
+
   const el=document.getElementById('fin-inad-lista'); if(!el)return;
-  if(!abertos.length){el.innerHTML='<div style="color:var(--tl);font-size:11px">Nenhum saldo em aberto.</div>';return;}
-  el.innerHTML=abertos.map(l=>{
-    const ini=l.paciente?l.paciente.slice(0,2).toUpperCase():'??';
-    const saldo=Number(l.saldo_devedor||0);
-    const tipoBadge=l.pix_tipo==='sinal'?'<span style="background:#E6F4EF;color:#1A5C35;font-size:8px;font-weight:600;padding:1px 5px;border-radius:2px">SINAL</span>':'<span style="background:var(--terra-xl);color:var(--terra-d);font-size:8px;font-weight:600;padding:1px 5px;border-radius:2px">COMPLEMENTO</span>';
+  if(!todos.length){
+    el.innerHTML='<div style="color:var(--tl);font-size:11px;padding:8px 0">Nenhum inadimplente registrado.</div>';
+    return;
+  }
+
+  el.innerHTML = todos.map(i=>{
+    const ini=(i.paciente_nome||i.paciente||'?').slice(0,2).toUpperCase();
+    const nome=i.paciente_nome||i.paciente||'—';
+    const desc=i.titulo||i.descricao||'—';
+    const saldo=Number(i.saldo_devedor||0);
+    const pago=Number(i.valor_pago||i.valor_pago||0);
+    const total=Number(i.valor_total||0);
+    const origem=i.origem==='protocolo'
+      ? '<span style="background:var(--terra-xl);color:var(--terra-d);font-size:8px;font-weight:600;padding:1px 6px;border-radius:2px;text-transform:uppercase">Protocolo</span>'
+      : '<span style="background:var(--bg3);color:var(--tm);font-size:8px;font-weight:600;padding:1px 6px;border-radius:2px;text-transform:uppercase;border:1px solid var(--bd)">Manual</span>';
+    const delBtn = i.origem==='manual' ? `<button onclick="finRemoverInad('${i.id}')" style="border:none;background:none;color:var(--tl);font-size:10px;cursor:pointer;padding:2px 6px;border:1px solid var(--bd2);border-radius:var(--r)">Remover</button>` : '';
     return `<div class="fin-inad-row">
       <div class="fin-inad-av">${ini}</div>
       <div class="fin-inad-info">
-        <div class="fin-inad-nome">${l.paciente||'—'}</div>
-        <div class="fin-inad-meta">${l.descricao||''} ${tipoBadge}</div>
+        <div class="fin-inad-nome">${nome}</div>
+        <div class="fin-inad-meta">${desc} &nbsp;${origem}${total?' &nbsp;· Total: '+finFmt(total):''}</div>
       </div>
-      <div class="fin-inad-val"><div class="fin-inad-saldo">${finFmt(saldo)}</div><div class="fin-inad-dias">saldo restante</div></div>
+      <div class="fin-inad-val" style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+        <div class="fin-inad-saldo">${finFmt(saldo)}</div>
+        <div class="fin-inad-dias" style="font-size:9px;color:var(--tl)">${pago?'Pago: '+finFmt(pago):'sem pagamento'}</div>
+        ${delBtn}
+      </div>
     </div>`;
   }).join('');
+}
+
+function finAbrirModalInad(){
+  const el=document.getElementById('fin-inad-ov'); if(!el)return;
+  document.getElementById('inad-paciente').value='';
+  document.getElementById('inad-desc').value='';
+  document.getElementById('inad-total').value='';
+  document.getElementById('inad-pago').value='';
+  document.getElementById('inad-obs').value='';
+  document.getElementById('inad-saldo-calc').textContent='R$ 0';
+  el.style.display='flex';
+}
+
+function finFecharModalInad(){
+  const el=document.getElementById('fin-inad-ov'); if(el)el.style.display='none';
+}
+
+function finCalcSaldoInad(){
+  const total=parseFloat(document.getElementById('inad-total')?.value)||0;
+  const pago=parseFloat(document.getElementById('inad-pago')?.value)||0;
+  const saldo=Math.max(0,total-pago);
+  const el=document.getElementById('inad-saldo-calc');
+  if(el) el.textContent=finFmt(saldo);
+}
+
+async function finSalvarInad(){
+  const paciente=document.getElementById('inad-paciente')?.value.trim();
+  const desc=document.getElementById('inad-desc')?.value.trim();
+  const total=parseFloat(document.getElementById('inad-total')?.value)||0;
+  const pago=parseFloat(document.getElementById('inad-pago')?.value)||0;
+  const obs=document.getElementById('inad-obs')?.value.trim()||'';
+  if(!paciente){showToast('Informe o paciente','err');return;}
+  if(!total){showToast('Informe o valor total','err');return;}
+  const payload={
+    paciente, descricao:desc, valor_total:total,
+    valor_pago:pago, saldo_devedor:Math.max(0,total-pago),
+    obs, user_id:USER?.id||null
+  };
+  try{
+    const {data,error}=await db.from('fin_inadimplentes').insert(payload).select().single();
+    if(error)throw error;
+    showToast('Inadimplente registrado!');
+  }catch(e){
+    showToast('Verifique se a tabela fin_inadimplentes existe no Supabase','warn');
+  }
+  finFecharModalInad();
+  finRenderInad();
+}
+
+async function finRemoverInad(id){
+  if(!confirm('Remover este registro?'))return;
+  try{
+    await db.from('fin_inadimplentes').delete().eq('id',id);
+    showToast('Removido.');
+  }catch(e){ showToast('Erro ao remover','err'); }
+  finRenderInad();
 }
 
 // ── Setores ───────────────────────────────────────────────────────────
@@ -3172,11 +3309,8 @@ async function finSalvar(){
   let extras={};
   if(finTipo==='receita'&&finPay==='pix'){
     extras.pix_banco=document.getElementById('fin-pix-banco')?.value||'';
-    extras.pix_tipo=document.getElementById('fin-pix-tipo')?.value||'total';
-    if(extras.pix_tipo==='sinal'||extras.pix_tipo==='complemento'){
-      extras.saldo_devedor=0;
-    }
   }
+  extras.eh_sinal=document.getElementById('fin-eh-sinal')?.checked||false;
   if(finTipo==='receita'&&finPay==='cartao'){
     extras.cartao_bandeira=document.getElementById('fin-cartao-band')?.value||'';
     extras.cartao_parcelas=parseInt(document.getElementById('fin-cartao-parc')?.value)||1;
