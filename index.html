@@ -3277,6 +3277,7 @@ document.addEventListener('click', e=>{
 
 let finQuitId = null;
 let finQuitOrigem = null;
+let finQuitSaldoTotal = 0;
 
 async function finRenderInad(){
   // Busca protocolos em andamento do precificador
@@ -3398,9 +3399,6 @@ async function finRemoverInad(id){
 }
 
 // ── Quitação ──────────────────────────────────────────────────────────
-let finQuitId = null;
-let finQuitOrigem = null;
-let finQuitSaldoTotal = 0;
 
 function finAbrirQuit(id, origem, nome, desc, saldo){
   finQuitId=String(id);
