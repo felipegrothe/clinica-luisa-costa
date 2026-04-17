@@ -916,193 +916,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
 
       <!-- ══ FINANCEIRO ═════════════════════════════════════════════ -->
       <div id="pg-financeiro" class="page" style="padding:0">
-
-        <!-- Sub-nav -->
-        <div class="fin-subnav">
-          <div class="fin-sn on" onclick="finGoSub('dashboard',this)">Dashboard</div>
-          <div class="fin-sn" onclick="finGoSub('receitas',this)">Receitas</div>
-          <div class="fin-sn" onclick="finGoSub('despesas',this)">Despesas</div>
-          <div class="fin-sn" onclick="finGoSub('contas',this)">Contas a Pagar</div>
-          <div class="fin-sn" onclick="finGoSub('inadimplentes',this)">Inadimplentes</div>
-          <div class="fin-sn" onclick="finGoSub('dre',this)">DRE</div>
-          <div class="fin-sn" onclick="finGoSub('ia',this)">Assistente IA</div>
-          <div class="fin-sn" onclick="finGoSub('config',this)">Configurações</div>
+        <div id="financeiro-loading" style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:12px;color:var(--tl)">
+          <div style="width:32px;height:32px;border:3px solid var(--bd);border-top-color:var(--terra);border-radius:50%;animation:spin 1s linear infinite"></div>
+          <div style="font-size:12px">Carregando financeiro...</div>
         </div>
-
-        <!-- ── DASHBOARD ── -->
-        <div class="fin-sub-pg on fin-pg" id="fin-pg-dashboard">
-          <div class="fin-ia-banner">
-            <div class="fin-ia-tag"><div class="fin-ia-dot"></div>Resumo do dia — Inteligência Artificial</div>
-            <div class="fin-ia-txt" id="fin-ia-resumo">Carregando análise do dia...</div>
-            <button class="btn btn-sm" style="margin-top:8px;font-size:9px" onclick="finGerarResumo()">↺ Atualizar</button>
-          </div>
-          <div class="fin-kpis">
-            <div class="fin-kpi r"><div class="fk-lbl">Saldo do mês</div><div class="fk-val red" id="fk-saldo">—</div><div class="fk-sub" id="fk-saldo-sub">—</div></div>
-            <div class="fin-kpi v"><div class="fk-lbl">Entradas</div><div class="fk-val grn" id="fk-rec">—</div><div class="fk-sub" id="fk-rec-sub">—</div></div>
-            <div class="fin-kpi r"><div class="fk-lbl">Saídas</div><div class="fk-val red" id="fk-des">—</div><div class="fk-sub" id="fk-des-sub">—</div></div>
-            <div class="fin-kpi g"><div class="fk-lbl">Ticket médio</div><div class="fk-val gold" id="fk-ticket">—</div><div class="fk-sub" id="fk-ticket-sub">—</div></div>
-            <div class="fin-kpi r"><div class="fk-lbl">Vencimentos hoje</div><div class="fk-val red" id="fk-venc">—</div><div class="fk-sub" id="fk-venc-sub">—</div></div>
-          </div>
-          <div class="fin-two">
-            <div>
-              <div class="fin-card">
-                <div class="fin-card-hd">
-                  <span class="sec">Lançamentos recentes</span>
-                  <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-                    <div style="display:flex;border:1px solid var(--bd2);border-radius:var(--r);overflow:hidden;background:var(--bg2)">
-                      <button id="fd-todos" onclick="finDashFiltro('')" style="padding:4px 10px;border:none;background:var(--terra);color:white;font-size:10px;font-weight:600;cursor:pointer">Todos</button>
-                      <button id="fd-rec" onclick="finDashFiltro('receita')" style="padding:4px 10px;border:none;background:none;color:var(--tm);font-size:10px;font-weight:600;cursor:pointer;border-left:1px solid var(--bd2)">Entradas</button>
-                      <button id="fd-des" onclick="finDashFiltro('despesa')" style="padding:4px 10px;border:none;background:none;color:var(--tm);font-size:10px;font-weight:600;cursor:pointer;border-left:1px solid var(--bd2)">Saídas</button>
-                    </div>
-                    <select id="fin-dash-mes" onchange="finRenderLancRecentes()" style="padding:4px 8px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:10px;color:var(--tx)">
-                      <option value="">Todos os meses</option>
-                    </select>
-                    <button class="btn btn-xs btn-terra" onclick="finAbrirModal()">+ Novo</button>
-                  </div>
-                </div>
-                <div class="fin-card-body" id="fin-lanc-lista"><div style="color:var(--tl);font-size:11px">Carregando...</div></div>
-              </div>
-              <div class="fin-card">
-                <div class="fin-card-hd"><span class="sec">Validação do fluxo de caixa</span><button class="btn btn-xs" onclick="finValidar()">Verificar</button></div>
-                <div class="fin-card-body" id="fin-validacao"><div style="color:var(--tl);font-size:11px">Clique em Verificar para analisar.</div></div>
-              </div>
-            </div>
-            <div>
-              <div class="fin-card" style="margin-bottom:10px">
-                <div class="fin-card-hd"><span class="sec">Vencimentos próximos</span><button class="btn btn-xs" onclick="finAbrirModal('despesa')" style="font-size:9px">+ Conta</button></div>
-                <div class="fin-card-body" id="fin-contas-lista"><div style="color:var(--tl);font-size:11px">Carregando...</div></div>
-              </div>
-              <div class="fin-card">
-                <div class="fin-card-hd"><span class="sec">Receitas por pagamento</span></div>
-                <div class="fin-card-body" id="fin-paybar"><div style="color:var(--tl);font-size:11px">Carregando...</div></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ── RECEITAS ── -->
-        <div class="fin-sub-pg fin-pg" id="fin-pg-receitas">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-            <div class="sec">Todas as receitas</div>
-            <button class="btn btn-terra btn-sm" onclick="finAbrirModal('receita')">+ Nova receita</button>
-          </div>
-          <!-- Filtros receitas -->
-          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center">
-            <select id="fin-filtro-cat" onchange="finAplicarFiltros()" style="padding:6px 10px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:11px;color:var(--tx)">
-              <option value="">Todas as categorias</option>
-            </select>
-            <select id="fin-filtro-pay" onchange="finAplicarFiltros()" style="padding:6px 10px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:11px;color:var(--tx)">
-              <option value="">Todas as formas</option>
-              <option value="pix">PIX</option>
-              <option value="cartao">Cartão</option>
-              <option value="dinheiro">Dinheiro</option>
-              <option value="boleto">Boleto</option>
-            </select>
-            <input id="fin-filtro-pac" type="text" placeholder="Buscar paciente..." oninput="finAplicarFiltros()" style="padding:6px 10px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:11px;color:var(--tx);min-width:160px">
-            <select id="fin-filtro-mes" onchange="finAplicarFiltros()" style="padding:6px 10px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:11px;color:var(--tx)">
-              <option value="">Todos os meses</option>
-            </select>
-            <button onclick="finLimparFiltros()" style="padding:6px 10px;border:1px solid var(--bd2);border-radius:var(--r);background:none;font-size:11px;color:var(--tl);cursor:pointer">Limpar</button>
-            <span id="fin-filtro-total" style="font-size:11px;color:var(--tl);margin-left:4px"></span>
-          </div>
-          <div class="fin-card"><div class="fin-card-body" id="fin-rec-lista"><div style="color:var(--tl);font-size:11px">Carregando...</div></div></div>
-        </div>
-
-        <!-- ── DESPESAS ── -->
-        <div class="fin-sub-pg fin-pg" id="fin-pg-despesas">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-            <div class="sec">Todas as despesas</div>
-            <button class="btn btn-terra btn-sm" onclick="finAbrirModal('despesa')">+ Nova despesa</button>
-          </div>
-          <div class="fin-card"><div class="fin-card-body" id="fin-des-lista"><div style="color:var(--tl);font-size:11px">Carregando...</div></div></div>
-        </div>
-
-        <!-- ── CONTAS A PAGAR ── -->
-        <div class="fin-sub-pg fin-pg" id="fin-pg-contas">
-          <div class="fin-kpis" style="grid-template-columns:repeat(3,1fr)">
-            <div class="fin-kpi r"><div class="fk-lbl">Vencidas</div><div class="fk-val red" id="fk-venc-total">0</div><div class="fk-sub">em aberto</div></div>
-            <div class="fin-kpi"><div class="fk-lbl">Vencem em 7 dias</div><div class="fk-val" id="fk-prox7">0</div><div class="fk-sub">requer atenção</div></div>
-            <div class="fin-kpi v"><div class="fk-lbl">Pagas este mês</div><div class="fk-val grn" id="fk-pagas">0</div><div class="fk-sub">concluídas</div></div>
-          </div>
-          <div class="fin-card"><div class="fin-card-hd"><span class="sec">Contas a pagar</span><button class="btn btn-xs" onclick="finAbrirModal('despesa')">+ Adicionar</button></div><div class="fin-card-body" id="fin-contas-full"><div style="color:var(--tl);font-size:11px">Carregando...</div></div></div>
-        </div>
-
-        <!-- ── INADIMPLENTES ── -->
-        <div class="fin-sub-pg fin-pg" id="fin-pg-inadimplentes">
-          <div class="fin-kpis" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:12px">
-            <div class="fin-kpi r"><div class="fk-lbl">Total em aberto</div><div class="fk-val red" id="fk-inad-total">R$ 0</div><div class="fk-sub" id="fk-inad-sub">0 registros</div></div>
-            <div class="fin-kpi"><div class="fk-lbl">Via protocolos</div><div class="fk-val" id="fk-inad-prot">0</div><div class="fk-sub">precificador</div></div>
-            <div class="fin-kpi r"><div class="fk-lbl">Adicionados manualmente</div><div class="fk-val red" id="fk-inad-man">0</div><div class="fk-sub">registro direto</div></div>
-          </div>
-          <div class="fin-card">
-            <div class="fin-card-hd">
-              <span class="sec">Inadimplentes</span>
-              <button class="btn btn-xs btn-terra" onclick="finAbrirModalInad()">+ Adicionar</button>
-            </div>
-            <div class="fin-card-body" id="fin-inad-lista">
-              <div style="color:var(--tl);font-size:11px;padding:8px 0">Carregando...</div>
-            </div>
-          </div>
-        </div>
-
-
-        <!-- ── SETORES ── -->
-        <div class="fin-sub-pg fin-pg" id="fin-pg-setores">
-          <div class="fin-setor-grid">
-            <div class="fin-setor"><div class="fin-setor-lbl">Protocolos</div><div class="fin-setor-val" id="fset-prot">—</div><div class="fin-setor-sub" id="fset-prot-sub">—</div><div class="fin-setor-bar"><div class="fin-setor-fill" id="fset-prot-bar" style="width:0%"></div></div></div>
-            <div class="fin-setor v"><div class="fin-setor-lbl">Dermatologia</div><div class="fin-setor-val" id="fset-derm">—</div><div class="fin-setor-sub" id="fset-derm-sub">—</div><div class="fin-setor-bar"><div class="fin-setor-fill" id="fset-derm-bar" style="width:0%;background:var(--verde)"></div></div></div>
-            <div class="fin-setor b"><div class="fin-setor-lbl">Nutrição</div><div class="fin-setor-val" id="fset-nutr">—</div><div class="fin-setor-sub" id="fset-nutr-sub">—</div><div class="fin-setor-bar"><div class="fin-setor-fill" id="fset-nutr-bar" style="width:0%;background:#3A6BA0"></div></div></div>
-            <div class="fin-setor p"><div class="fin-setor-lbl">Geral / Outros</div><div class="fin-setor-val" id="fset-geral">—</div><div class="fin-setor-sub" id="fset-geral-sub">—</div><div class="fin-setor-bar"><div class="fin-setor-fill" id="fset-geral-bar" style="width:0%;background:#7A4A8C"></div></div></div>
-          </div>
-        </div>
-
-        <!-- ── DRE ── -->
-        <div class="fin-sub-pg fin-pg" id="fin-pg-dre">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-            <div class="sec">Demonstração do resultado — <span id="fin-dre-mes">—</span></div>
-            <button class="btn btn-sm" onclick="finExportarDRE()" style="font-size:10px">Exportar PDF</button>
-          </div>
-          <div class="fin-card"><div class="fin-card-body" id="fin-dre-corpo"><div style="color:var(--tl);font-size:11px">Carregando DRE...</div></div></div>
-        </div>
-
-        <!-- ── ASSISTENTE IA ── -->
-        <div class="fin-sub-pg fin-pg" id="fin-pg-ia">
-          <div class="fin-card">
-            <div class="fin-card-hd"><span class="sec">Assistente financeiro — IA</span><span style="font-size:9px;color:var(--terra);font-weight:600;letter-spacing:.5px">BETA</span></div>
-            <div class="fin-ia-msgs" id="fin-ia-chat">
-              <div class="fin-ia-msg ai"><div class="fin-ia-lbl">Assistente</div>Olá! Posso analisar seu fluxo de caixa, responder dúvidas financeiras e gerar insights. Como posso ajudar?</div>
-            </div>
-            <div class="fin-ia-row">
-              <input id="fin-ia-input" type="text" placeholder="Ex: Qual meu maior gasto este mês?" onkeydown="if(event.key==='Enter')finEnviarIA()">
-              <button class="btn btn-terra btn-sm" onclick="finEnviarIA()" style="font-size:10px;white-space:nowrap">Enviar</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- ── CONFIGURAÇÕES ── -->
-        <div class="fin-sub-pg fin-pg" id="fin-pg-config">
-          <div class="fin-card" style="margin-bottom:12px">
-            <div class="fin-card-hd">
-              <span class="sec">Categorias de receita (DRE)</span>
-              <button class="btn btn-xs btn-terra" onclick="finAddCatRec()">+ Nova categoria</button>
-            </div>
-            <div class="fin-card-body" id="fin-config-rec"></div>
-          </div>
-          <div class="fin-card" style="margin-bottom:12px">
-            <div class="fin-card-hd">
-              <span class="sec">Categorias de despesa (DRE)</span>
-              <button class="btn btn-xs btn-dk" onclick="finAddCatDes()">+ Nova categoria</button>
-            </div>
-            <div class="fin-card-body" id="fin-config-des"></div>
-          </div>
-          <div class="fin-card">
-            <div class="fin-card-hd"><span class="sec">Sobre o plano de contas</span></div>
-            <div class="fin-card-body">
-              <p style="font-size:11px;color:var(--tl);line-height:1.7">As categorias definem como cada lançamento aparece no DRE. O código numérico (ex: 1.1) determina o grupo. Categorias adicionadas ficam disponíveis no modal de lançamento imediatamente.</p>
-            </div>
-          </div>
-        </div>
-
+        <iframe id="iframe-financeiro" style="width:100%;height:100%;border:none;display:none"></iframe>
       </div><!-- /pg-financeiro -->
 
       <!-- ══ ESTOQUE ════════════════════════════════════════════════ -->
@@ -1347,6 +1165,7 @@ const PAGE_LABELS={dashboard:'',precificador:'de Protocolos',semanas:'de Semanas
 const PAGE_PREFIX={dashboard:'Dashboard',precificador:'Precificador',semanas:'Gestão',ativos:'Ativos',pacientes:'Pacientes',estoque:'Estoque',financeiro:'Financeiro'};
 
 let estoqueLoaded = false;
+let financeiroLoaded = false;
 function goPage(id,btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.getElementById('pg-'+id).classList.add('on');
@@ -1365,7 +1184,7 @@ function goPage(id,btn){
     if(protId)carregarSessoesSupabase(protId);
   }
   if(id==='estoque') carregarEstoque();
-  if(id==='financeiro') finInit();
+  if(id==='financeiro') carregarFinanceiro();
 }
 
 function carregarEstoque(){
@@ -4066,3 +3885,37 @@ function importarDados(){
 
 </body>
 </html>
+
+function carregarFinanceiro(){
+  if(financeiroLoaded) return;
+  const iframe = document.getElementById('iframe-financeiro');
+  const loading = document.getElementById('financeiro-loading');
+  fetch('financeiro.html')
+    .then(r => {
+      if(!r.ok) throw new Error('not found');
+      return r.text();
+    })
+    .then(html => {
+      iframe.srcdoc = html;
+      iframe.style.display = 'block';
+      if(loading) loading.style.display = 'none';
+      financeiroLoaded = true;
+    })
+    .catch(() => {
+      if(loading) loading.innerHTML = `
+        <div style="text-align:center;max-width:380px;padding:20px">
+          <div style="font-size:36px;margin-bottom:16px">💰</div>
+          <div style="font-size:14px;font-weight:600;color:var(--tx);margin-bottom:8px">Financeiro disponível no Vercel</div>
+          <div style="font-size:12px;color:var(--tl);line-height:1.6;margin-bottom:16px">
+            Certifique-se que o arquivo <strong>financeiro.html</strong> está no repositório do GitHub.
+          </div>
+          <div style="background:var(--bg3);border-radius:var(--r);padding:10px 14px;font-size:11px;color:var(--tm);font-family:monospace">
+            clinica-luisa-costa/<br>
+            ├── index.html<br>
+            ├── estoque.html<br>
+            └── financeiro.html ← obrigatório
+          </div>
+        </div>`;
+    });
+}
+
