@@ -1323,14 +1323,20 @@ async function confirmarQuit(){
       const quitado=novoSaldo<0.01;
       // Atualizar local imediatamente
       reg.valor_pago=novoPago; reg.saldo_devedor=novoSaldo; reg.quitado=quitado;
-      // Persistir
-      try{await db.from('fin_inadimplentes').update({valor_pago:novoPago,saldo_devedor:novoSaldo,quitado}).eq('id',QUIT_ID);}
-      catch(e){console.warn('Erro ao persistir quitação',e);}
+      // Persistir no Supabase
+      try{
+        const{error:ue}=await db.from('fin_inadimplentes')
+          .update({valor_pago:novoPago,saldo_devedor:novoSaldo,quitado})
+          .eq('id',QUIT_ID);
+        if(ue) console.warn('Erro ao persistir quitação:',ue.message);
+      }catch(e){console.warn('Erro ao persistir quitação',e);}
     }
   }
 
   showToast('Quitação registrada! Lançamento criado.');
   fecharQuit();
+  // Recarregar dados frescos e re-renderizar
+  await carregar();
   await renderInad();
   renderDash();
 }
@@ -1433,10 +1439,10 @@ async function salvar(){
     if(PAY==='cartao'){extras.cartao_bandeira=S('m-cartao-band')?.value;extras.cartao_parcelas=parseInt(S('m-cartao-parc')?.value)||1;extras.cartao_taxa=parseFloat(S('m-cartao-taxa')?.value)||0;}
   }
 
-  const payload={tipo:TIPO,descricao:desc,categoria_dre:cat,valor,data,obs,
+  const payload={tipo:TIPO,descricao:desc,categoria_dre:cat,valor,data,obs:obs||null,
     paciente:pac||null,forma_pagamento:TIPO==='receita'?PAY:null,
-    vencimento:venc||null,recorrente,lembrete,pago:false,
-    eh_sinal:ehSinal,user_id:USER?.id||null,...extras};
+    vencimento:venc||null,recorrente:recorrente||false,lembrete:lembrete||false,pago:false,
+    eh_sinal:ehSinal||false,user_id:USER?.id||null,...extras};
 
   const btn=S('btn-salvar');
   if(btn){btn.textContent='Salvando...';btn.disabled=true;}
@@ -1531,6 +1537,12 @@ async function salvarEdicao(){
   const motivo=S('ed-motivo')?.value.trim();
   if(!motivo){showToast('Informe o motivo da edição','err');return;}
   const l=LANCS.find(x=>String(x.id)===String(DET_ID)); if(!l)return;
+  // Se é local, só atualiza array
+  if(String(DET_ID).startsWith('local-')){
+    const payload2={descricao:S('ed-desc')?.value.trim()||l.descricao,valor:parseFloat(S('ed-valor')?.value)||l.valor,data:S('ed-data')?.value||l.data,categoria_dre:S('ed-cat')?.value||l.categoria_dre,paciente:S('ed-pac')?.value.trim()||l.paciente};
+    LANCS=LANCS.map(x=>String(x.id)===String(DET_ID)?{...x,...payload2}:x);
+    showToast('Editado!'); fecharDet(); renderDash(); return;
+  }
   const payload={
     descricao:S('ed-desc')?.value.trim()||l.descricao,
     valor:parseFloat(S('ed-valor')?.value)||l.valor,
@@ -1551,13 +1563,19 @@ async function removerLanc(){
   if(!isAdmin()){showToast('Acesso negado','err');return;}
   const l=LANCS.find(x=>String(x.id)===String(DET_ID)); if(!l)return;
   if(!confirm(`Remover "${l.descricao||'este lançamento'}" de ${fmt(l.valor)}?`))return;
+  // Se é local (não salvo no Supabase), só remove do array
+  if(String(DET_ID).startsWith('local-')){
+    LANCS=LANCS.filter(x=>String(x.id)!==String(DET_ID));
+    showToast('Removido.');
+    fecharDet(); renderDash(); return;
+  }
   try{
     const{error}=await db.from('fin_lancamentos').delete().eq('id',DET_ID);
     if(error)throw error;
     LANCS=LANCS.filter(x=>String(x.id)!==String(DET_ID));
     showToast('Removido.');
     fecharDet(); renderDash();
-  }catch(e){showToast('Erro ao remover','err');}
+  }catch(e){showToast('Erro ao remover: '+e.message,'err');}
 }
 
 // ── DRE ───────────────────────────────────────────────────────
