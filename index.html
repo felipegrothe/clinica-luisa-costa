@@ -2830,6 +2830,9 @@ function finMesAtual(){ const d=new Date(); return d.getFullYear()+'-'+(String(d
 function finMesLabel(){ return new Date().toLocaleDateString('pt-BR',{month:'long',year:'numeric'}); }
 
 // ── Init ──────────────────────────────────────────────────────────────
+function finIsAdmin(){ return finIsAdmin()||NIVEL==='administrador'||NIVEL==='Administrador'; }
+function finIsFinanceiro(){ return finIsAdmin()||NIVEL==='financeiro'; }
+
 async function finInit(){
   await finCarregar();
   finCarregarFavs();
@@ -3153,7 +3156,7 @@ function finAbrirDetalhe(id){
       </div>`).join('') + `</div>`;
 
   const adminBtns = document.getElementById('fin-det-admin-btns');
-  if(adminBtns) adminBtns.style.display = (NIVEL==='admin')?'flex':'none';
+  if(adminBtns) adminBtns.style.display = (finIsAdmin())?'flex':'none';
   finModoDetalhe();
   document.getElementById('fin-det-ov').style.display='flex';
 }
@@ -3169,7 +3172,7 @@ function finModoDetalhe(){
 }
 
 function finModoEditar(){
-  if(NIVEL!=='admin'){showToast('Apenas administradores podem editar','err');return;}
+  if(!finIsAdmin()){showToast('Apenas administradores podem editar','err');return;}
   const l=finLancs.find(x=>String(x.id)===String(finDetId)); if(!l)return;
   document.getElementById('fin-edit-desc').value=l.descricao||'';
   document.getElementById('fin-edit-valor').value=l.valor||0;
@@ -3184,7 +3187,7 @@ function finModoEditar(){
 }
 
 async function finSalvarEdicao(){
-  if(NIVEL!=='admin'){showToast('Acesso negado','err');return;}
+  if(!finIsAdmin()){showToast('Acesso negado','err');return;}
   const motivo=document.getElementById('fin-edit-motivo')?.value.trim();
   if(!motivo){showToast('Informe o motivo da edição','err');return;}
   const l=finLancs.find(x=>String(x.id)===String(finDetId)); if(!l)return;
@@ -3209,7 +3212,7 @@ async function finSalvarEdicao(){
 }
 
 async function finRemoverLanc(){
-  if(NIVEL!=='admin'){showToast('Acesso negado','err');return;}
+  if(!finIsAdmin()){showToast('Acesso negado','err');return;}
   const l=finLancs.find(x=>String(x.id)===String(finDetId)); if(!l)return;
   if(!confirm(`Remover "${l.descricao||'este lançamento'}" de ${finFmt(l.valor)}?`))return;
   try{
