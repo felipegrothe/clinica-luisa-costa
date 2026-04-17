@@ -2571,11 +2571,15 @@ function finMesLabel(){ return new Date().toLocaleDateString('pt-BR',{month:'lon
 function finIsAdmin(){ return finIsAdmin()||NIVEL==='administrador'||NIVEL==='Administrador'; }
 function finIsFinanceiro(){ return finIsAdmin()||NIVEL==='financeiro'; }
 
+let finJaIniciou = false;
 async function finInit(){
   finCarregarCats();
-  await finCarregar();
-  finCarregarFavs();
-  finCarregarPacs();
+  await finCarregar(); // sempre rebusca dados do Supabase
+  if(!finJaIniciou){
+    finCarregarFavs();
+    finCarregarPacs();
+    finJaIniciou = true;
+  }
   finRenderDash();
   finChecarLembretes();
 }
@@ -2767,11 +2771,11 @@ function finGoSub(id,el){
   if(el) el.classList.add('on');
   const pg=document.getElementById('fin-pg-'+id);
   if(pg) pg.classList.add('on');
-  if(id==='dashboard') finRenderDash();
-  if(id==='receitas') finRenderLista('receita');
-  if(id==='despesas') finRenderLista('despesa');
+  if(id==='dashboard'){ finCarregar().then(()=>finRenderDash()); }
+  if(id==='receitas'){ finCarregar().then(()=>finRenderLista('receita')); }
+  if(id==='despesas'){ finCarregar().then(()=>finRenderLista('despesa')); }
   if(id==='contas') finRenderContas();
-  if(id==='inadimplentes') finRenderInad();
+  if(id==='inadimplentes'){ finCarregar().then(()=>finRenderInad()); }
   if(id==='setores') finRenderSetores();
   if(id==='dre') finRenderDRE();
   if(id==='config') finRenderConfig();
@@ -3364,7 +3368,6 @@ let finQuitOrigem = null;
 let finQuitSaldoTotal = 0;
 
 async function finRenderInad(){
-  // Busca protocolos em andamento do precificador
   let protAbertos = [];
   try{
     const {data,error}=await db.from('protocolos')
@@ -3373,7 +3376,6 @@ async function finRenderInad(){
     if(!error&&data) protAbertos=data;
   }catch(e){}
 
-  // Cruzar com pagamentos em finLancs por nome de paciente
   const inadProt = protAbertos.map(p=>{
     const pago=finLancs
       .filter(l=>l.tipo==='receita'&&l.paciente&&
@@ -3383,15 +3385,16 @@ async function finRenderInad(){
     return {...p,valor_pago:pago,saldo_devedor:saldo,origem:'protocolo'};
   }).filter(p=>p.saldo_devedor>0.01);
 
-  // Busca inadimplentes manuais do Supabase
   try{
     const {data,error}=await db.from('fin_inadimplentes').select('*').order('created_at',{ascending:false});
     if(!error&&data) finInadManuais=data;
   }catch(e){ finInadManuais=[]; }
 
   const todos=[...inadProt, ...finInadManuais.map(i=>({...i,origem:'manual'}))];
-  const totalAb=todos.reduce((s,i)=>s+Number(i.saldo_devedor||0),0);
+  // Guardar globalmente para acesso pelo índice no onclick
+  window._finInadLista = todos;
 
+  const totalAb=todos.reduce((s,i)=>s+Number(i.saldo_devedor||0),0);
   const setSafe=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
   setSafe('fk-inad-total',finFmt(totalAb));
   setSafe('fk-inad-sub',todos.length+' registro(s)');
@@ -3403,9 +3406,9 @@ async function finRenderInad(){
     el.innerHTML='<div style="color:var(--tl);font-size:11px;padding:8px 0">Nenhum inadimplente registrado.</div>';
     return;
   }
-  el.innerHTML=todos.map(i=>{
+  el.innerHTML=todos.map((i,idx)=>{
     const nome=i.paciente_nome||i.paciente||'—';
-    const ini=nome.slice(0,2).toUpperCase();
+    const ini=nome.replace(/[^a-zA-ZÀ-ÿ]/g,'').slice(0,2).toUpperCase()||'??';
     const desc=i.titulo||i.descricao||'—';
     const saldo=Number(i.saldo_devedor||0);
     const pago=Number(i.valor_pago||0);
@@ -3414,25 +3417,33 @@ async function finRenderInad(){
       ?'<span style="background:var(--terra-xl);color:var(--terra-d);font-size:8px;font-weight:600;padding:1px 6px;border-radius:2px">PROTOCOLO</span>'
       :'<span style="background:var(--bg3);color:var(--tm);font-size:8px;font-weight:600;padding:1px 6px;border-radius:2px;border:1px solid var(--bd)">MANUAL</span>';
     const remBtn=i.origem==='manual'
-      ?`<button onclick="finRemoverInad('${i.id}')" style="font-size:9px;padding:2px 7px;border:1px solid var(--bd2);border-radius:var(--r);background:none;color:var(--tl);cursor:pointer">Remover</button>`:'';
-    return `<div class="fin-inad-row">
-      <div class="fin-inad-av">${ini}</div>
-      <div class="fin-inad-info">
-        <div class="fin-inad-nome">${nome}</div>
-        <div class="fin-inad-meta">${desc} &nbsp;${origemBadge}${total?' · Total: '+finFmt(total):''}</div>
-        ${pago?`<div style="font-size:9px;color:var(--verde);margin-top:2px">Já pago: ${finFmt(pago)}</div>`:''}
+      ?`<button onclick="finRemoverInad('${i.id}')" style="font-size:9px;padding:2px 8px;border:1px solid var(--bd2);border-radius:var(--r);background:none;color:var(--tl);cursor:pointer">Remover</button>`:'';
+    return `<div style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--bg3)">
+      <div style="width:32px;height:32px;border-radius:50%;background:var(--terra-l);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--terra-d);flex-shrink:0">${ini}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:500;color:var(--tx)">${nome}</div>
+        <div style="font-size:10px;color:var(--tl);margin-top:2px">${desc} &nbsp;${origemBadge}${total?' · Total: '+finFmt(total):''}</div>
+        ${pago?`<div style="font-size:10px;color:var(--verde);margin-top:2px">Já pago: ${finFmt(pago)}</div>`:''}
       </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0">
-        <div class="fin-inad-saldo">${finFmt(saldo)}</div>
-        <button onclick="finAbrirQuit('${i.id||i.paciente_nome}','${i.origem}',${JSON.stringify(nome)},${JSON.stringify(desc)},${saldo})"
-          style="font-size:9px;padding:4px 10px;border:1px solid var(--verde);border-radius:var(--r);background:var(--verde-l);color:var(--verde);cursor:pointer;font-weight:600;white-space:nowrap">
-          Registrar quitação
-        </button>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
+        <div style="font-size:13px;font-weight:500;color:#8B2020">${finFmt(saldo)}</div>
+        <button onclick="finAbrirQuitIdx(${idx})" style="font-size:9px;padding:5px 12px;border:1px solid var(--verde);border-radius:var(--r);background:var(--verde-l);color:var(--verde);cursor:pointer;font-weight:600;white-space:nowrap">Registrar quitação</button>
         ${remBtn}
       </div>
     </div>`;
   }).join('');
 }
+
+// Abre quitação por índice — sem JSON.stringify no onclick
+function finAbrirQuitIdx(idx){
+  const i = window._finInadLista && window._finInadLista[idx];
+  if(!i){ showToast('Erro ao abrir quitação','err'); return; }
+  const nome=i.paciente_nome||i.paciente||'—';
+  const desc=i.titulo||i.descricao||'—';
+  const saldo=Number(i.saldo_devedor||0);
+  finAbrirQuit(i.id||i.paciente_nome, i.origem, nome, desc, saldo);
+}
+
 
 function finAbrirModalInad(){
   document.getElementById('inad-paciente').value='';
