@@ -762,6 +762,8 @@ const CATS_DES=[
   {cod:'4.2',label:'4.2 — Pró-labore — Dra. Luisa Costa'},
   {cod:'4.3',label:'4.3 — Pró-labore — Sócio Gestor'},
   {cod:'4.4',label:'4.4 — Encargos Trabalhistas'},
+  {cod:'4.5',label:'4.5 — Repasse Nutricionista'},
+  {cod:'4.6',label:'4.6 — Repasse Dermatologista'},
   {cod:'5.1',label:'5.1 — Aluguel / Locação'},
   {cod:'5.2',label:'5.2 — Sistema / Software Médico'},
   {cod:'5.3',label:'5.3 — Serviços Terceirizados'},
@@ -1620,8 +1622,8 @@ function renderDRE(){
   const recLiq=recBruta-imp+est;
   const med=get('3.1'),ins=get('3.2');
   const lucroBruto=recLiq-med-ins;
-  const sal=get('4.1'),pro1=get('4.2'),pro2=get('4.3'),enc=get('4.4');
-  const resPessoal=lucroBruto-sal-pro1-pro2-enc;
+  const sal=get('4.1'),pro1=get('4.2'),pro2=get('4.3'),enc=get('4.4'),repNut=get('4.5'),repDerm=get('4.6');
+  const resPessoal=lucroBruto-sal-pro1-pro2-enc-repNut-repDerm;
   const alug=get('5.1'),soft=get('5.2'),terc=get('5.3'),mast=get('5.4'),forn=get('5.5'),util=get('5.6'),outr=get('5.7'),mkt=get('5.8');
   const resOp=resPessoal-alug-soft-terc-mast-forn-util-outr-mkt;
   const emp=get('6.1'),tar=get('6.2');
@@ -1643,6 +1645,7 @@ function renderDRE(){
     tot('Lucro bruto',lucroBruto)+
     g('4. Despesas com pessoal')+
     row('(−) Salário CLT',sal,true)+row('(−) Pró-labore Dra. Luisa',pro1,true)+row('(−) Pró-labore Sócio Gestor',pro2,true)+row('(−) Encargos trabalhistas',enc,true)+
+    row('(−) Repasse Nutricionista',repNut,true)+row('(−) Repasse Dermatologista',repDerm,true)+
     tot('Resultado após pessoal',resPessoal)+
     g('5. Despesas operacionais')+
     row('(−) Aluguel',alug,true)+row('(−) Software / Sistema',soft,true)+row('(−) Serviços terceirizados',terc,true)+
