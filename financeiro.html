@@ -735,6 +735,7 @@ const SUPA_URL = 'https://eeianweavbnrikzqquxq.supabase.co';
 const SUPA_KEY = 'sb_publishable_RWouef1R4SySi3PyBxq0lQ_AEEpGHly';
 const _supa = window.supabase || supabase;
 const db = _supa.createClient(SUPA_URL, SUPA_KEY);
+const AI_PROXY = SUPA_URL + '/functions/v1/ai-proxy';
 
 let USER=null, PERFIL=null, NIVEL=null;
 let LANCS=[], INAD_MANUAIS=[], PACS_CACHE=[], FAVS=[];
@@ -787,6 +788,7 @@ const fmtMes=(m)=>{if(!m)return'';const d=new Date(m+'-01');return d.toLocaleDat
 const isAdmin=()=>NIVEL==='admin'||NIVEL==='administrador'||NIVEL==='Administrador';
 const S=(id)=>document.getElementById(id);
 const setSafe=(id,v)=>{const e=S(id);if(e)e.textContent=v;};
+const esc=(s)=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
 function showToast(msg,tipo='ok'){
   const t=document.createElement('div');
@@ -1673,10 +1675,13 @@ async function gerarResumo(){
   el.textContent='Analisando...';
   const ctx=`Assistente financeiro da Clínica Luisa Costa. Resumo executivo CURTO (2-3 frases), sem markdown. Dados do mês: Receitas ${fmt(tRec)} (${rec.length} lançamentos), Despesas ${fmt(tDes)}, Saldo ${fmt(tRec-tDes)}. Seja direto.`;
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-      headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:200,system:ctx,messages:[{role:'user',content:'Resumo do dia.'}]})});
+    const {data:{session}}=await db.auth.getSession();
+    const token=session?session.access_token:SUPA_KEY;
+    const r=await fetch(AI_PROXY,{method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({system:ctx,message:'Resumo do dia.',max_tokens:300})});
     const j=await r.json();
+    if(j.error)throw new Error(j.error.message||JSON.stringify(j.error));
     el.textContent=j.content?.[0]?.text||`Receitas ${fmt(tRec)} · Despesas ${fmt(tDes)} · Saldo ${fmt(tRec-tDes)}.`;
   }catch(e){el.textContent=`Receitas ${fmt(tRec)} · Despesas ${fmt(tDes)} · Saldo ${fmt(tRec-tDes)}.`;}
 }
@@ -1685,7 +1690,7 @@ async function enviarIA(){
   const input=S('ia-input'); const q=input?.value.trim(); if(!q)return;
   input.value='';
   const chat=S('ia-chat'); if(!chat)return;
-  chat.innerHTML+=`<div class="ia-msg user">${q}</div>`;
+  chat.innerHTML+=`<div class="ia-msg user">${esc(q)}</div>`;
   chat.innerHTML+=`<div class="ia-msg ai" id="ia-typing"><div class="ia-msg-lbl">Assistente</div>Analisando...</div>`;
   chat.scrollTop=chat.scrollHeight;
   const mes=mesAtual();
@@ -1695,17 +1700,21 @@ async function enviarIA(){
   IA_HIST.push({role:'user',content:q});
   if(IA_HIST.length>10) IA_HIST=IA_HIST.slice(-10);
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-      headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:400,system:sys,messages:IA_HIST})});
+    const {data:{session}}=await db.auth.getSession();
+    const token=session?session.access_token:SUPA_KEY;
+    const contexto=IA_HIST.map(m=>(m.role==='user'?'Usuário: ':'Assistente: ')+m.content).join('\n');
+    const r=await fetch(AI_PROXY,{method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({system:sys,message:contexto,max_tokens:700})});
     const j=await r.json();
+    if(j.error)throw new Error(j.error.message||JSON.stringify(j.error));
     const resp=j.content?.[0]?.text||'Não consegui processar.';
     IA_HIST.push({role:'assistant',content:resp});
     const t=S('ia-typing');
-    if(t){t.removeAttribute('id');t.innerHTML=`<div class="ia-msg-lbl">Assistente</div>${resp}`;}
+    if(t){t.removeAttribute('id');t.innerHTML=`<div class="ia-msg-lbl">Assistente</div>${esc(resp)}`;}
   }catch(e){
     const t=S('ia-typing');
-    if(t){t.removeAttribute('id');t.innerHTML='<div class="ia-msg-lbl">Assistente</div>Erro de conexão.';}
+    if(t){t.removeAttribute('id');t.innerHTML=`<div class="ia-msg-lbl">Assistente</div>Erro: ${esc(e.message||'não foi possível conectar ao assistente.')}`;}
   }
   chat.scrollTop=chat.scrollHeight;
 }
