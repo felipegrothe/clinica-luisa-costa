@@ -1138,7 +1138,9 @@ async function regConsulta(){
   if(!pAtual.consultas)pAtual.consultas=[];
   if(idx!==null&&idx!==''&&pAtual.consultas[Number(idx)])pAtual.consultas[Number(idx)]=nova;
   else pAtual.consultas.push(nova);
-  await saveDB();toast(idx!==null&&idx!==''?'Registro atualizado.':'Consulta registrada.');renderTab();
+  const ok=await saveDB();
+  if(!ok)return;
+  toast(idx!==null&&idx!==''?'Registro atualizado.':'Consulta registrada.');renderTab();
 }
 
 function editarConsulta(idx){
@@ -1373,7 +1375,8 @@ async function salvar(){
   if(tabAtual==='ficha')upd=coletFicha();
   else if(tabAtual==='relacionamento')upd={relacionamento:coletRel()};
   Object.assign(pAtual,upd);
-  await saveDB();
+  const ok=await saveDB();
+  if(!ok)return;
   editandoFicha=false;editandoRel=false;
   const sm=document.getElementById('sm');sm.style.opacity='1';setTimeout(()=>sm.style.opacity='0',2000);
   updHeader();renderLista(document.getElementById('busca').value.toLowerCase());renderPatientTab();
@@ -1386,14 +1389,16 @@ async function saveDB(){
     salvarLocal();
     atualizarSyncPanel();
     toast('Salvo localmente. Configure as policies RLS para sincronizar no Supabase.');
-    return;
+    return true;
   }
   const{error}=await db.from('pacientes').update(d).eq('id',id);
   if(error){
     toast(msgErroSupabase(error));
+    return false;
   }else{
     const i=pacientes.findIndex(p=>p.id===id);if(i>=0)pacientes[i]={...pAtual};
     atualizarSyncPanel();
+    return true;
   }
 }
 
@@ -1566,7 +1571,8 @@ async function salvarPreferenciasModal(){
     interesses_pessoais:gv('m-interesses'),
     anotacoes_livres:gv('m-notas')
   }};
-  await saveDB();
+  const ok=await saveDB();
+  if(!ok)return;
   fecharNovo();
   if(tabAtual==='relacionamento')renderTab();
   toast('Preferências salvas.');
@@ -1667,7 +1673,9 @@ async function usarFoto(){
   fecharCam();toast('Fazendo upload...');
   try{
     pAtual.foto_url=await uploadFotoPaciente(pAtual.id,capt);
-    await saveDB();updHeader();renderLista(document.getElementById('busca').value.toLowerCase());toast('Foto salva!');
+    const ok=await saveDB();
+    updHeader();renderLista(document.getElementById('busca').value.toLowerCase());
+    toast(ok?'Foto salva!':'Foto não sincronizada no Supabase.');
   }catch(e){
     pAtual.foto_url=capt;
     salvarLocal();updHeader();renderLista(document.getElementById('busca').value.toLowerCase());

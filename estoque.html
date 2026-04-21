@@ -891,6 +891,15 @@ function flash(){
   var el=document.getElementById('spill');
   if(el){el.classList.add('on');setTimeout(function(){el.classList.remove('on');},1800);}
 }
+function failSave(msg,error){
+  var texto=(msg||'Erro ao salvar no Supabase')+(error&&error.message?': '+error.message:'');
+  alert(texto);
+  console.error(texto,error||'');
+}
+function okResp(resp,msg){
+  if(resp&&resp.error){failSave(msg,resp.error);return false;}
+  return true;
+}
 function isAdmin(){ return NIVEL==='administrador'; }
 function isAdminOrCompras(){ return NIVEL==='administrador'||NIVEL==='compras'; }
 function showVal(val,fallback){ return isAdmin()?val:(fallback||'—'); }
@@ -1271,22 +1280,34 @@ async function confirmarRet(){
   var ts=new Date().toISOString();
   if(pendRet.tipo==='med'){
     // Descontar do lote mais antigo aprovado
-    var {data:lotes}=await db.from('lotes').select('*').eq('item_id',pendRet.id).eq('status','aprovado').gt('disponivel_base',0).order('validade',{ascending:true});
+    var lotesResp=await db.from('lotes').select('*').eq('item_id',pendRet.id).eq('status','aprovado').gt('disponivel_base',0).order('validade',{ascending:true});
+    if(!okResp(lotesResp,'Erro ao buscar lotes'))return;
+    var lotes=lotesResp.data;
     var restante=qty;
     for(var i=0;i<(lotes||[]).length&&restante>0;i++){
       var l=lotes[i];
       var desconto=Math.min(restante,l.disponivel_base);
-      await db.from('lotes').update({usado_base:l.usado_base+desconto}).eq('id',l.id);
+      var loteUpd=await db.from('lotes').update({usado_base:l.usado_base+desconto}).eq('id',l.id);
+      if(!okResp(loteUpd,'Erro ao atualizar lote'))return;
       restante-=desconto;
     }
-    await db.from('movimentacoes').insert({item_id:pendRet.id,tipo:'saida',quantidade:qty,data,motivo:obs,responsavel_id:USER.id,responsavel_nome:PERFIL?PERFIL.nome:''});
+    var movResp=await db.from('movimentacoes').insert({item_id:pendRet.id,tipo:'saida',quantidade:qty,data,motivo:obs,responsavel_id:USER.id,responsavel_nome:PERFIL?PERFIL.nome:''});
+    if(!okResp(movResp,'Erro ao registrar movimentação'))return;
   } else if(pendRet.tipo==='tirz'){
-    await db.from('tirzepatida_frascos').update({ampolas_usadas:pendRet.usadas+qty}).eq('id',pendRet.id);
-    await db.from('tirzepatida_movimentacoes').insert({frasco_id:pendRet.id,tipo:'saida',quantidade:qty,data,motivo:obs,responsavel_id:USER.id,responsavel_nome:PERFIL?PERFIL.nome:''});
+    var tzUpd=await db.from('tirzepatida_frascos').update({ampolas_usadas:pendRet.usadas+qty}).eq('id',pendRet.id);
+    if(!okResp(tzUpd,'Erro ao atualizar tirzepatida'))return;
+    var tzMov=await db.from('tirzepatida_movimentacoes').insert({frasco_id:pendRet.id,tipo:'saida',quantidade:qty,data,motivo:obs,responsavel_id:USER.id,responsavel_nome:PERFIL?PERFIL.nome:''});
+    if(!okResp(tzMov,'Erro ao registrar movimentação'))return;
   } else {
-    var {data:insItem}=await db.from('itens').select('*').eq('id',pendRet.id).single();
-    if(insItem) await db.from('itens').update({usado_total:insItem.usado_total+qty}).eq('id',pendRet.id);
-    await db.from('movimentacoes').insert({item_id:pendRet.id,tipo:'saida',quantidade:qty,data,motivo:obs,responsavel_id:USER.id,responsavel_nome:PERFIL?PERFIL.nome:''});
+    var insResp=await db.from('itens').select('*').eq('id',pendRet.id).single();
+    if(!okResp(insResp,'Erro ao buscar item'))return;
+    var insItem=insResp.data;
+    if(insItem){
+      var insUpd=await db.from('itens').update({usado_total:insItem.usado_total+qty}).eq('id',pendRet.id);
+      if(!okResp(insUpd,'Erro ao atualizar item'))return;
+    }
+    var insMov=await db.from('movimentacoes').insert({item_id:pendRet.id,tipo:'saida',quantidade:qty,data,motivo:obs,responsavel_id:USER.id,responsavel_nome:PERFIL?PERFIL.nome:''});
+    if(!okResp(insMov,'Erro ao registrar movimentação'))return;
   }
   await db.from('auditoria').insert({usuario_id:USER.id,usuario_nome:PERFIL?PERFIL.nome:'',acao:'retirada',tabela:'movimentacoes',dados_depois:{item:pendRet.nome,qty,data,obs}});
   fechar('madret');flash();
@@ -1342,7 +1363,8 @@ async function renderTirz(){
 }
 async function adjTirz(id,usadas,delta){
   var novoUsado=Math.max(0,usadas-delta);
-  await db.from('tirzepatida_frascos').update({ampolas_usadas:novoUsado,atualizado_em:new Date().toISOString()}).eq('id',id);
+  var r=await db.from('tirzepatida_frascos').update({ampolas_usadas:novoUsado,atualizado_em:new Date().toISOString()}).eq('id',id);
+  if(!okResp(r,'Erro ao ajustar tirzepatida'))return;
   flash();renderTirz();
 }
 function abrirEditarTirz(id){
@@ -1399,8 +1421,8 @@ async function excluirTirz(id){
 }
 async function rmTirz(id){
   if(!confirm('Remover frasco?'))return;
-  var {error}=await db.from('tirzepatida_frascos').update({status:'descartado',atualizado_em:new Date().toISOString()}).eq('id',id);
-  if(error){alert('Erro: '+error.message);return;}
+  var r=await db.from('tirzepatida_frascos').update({status:'descartado',atualizado_em:new Date().toISOString()}).eq('id',id);
+  if(!okResp(r,'Erro ao remover frasco'))return;
   flash();renderTirz();renderDash();
 }
 async function salvarTirz(){
@@ -1553,11 +1575,11 @@ async function renderSetor(setor,cid){
   });
   document.getElementById(cid).innerHTML=h;
 }
-async function addSug(setor,nome,setorId,cid){await db.from('itens').insert({nome,setor_id:setorId,estoque_min:2,estoque_ideal:10,amp_por_caixa:1});flash();renderSetor(setor,cid);}
-async function addInsManual(setor,setorId,cid){var n=prompt('Nome do item:');if(!n||!n.trim())return;await db.from('itens').insert({nome:n.trim(),setor_id:setorId,estoque_min:2,estoque_ideal:10,amp_por_caixa:1});flash();renderSetor(setor,cid);}
-async function updIns(id,field,val){var upd={};upd[field]=val;upd.atualizado_em=new Date().toISOString();await db.from('itens').update(upd).eq('id',id);flash();}
-async function adjIns(id,setor,cid,delta){var {data:item}=await db.from('itens').select('*').eq('id',id).single();if(!item)return;await db.from('itens').update({usado_total:Math.max(0,item.usado_total-delta),atualizado_em:new Date().toISOString()}).eq('id',id);flash();renderSetor(setor,cid);}
-async function rmIns(id,setor,cid){await db.from('itens').update({ativo:false}).eq('id',id);flash();renderSetor(setor,cid);}
+async function addSug(setor,nome,setorId,cid){var r=await db.from('itens').insert({nome,setor_id:setorId,estoque_min:2,estoque_ideal:10,amp_por_caixa:1});if(!okResp(r,'Erro ao adicionar item'))return;flash();renderSetor(setor,cid);}
+async function addInsManual(setor,setorId,cid){var n=prompt('Nome do item:');if(!n||!n.trim())return;var r=await db.from('itens').insert({nome:n.trim(),setor_id:setorId,estoque_min:2,estoque_ideal:10,amp_por_caixa:1});if(!okResp(r,'Erro ao adicionar item'))return;flash();renderSetor(setor,cid);}
+async function updIns(id,field,val){var upd={};upd[field]=val;upd.atualizado_em=new Date().toISOString();var r=await db.from('itens').update(upd).eq('id',id);if(!okResp(r,'Erro ao atualizar item'))return;flash();}
+async function adjIns(id,setor,cid,delta){var itemResp=await db.from('itens').select('*').eq('id',id).single();if(!okResp(itemResp,'Erro ao buscar item'))return;var item=itemResp.data;if(!item)return;var r=await db.from('itens').update({usado_total:Math.max(0,item.usado_total-delta),atualizado_em:new Date().toISOString()}).eq('id',id);if(!okResp(r,'Erro ao ajustar item'))return;flash();renderSetor(setor,cid);}
+async function rmIns(id,setor,cid){var r=await db.from('itens').update({ativo:false}).eq('id',id);if(!okResp(r,'Erro ao excluir item'))return;flash();renderSetor(setor,cid);}
 
 // ── NOTAS FISCAIS ────────────────────────────────────────────────────
 async function renderNFs(){
@@ -1947,8 +1969,8 @@ async function renderImpl(){
     el.appendChild(div);
   });
 }
-async function adjImpl(id,usadas,delta){await db.from('tirzepatida_frascos').update({ampolas_usadas:Math.max(0,usadas-delta),atualizado_em:new Date().toISOString()}).eq('id',id);flash();renderImpl();}
-async function rmImpl(id){if(!confirm('Remover lote?'))return;await db.from('tirzepatida_frascos').update({status:'descartado'}).eq('id',id);flash();renderImpl();}
+async function adjImpl(id,usadas,delta){var r=await db.from('tirzepatida_frascos').update({ampolas_usadas:Math.max(0,usadas-delta),atualizado_em:new Date().toISOString()}).eq('id',id);if(!okResp(r,'Erro ao ajustar implante'))return;flash();renderImpl();}
+async function rmImpl(id){if(!confirm('Remover lote?'))return;var r=await db.from('tirzepatida_frascos').update({status:'descartado'}).eq('id',id);if(!okResp(r,'Erro ao remover lote'))return;flash();renderImpl();}
 function abrirEditarImpl(id){
   db.from('tirzepatida_frascos').select('*,fornecedores(nome)').eq('id',id).single().then(function(r){
     if(!r.data) return;

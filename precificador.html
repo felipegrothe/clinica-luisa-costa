@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Clínica Luisa Costa — Precificador</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;overflow:hidden;}
@@ -633,6 +634,9 @@ let modelos=[]; // [{nome, selected, duracao}]
 let historico=[]; // protocolos salvos para o dashboard
 const signatures={};
 let saveTimer=null;
+const SUPA_URL='https://eeianweavbnrikzqquxq.supabase.co';
+const SUPA_KEY='sb_publishable_RWouef1R4SySi3PyBxq0lQ_AEEpGHly';
+const db=window.supabase?window.supabase.createClient(SUPA_URL,SUPA_KEY):null;
 
 // ══ HELPERS ══════════════════════════════════════════════════════════════════
 function allItems(){const r=[];Object.entries(CATS_MAP).forEach(([c,ns])=>ns.forEach(n=>r.push({name:n,cat:c})));return r;}
@@ -771,14 +775,14 @@ function carregarModelo(i){
 function delModelo(i){if(!confirm('Remover modelo "'+modelos[i].nome+'"?'))return;modelos.splice(i,1);renderModelos();scheduleSave();}
 
 // ══ SALVAR NO HISTÓRICO (para dashboard) ════════════════════════════════════
-function salvarProtocoloLocal(){
+async function salvarProtocoloLocal(){
   const items=Object.keys(selected);if(!items.length){alert('Selecione ativos primeiro.');return;}
   const nome=getNome()||'Paciente sem nome';
   const b=getBruto(),disc=getDisc(b),final=Math.max(0,b-disc)+getTaxa(Math.max(0,b-disc));
   const dtI=document.getElementById('dt-inicio').value||new Date().toISOString().slice(0,10);
   const dur=duracao||3;
   const dtF=new Date(dtI+'T12:00');dtF.setMonth(dtF.getMonth()+dur);
-  historico.push({
+  const protocolo={
     id:Date.now(),
     paciente:nome,
     ativos:Object.entries(selected).map(([n,{qty}])=>({name:n,qty})),
@@ -788,9 +792,40 @@ function salvarProtocoloLocal(){
     dtFim:dtF.toISOString().slice(0,10),
     status:'andamento',
     criadoEm:new Date().toISOString()
-  });
+  };
+  const msg=document.getElementById('save-msg');
+  if(msg)msg.textContent='Salvando no Supabase...';
+  let salvoNoBanco=false;
+  if(db){
+    try{
+      const {data:{session}}=await db.auth.getSession();
+      const payload={
+        paciente_nome:nome,
+        titulo:'Protocolo '+dur+' meses',
+        valor_total:final,
+        duracao:dur,
+        data_inicio:dtI,
+        data_fim:dtF.toISOString().slice(0,10),
+        status:'andamento',
+        pagamento:payMode,
+        itens:protocolo.ativos,
+        sessoes:sessoes,
+        user_id:session?.user?.id||null,
+        updated_at:new Date().toISOString()
+      };
+      const {data,error}=await db.from('protocolos').insert(payload).select().single();
+      if(error)throw error;
+      protocolo.id=data.id;
+      protocolo.supabase_id=data.id;
+      salvoNoBanco=true;
+    }catch(e){
+      console.error('Erro ao salvar protocolo no Supabase:',e);
+      alert('O protocolo não foi salvo no Supabase. Ele ficará apenas como backup local neste navegador. Verifique permissões/conexão antes de usar em produção.');
+    }
+  }
+  historico.push(protocolo);
   scheduleSave();
-  const msg=document.getElementById('save-msg');msg.textContent='Protocolo salvo no histórico';clearTimeout(msg._t);msg._t=setTimeout(()=>msg.textContent='',3000);
+  if(msg){msg.textContent=salvoNoBanco?'Protocolo salvo no Supabase':'Backup local — não sincronizado';clearTimeout(msg._t);msg._t=setTimeout(()=>msg.textContent='',4000);}
 }
 
 // ══ PACIENTES (mínimo — para linkar futuramente) ════════════════════════════

@@ -242,6 +242,9 @@ function sv(id,v){const el=document.getElementById(id);if(el)el.value=v??'';}
 function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),3200);}
 function fmt(d){return d?new Date(d).toLocaleDateString('pt-BR'):'—';}
 function isAdmin(){const n=(PERFIL?.nivel||'administrador').toLowerCase();return n==='administrador'||n==='admin';}
+async function logAudit(acao,tabela,dados){
+  try{await db.from('audit_logs').insert({usuario_id:USER?.id||null,usuario_nome:PERFIL?.nome||USER?.email||'',tipo:'administracao',acao,tabela,dados_depois:dados||{}});}catch(e){}
+}
 
 async function renderUsuarios(){
   const el=document.getElementById('usuarios-lista');
@@ -272,11 +275,12 @@ async function criarUsuario(){
     if(data.error)throw new Error(data.error);
     ['usr-email','usr-nome','usr-senha'].forEach(id=>sv(id,''));
     toast('Usuário criado com sucesso.');
+    await logAudit('criou_usuario','perfis',{email,nome,nivel});
     renderUsuarios();
   }catch(e){toast('Erro ao criar usuário: '+e.message);}
 }
-async function mudarNivel(id,nivel){const{error}=await db.from('perfis').update({nivel}).eq('id',id);toast(error?'Erro ao alterar nível.':'Nível atualizado.');renderUsuarios();}
-async function setAtivo(id,ativo){const{error}=await db.from('perfis').update({ativo}).eq('id',id);toast(error?'Erro ao alterar acesso.':(ativo?'Usuário ativado.':'Usuário desativado.'));renderUsuarios();}
+async function mudarNivel(id,nivel){const{error}=await db.from('perfis').update({nivel}).eq('id',id);if(!error)await logAudit('alterou_nivel_usuario','perfis',{id,nivel});toast(error?'Erro ao alterar nível.':'Nível atualizado.');renderUsuarios();}
+async function setAtivo(id,ativo){if(id===USER?.id&&!ativo){toast('Você não pode desativar seu próprio usuário.');return;}const{error}=await db.from('perfis').update({ativo}).eq('id',id);if(!error)await logAudit(ativo?'ativou_usuario':'desativou_usuario','perfis',{id,ativo});toast(error?'Erro ao alterar acesso.':(ativo?'Usuário ativado.':'Usuário desativado.'));renderUsuarios();}
 
 function defaultPerms(){
   const p={};
@@ -305,6 +309,7 @@ function renderPermissoes(){
 async function salvarPermissoes(){
   const rows=[...document.querySelectorAll('#perm-table input')].map(i=>({nivel:i.dataset.nivel,modulo:i.dataset.mod,pode_acessar:i.checked,updated_at:new Date().toISOString()}));
   const {error}=await db.from('permissoes_modulos').upsert(rows,{onConflict:'nivel,modulo'});
+  if(!error)await logAudit('alterou_permissoes','permissoes_modulos',{total:rows.length});
   toast(error?'Erro ao salvar permissões. Rode o SQL de administração no Supabase.':'Permissões salvas.');
 }
 async function carregarClinica(){
