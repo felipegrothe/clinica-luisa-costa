@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cadastro de Paciente - Clínica Luisa Costa</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--terra:#C17B3E;--terra-d:#8B5520;--terra-l:#E8D5BC;--verde:#4A7C6B;--dk:#1A1714;--bg:#F8F5F0;--card:#FFFDF9;--line:#E5DDD4;--muted:#8A7E74;--text:#2C2420;--danger:#A33A32;--r:6px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.top{height:96px;background:var(--card);border-bottom:2px solid var(--terra);display:flex;align-items:center;justify-content:center;text-align:center}
+.top small{display:block;font-size:9px;letter-spacing:5px;text-transform:uppercase;color:var(--terra);font-weight:700}.top strong{font-family:Georgia,serif;font-size:30px;font-weight:400;color:var(--dk)}
+.wrap{max-width:860px;margin:0 auto;padding:28px 18px 40px}
+.intro{margin-bottom:18px}.intro h1{font-family:Georgia,serif;font-size:30px;font-weight:400;color:var(--dk)}.intro p{font-size:13px;color:var(--muted);line-height:1.6;margin-top:7px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
+.ch{background:#F5EFE8;border-bottom:1px solid var(--line);padding:12px 15px}.ch h2{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--terra)}
+.cb{padding:15px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.fg{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}.fg label{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);font-weight:700}
+.fg input,.fg select,.fg textarea{width:100%;border:1px solid #DDD0C6;border-radius:var(--r);background:#fff;padding:9px 10px;font-size:13px;color:var(--text);outline:none}.fg textarea{min-height:62px;resize:vertical}.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--terra)}
+.photo-note{border:1px solid var(--line);background:#FAF7F2;border-radius:var(--r);padding:11px 12px;margin-bottom:14px}
+.multi{position:relative}.multi-btn{width:100%;height:38px;border:1px solid #DDD0C6;border-radius:var(--r);background:#fff;color:var(--text);font-size:13px;text-align:left;padding:0 34px 0 10px;cursor:pointer;position:relative}.multi-btn:after{content:"";position:absolute;right:12px;top:50%;width:7px;height:7px;border-right:1px solid var(--muted);border-bottom:1px solid var(--muted);transform:translateY(-65%) rotate(45deg)}.multi.open .multi-btn{border-color:var(--terra)}.multi-menu{display:none;position:absolute;left:0;right:0;top:42px;background:#fff;border:1px solid #DDD0C6;border-radius:var(--r);box-shadow:0 14px 28px rgba(26,23,20,.13);z-index:5;max-height:210px;overflow:auto;padding:4px}.multi.open .multi-menu{display:block}.multi-opt{display:flex;align-items:center;gap:8px;padding:8px;border-radius:4px;font-size:13px;cursor:pointer}.multi-opt:hover{background:#FAF7F2}.multi-opt input{width:14px;height:14px;accent-color:var(--terra)}
+.btn{border:1px solid var(--line);border-radius:var(--r);background:#fff;color:var(--text);font-size:12px;font-weight:700;padding:9px 13px;cursor:pointer}.btn:hover{border-color:var(--terra);color:var(--terra)}.btn-p{border-color:var(--terra);background:var(--terra);color:#fff}.btn-p:hover{color:#fff;opacity:.9}.btn-v{border-color:var(--verde);background:var(--verde);color:#fff}.btn-v:hover{color:#fff;opacity:.9}
+.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}.hint{font-size:12px;color:var(--muted);line-height:1.55}.status{display:none;padding:14px 16px;border-radius:var(--r);font-size:13px;line-height:1.5;margin-top:14px}.status.ok{display:block;background:#EAF1ED;color:var(--verde);border:1px solid #C9DDD4}.status.err{display:block;background:#FDF0EE;color:var(--danger);border:1px solid #E0C6C1}
+@media(max-width:720px){.grid,.grid3{grid-template-columns:1fr}.top strong{font-size:25px}}
+</style>
+</head>
+<body>
+<header class="top"><div><small>Clínica</small><strong>Luisa Costa</strong></div></header>
+<main class="wrap">
+  <section class="intro">
+    <h1>Cadastro do paciente</h1>
+    <p>Preencha seus dados antes da consulta. As informações serão enviadas com segurança para a equipe da Clínica Luisa Costa revisar e completar internamente.</p>
+  </section>
+  <form id="form" onsubmit="enviar(event)">
+    <section class="card">
+      <div class="ch"><h2>Identificação</h2></div>
+      <div class="cb">
+        <div class="photo-note"><p class="hint">A foto de identificação será registrada pela equipe da clínica no dia do atendimento.</p></div>
+        <div class="grid">
+          <div class="fg"><label>Nome completo *</label><input id="nome" required></div>
+          <div class="fg"><label>CPF</label><input id="cpf" maxlength="14" oninput="maskCPF(this)"></div>
+        </div>
+        <div class="grid3">
+          <div class="fg"><label>Nascimento</label><input id="nascimento" type="date"></div>
+          <div class="fg"><label>Gênero</label><select id="genero"><option value=""></option><option>Feminino</option><option>Masculino</option><option>Não binário</option><option>Prefiro não informar</option></select></div>
+          <div class="fg"><label>Estado civil</label><select id="estado_civil"><option value=""></option><option>Solteiro(a)</option><option>Casado(a)</option><option>União estável</option><option>Divorciado(a)</option><option>Viúvo(a)</option></select></div>
+        </div>
+      </div>
+    </section>
+    <section class="card">
+      <div class="ch"><h2>Contato e endereço</h2></div>
+      <div class="cb">
+        <div class="grid"><div class="fg"><label>Telefone / WhatsApp *</label><input id="telefone" required maxlength="15" oninput="maskTel(this)"></div><div class="fg"><label>E-mail</label><input id="email" type="email"></div></div>
+        <div class="grid3"><div class="fg"><label>CEP</label><input id="cep" maxlength="9" oninput="maskCEP(this)"></div><div class="fg" style="grid-column:span 2"><label>Logradouro</label><input id="logradouro"></div></div>
+        <div class="grid3"><div class="fg"><label>Número</label><input id="numero"></div><div class="fg"><label>Bairro</label><input id="bairro"></div><div class="fg"><label>Complemento</label><input id="complemento"></div></div>
+        <div class="grid"><div class="fg"><label>Cidade</label><input id="cidade"></div><div class="fg"><label>Estado</label><input id="estado" maxlength="2"></div></div>
+      </div>
+    </section>
+    <section class="card">
+      <div class="ch"><h2>Perfil inicial</h2></div>
+      <div class="cb">
+        <div class="grid3"><div class="fg"><label>Profissão</label><input id="profissao"></div><div class="fg"><label>Altura (cm)</label><input id="altura" type="number"></div><div class="fg"><label>Peso inicial (kg)</label><input id="peso_inicial" type="number" step="0.1"></div></div>
+        <div class="grid"><div class="fg"><label>Como conheceu a clínica?</label><select id="origem"><option value=""></option><option>Instagram</option><option>Google</option><option>Indicação de paciente</option><option>TikTok</option><option>Indicação médica</option><option>Evento</option><option>Outros</option></select></div><div class="fg"><label>Quem indicou?</label><input id="origem_indicador_nome"></div></div>
+        <div class="fg">
+          <label>Objetivos principais</label>
+          <div class="multi" id="objetivos-box">
+            <button class="multi-btn" type="button" onclick="toggleObjetivos()">Selecionar objetivos</button>
+            <div class="multi-menu">
+              <label class="multi-opt"><input type="checkbox" value="Reposição hormonal" onchange="atualizarObjetivos()">Reposição hormonal</label>
+              <label class="multi-opt"><input type="checkbox" value="Emagrecimento" onchange="atualizarObjetivos()">Emagrecimento</label>
+              <label class="multi-opt"><input type="checkbox" value="Envelhecimento saudável / Qualidade de vida" onchange="atualizarObjetivos()">Envelhecimento saudável / Qualidade de vida</label>
+              <label class="multi-opt"><input type="checkbox" value="Lipedema" onchange="atualizarObjetivos()">Lipedema</label>
+              <label class="multi-opt"><input type="checkbox" value="Menopausa" onchange="atualizarObjetivos()">Menopausa</label>
+              <label class="multi-opt"><input type="checkbox" value="Performance" onchange="atualizarObjetivos()">Performance</label>
+              <label class="multi-opt"><input type="checkbox" value="Controle de patologia" onchange="atualizarObjetivos()">Controle de patologia</label>
+              <label class="multi-opt"><input type="checkbox" value="Outros" onchange="atualizarObjetivos()">Outros</label>
+            </div>
+          </div>
+        </div>
+        <div class="grid"><div class="fg"><label>Medicamentos em uso</label><textarea id="medicamentos"></textarea></div><div class="fg"><label>Restrições alimentares relevantes</label><textarea id="restricao_alimentar"></textarea></div></div>
+        <div class="fg"><label>Hobbies / interesses</label><input id="hobbies"></div>
+      </div>
+    </section>
+    <div class="actions"><button id="submit" type="submit" class="btn btn-p">Enviar cadastro</button></div>
+    <div id="status" class="status"></div>
+  </form>
+</main>
+<script>
+const SUPA_URL='https://eeianweavbnrikzqquxq.supabase.co';
+const SUPA_KEY='sb_publishable_RWouef1R4SySi3PyBxq0lQ_AEEpGHly';
+const {createClient}=supabase;
+const db=createClient(SUPA_URL,SUPA_KEY);
+function gv(id){return document.getElementById(id)?.value?.trim()||null}
+function sv(id,v){const el=document.getElementById(id);if(el)el.value=v||''}
+function setStatus(msg,t='ok'){const s=document.getElementById('status');s.className='status '+t;s.textContent=msg}
+function maskCPF(el){let v=el.value.replace(/\D/g,'').slice(0,11);v=v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2');el.value=v}
+function maskTel(el){let v=el.value.replace(/\D/g,'').slice(0,11);v=v.replace(/^(\d{2})(\d)/,'($1) $2').replace(/(\d{5})(\d)/,'$1-$2');el.value=v}
+function maskCEP(el){let v=el.value.replace(/\D/g,'').slice(0,8);v=v.replace(/(\d{5})(\d)/,'$1-$2');el.value=v;if(v.replace('-','').length===8)buscaCEP(v.replace('-',''))}
+async function buscaCEP(cep){try{const r=await fetch('https://viacep.com.br/ws/'+cep+'/json/');const d=await r.json();if(d.erro)return;sv('logradouro',d.logradouro);sv('bairro',d.bairro);sv('cidade',d.localidade);sv('estado',d.uf);document.getElementById('numero').focus()}catch(e){}}
+function getObjetivos(){return [...document.querySelectorAll('#objetivos-box input:checked')].map(i=>i.value)}
+function atualizarObjetivos(){const vals=getObjetivos();document.querySelector('#objetivos-box .multi-btn').textContent=vals.length?vals.join(', '):'Selecionar objetivos'}
+function toggleObjetivos(){document.getElementById('objetivos-box').classList.toggle('open')}
+document.addEventListener('click',e=>{const box=document.getElementById('objetivos-box');if(box&&!box.contains(e.target))box.classList.remove('open')});
+async function enviar(e){e.preventDefault();const btn=document.getElementById('submit');btn.disabled=true;btn.textContent='Enviando...';try{const objetivos=getObjetivos();const payload={nome:gv('nome'),cpf:gv('cpf'),telefone:gv('telefone'),email:gv('email'),nascimento:gv('nascimento'),genero:gv('genero'),estado_civil:gv('estado_civil'),profissao:gv('profissao'),altura:gv('altura'),peso_inicial:gv('peso_inicial'),hobbies:gv('hobbies'),medicamentos:gv('medicamentos'),cep:gv('cep'),logradouro:gv('logradouro'),numero:gv('numero'),complemento:gv('complemento'),bairro:gv('bairro'),cidade:gv('cidade'),estado:gv('estado'),origem:gv('origem'),origem_indicador_nome:gv('origem_indicador_nome'),objetivos,foto_url:null,cadastro_origem:'publico',status:'aguardando_revisao',relacionamento:{restricao_alimentar:gv('restricao_alimentar')},consultas:[],protocolos:[]};const {error}=await db.from('pacientes').insert(payload);if(error)throw error;document.getElementById('form').reset();document.querySelectorAll('#objetivos-box input').forEach(i=>i.checked=false);atualizarObjetivos();setStatus('Cadastro enviado com sucesso. A equipe da clínica fará a revisão antes da consulta.','ok')}catch(err){setStatus('Não foi possível enviar o cadastro: '+(err.message||err),'err')}finally{btn.disabled=false;btn.textContent='Enviar cadastro'}}
+</script>
+</body>
+</html>

@@ -1277,62 +1277,92 @@ function openModal(id){
 }
 function closeModal(){document.getElementById('modal-ov').style.display='none';}
 
-// ══ LOCALSTORAGE ═════════════════════════════════════════════════════════════
+// ══ SUPABASE STATE + BACKUP LOCAL ═══════════════════════════════════════════
 const SAVE_KEY='clc_v5';
-function saveState(){
-  try{
-    localStorage.setItem(SAVE_KEY,JSON.stringify({
-      prices,costs,ativoObs,selected,duracao,pacientes,payMode,parcSel,modelos,historico,
-      semanas,sessoes:sessoes.map(s=>({...s,itens:{...s.itens}})),
-      dtInicio:document.getElementById('dt-inicio').value,
-      nomelivre:document.getElementById('nome-livre').value
-    }));
-    const msg=document.getElementById('save-msg');
-    if(msg&&!msg._custom){msg.textContent='Salvo automaticamente';clearTimeout(msg._t);msg._t=setTimeout(()=>msg.textContent='',2500);}
-  }catch(e){console.warn('Erro ao salvar:',e);}
+function getState(){
+  return {
+    prices,costs,ativoObs,catsMap:CATS_MAP,selected,duracao,pacientes,payMode,parcSel,modelos,historico,
+    semanas,sessoes:sessoes.map(s=>({...s,itens:{...s.itens}})),
+    dtInicio:document.getElementById('dt-inicio').value,
+    nomelivre:document.getElementById('nome-livre').value
+  };
 }
-function loadState(){
-  try{
-    const raw=localStorage.getItem(SAVE_KEY);if(!raw)return;
-    const s=JSON.parse(raw);
-    if(s.prices)Object.assign(prices,s.prices);
-    if(s.costs)Object.assign(costs,s.costs);
-    if(s.ativoObs)Object.assign(ativoObs,s.ativoObs);
-    if(s.selected)Object.assign(selected,s.selected);
-    if(s.duracao!==undefined)duracao=s.duracao;
-    if(s.pacientes)pacientes=s.pacientes;
-    if(s.modelos)modelos=s.modelos;
-    if(s.historico)historico=s.historico;
-    if(s.semanas)semanas=s.semanas;
-    if(s.sessoes)sessoes=s.sessoes;
-    if(s.dtInicio)document.getElementById('dt-inicio').value=s.dtInicio;
-    if(s.nomelivre)document.getElementById('nome-livre').value=s.nomelivre;
-    if(s.payMode){payMode=s.payMode;const btns=document.querySelectorAll('.pay-opt');const modes=['pix','debito','credito','parcelado'];btns.forEach((b,i)=>b.classList.toggle('on',modes[i]===payMode));document.getElementById('taxa-box').style.display=(payMode==='credito'||payMode==='parcelado')?'flex':'none';document.getElementById('parc-sel-box').style.display=payMode==='parcelado'?'':'none';}
-    if(s.parcSel)setParc(s.parcSel);
-  }catch(e){console.warn('Erro ao carregar:',e);}
+function applyState(s){
+  if(!s)return;
+  if(s.catsMap){Object.keys(CATS_MAP).forEach(k=>delete CATS_MAP[k]);Object.assign(CATS_MAP,s.catsMap);}
+  if(s.prices)Object.assign(prices,s.prices);
+  if(s.costs)Object.assign(costs,s.costs);
+  if(s.ativoObs)Object.assign(ativoObs,s.ativoObs);
+  if(s.selected)Object.assign(selected,s.selected);
+  if(s.duracao!==undefined)duracao=s.duracao;
+  if(s.pacientes)pacientes=s.pacientes;
+  if(s.modelos)modelos=s.modelos;
+  if(s.historico)historico=s.historico;
+  if(s.semanas)semanas=s.semanas;
+  if(s.sessoes)sessoes=s.sessoes;
+  if(s.dtInicio)document.getElementById('dt-inicio').value=s.dtInicio;
+  if(s.nomelivre)document.getElementById('nome-livre').value=s.nomelivre;
+  if(s.payMode){payMode=s.payMode;const btns=document.querySelectorAll('.pay-opt');const modes=['pix','debito','credito','parcelado'];btns.forEach((b,i)=>b.classList.toggle('on',modes[i]===payMode));document.getElementById('taxa-box').style.display=(payMode==='credito'||payMode==='parcelado')?'flex':'none';document.getElementById('parc-sel-box').style.display=payMode==='parcelado'?'':'none';}
+  if(s.parcSel)setParc(s.parcSel);
 }
-function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(saveState,900);}
+async function saveState(){
+  const state=getState();
+  try{
+    localStorage.setItem(SAVE_KEY,JSON.stringify(state));
+  }catch(e){console.warn('Erro ao salvar backup local:',e);}
+  const msg=document.getElementById('save-msg');
+  try{
+    if(!db)throw new Error('Supabase indisponível');
+    const {data:{session}}=await db.auth.getSession();
+    const {error}=await db.from('precificador_state').upsert({id:1,state,updated_at:new Date().toISOString(),updated_by:session?.user?.id||null});
+    if(error)throw error;
+    if(msg&&!msg._custom){msg.textContent='Salvo no Supabase';clearTimeout(msg._t);msg._t=setTimeout(()=>msg.textContent='',2500);}
+  }catch(e){
+    console.warn('Erro ao salvar no Supabase:',e);
+    if(msg&&!msg._custom){msg.textContent='Backup local — não sincronizado';clearTimeout(msg._t);msg._t=setTimeout(()=>msg.textContent='',3500);}
+  }
+}
+async function loadState(){
+  let loaded=false;
+  try{
+    if(db){
+      const {data,error}=await db.from('precificador_state').select('state').eq('id',1).single();
+      if(!error&&data?.state&&Object.keys(data.state).length){applyState(data.state);loaded=true;}
+    }
+  }catch(e){console.warn('Estado do Supabase indisponível:',e);}
+  if(!loaded){
+    try{
+      const raw=localStorage.getItem(SAVE_KEY);if(!raw)return;
+      applyState(JSON.parse(raw));
+      const msg=document.getElementById('save-msg');
+      if(msg){msg.textContent='Carregado do backup local';clearTimeout(msg._t);msg._t=setTimeout(()=>msg.textContent='',3500);}
+    }catch(e){console.warn('Erro ao carregar backup local:',e);}
+  }
+}
+function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>saveState(),900);}
 document.addEventListener('change',e=>{
   if(['dt-inicio','nome-livre','d-pct','d-val','taxa-val'].includes(e.target.id))scheduleSave();
 });
 
 // ══ INIT ═════════════════════════════════════════════════════════════════════
-// Detecta iframe e esconde sidebar/topbar/navtabs
-if(window.self!==window.top){
-  document.getElementById('app-sidebar').style.display='none';
-  document.getElementById('app-topbar').style.display='none';
-  // navtabs mantidas visíveis — navegação interna do precificador
+async function initPrecificador(){
+  // Detecta iframe e esconde sidebar/topbar/navtabs
+  if(window.self!==window.top){
+    document.getElementById('app-sidebar').style.display='none';
+    document.getElementById('app-topbar').style.display='none';
+    // navtabs mantidas visíveis — navegação interna do precificador
+  }
+  document.getElementById('dt-inicio').value=new Date().toISOString().slice(0,10);
+  await loadState();
+  setDur(duracao);
+  initCatPills();
+  initCatSelects();
+  renderItems();
+  updSummary();
+  renderPacSelect();
+  renderModelos();
 }
-
-document.getElementById('dt-inicio').value=new Date().toISOString().slice(0,10);
-loadState();
-setDur(duracao);
-initCatPills();
-initCatSelects();
-renderItems();
-updSummary();
-renderPacSelect();
-renderModelos();
+initPrecificador();
 </script>
 </body>
 </html>

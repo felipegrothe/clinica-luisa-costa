@@ -160,8 +160,12 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .record-title p{font-size:11px;color:var(--muted);margin-top:5px}
 .record-status{display:inline-flex;margin-top:8px;padding:4px 9px;border-radius:var(--r);background:var(--sage);color:var(--verde);font-size:9px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700}
 .record-status.local{background:var(--terra-xl);color:var(--terra)}
+.record-status.review{background:#F6EFE6;color:var(--terra-d)}
 .record-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
 .record-body{padding:0 20px 18px}
+.review-callout{margin:16px 0 0;border:1px solid var(--terra-l);border-left:3px solid var(--terra);border-radius:var(--r);background:#FFFCF8;padding:13px 14px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.review-callout strong{display:block;font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:var(--terra-d);margin-bottom:4px}
+.review-callout p{font-size:12px;color:var(--muted);line-height:1.45}
 .record-section{display:grid;grid-template-columns:170px 1fr;border-bottom:1px solid var(--line)}
 .record-section:last-child{border-bottom:0}
 .record-section-title{padding:16px 18px 16px 0;font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--terra);font-weight:700}
@@ -573,6 +577,7 @@ function lerLocal(){
 }
 
 function isLocalPaciente(p){return String(p?.id||'').startsWith('local-');}
+function aguardandoRevisao(p){return (p?.status||'')==='aguardando_revisao'||p?.cadastro_origem==='publico';}
 
 function salvarLocal(){
   try{localStorage.setItem(LOCAL_KEY,JSON.stringify(pacientes.filter(p=>String(p.id||'').startsWith('local-'))));}catch(e){}
@@ -659,10 +664,11 @@ function renderLista(q=''){
     const bc=dotClass(p);
     const foto=p.foto_url?`<img src="${p.foto_url}" alt=""/>`:iconUser(18);
     const sync=isLocalPaciente(p)?'<span class="sync-badge">Local</span>':'';
+    const review=aguardandoRevisao(p)?'<span class="sync-badge">Recebido pelo link</span>':'';
     return`<div class="pi ${a}" onclick="sel('${p.id}')">
       <div class="pi-row">
         <div class="pi-av">${foto}</div>
-        <div class="pi-info"><div class="pi-nome">${esc(p.nome)}${sync}</div><div class="pi-sub">${esc(p.telefone||p.email||p.cpf||'—')}</div></div>
+        <div class="pi-info"><div class="pi-nome">${esc(p.nome)}${sync}${review}</div><div class="pi-sub">${esc(p.telefone||p.email||p.cpf||'—')}</div></div>
         <div class="pi-dot ${bc}"></div>
       </div></div>`;}).join('');
 }
@@ -762,6 +768,13 @@ function rFicha(c){
   <div class="record-page">
     ${recordHead(p,'Ficha do paciente',ativo,'editarFicha()','Editar ficha')}
     <div class="record-body">
+      ${aguardandoRevisao(p)?`<div class="review-callout">
+        <div>
+          <strong>Cadastro recebido pelo link</strong>
+          <p>Confira os dados enviados pelo paciente. Depois da conferência, confirme o cadastro para marcá-lo como ativo.</p>
+        </div>
+        <button class="btn-p" onclick="confirmarCadastro()">Confirmar cadastro</button>
+      </div>`:''}
       ${recordSection('Identificação',[
         ['Nome completo',p.nome],
         ['CPF',p.cpf],
@@ -808,13 +821,16 @@ function recordHead(p,title,ativo,action,label){
   const foto=p.foto_url?`<img src="${p.foto_url}" alt=""/>`:iconUser(30);
   const idade=p.nascimento?calcIdade(p.nascimento)+' anos':'Idade não informada';
   const local=isLocalPaciente(p);
+  const review=aguardandoRevisao(p);
+  const statusTxt=local?'Salvo localmente':(review?'Aguardando conferência':(ativo?'Protocolo ativo':'Cadastro ativo'));
+  const statusCls=local?'local':(review?'review':'');
   return `<div class="record-head">
     <div class="record-title">
       <div class="record-photo" onclick="abrirCam()" title="Alterar foto do paciente">${foto}</div>
       <div>
         <h2>${esc(p.nome||title)}</h2>
         <p>${esc(idade)}${p.profissao?' · '+esc(p.profissao):''}</p>
-        <span class="record-status ${local?'local':''}">${local?'Salvo localmente':(ativo?'Protocolo ativo':'Cadastro ativo')}</span>
+        <span class="record-status ${statusCls}">${statusTxt}</span>
       </div>
     </div>
     <div class="record-actions">
@@ -1380,6 +1396,18 @@ async function salvar(){
   editandoFicha=false;editandoRel=false;
   const sm=document.getElementById('sm');sm.style.opacity='1';setTimeout(()=>sm.style.opacity='0',2000);
   updHeader();renderLista(document.getElementById('busca').value.toLowerCase());renderPatientTab();
+}
+
+async function confirmarCadastro(){
+  if(!pAtual)return;
+  pAtual.status='ativo';
+  pAtual.cadastro_origem=pAtual.cadastro_origem||'publico';
+  const ok=await saveDB();
+  if(!ok)return;
+  updHeader();
+  renderLista(document.getElementById('busca').value.toLowerCase());
+  renderPatientTab();
+  toast('Cadastro confirmado.');
 }
 
 async function saveDB(){
