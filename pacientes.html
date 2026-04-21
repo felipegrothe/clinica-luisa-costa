@@ -1726,8 +1726,17 @@ function fecharCam(){
 }
 
 // ── LINK ──────────────────────────────────────────────────
+function getCadastroOrigin(){
+  const fallback='https://estoqueclc.vercel.app';
+  const valid=o=>o&&o!=='null'&&/^https?:\/\//.test(o);
+  try{if(valid(window.location.origin))return window.location.origin;}catch(e){}
+  try{if(valid(window.top.location.origin))return window.top.location.origin;}catch(e){}
+  try{if(valid(window.parent.location.origin))return window.parent.location.origin;}catch(e){}
+  try{const ref=new URL(document.referrer);if(valid(ref.origin))return ref.origin;}catch(e){}
+  return fallback;
+}
 function gerarLink(){
-  const link=`${window.location.origin}/cadastro.html`;
+  const link=`${getCadastroOrigin()}/cadastro.html`;
   navigator.clipboard?.writeText(link);toast('Link copiado: '+link);
 }
 
