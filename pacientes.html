@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Pacientes — Clínica Luisa Costa</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --terra:#C17B3E;--verde:#4A7C6B;--dk:#1A1714;--dk2:#2C2420;
+  --bg:#F8F5F0;--bg2:#FDFAF7;--r:6px;--border:#E5DDD4;
+  --muted:#8A7E74;--danger:#C0392B;--warn:#D4870A;--card:#FFFFFF;--text:#2C2420;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Georgia',serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column}
+
+/* TOPBAR */
+#topbar{height:56px;background:var(--dk);display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;z-index:10}
+#topbar .bs{position:absolute;left:18px;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--terra)}
+#topbar .bm{font-size:20px;font-weight:normal;color:#F8F5F0;letter-spacing:1px}
+
+/* NAVTABS */
+#navtabs{height:40px;background:var(--dk2);display:flex;align-items:stretch;border-bottom:2px solid var(--terra);flex-shrink:0}
+#navtabs button{background:none;border:none;color:#9B8E85;font-family:'Georgia',serif;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:0 16px;cursor:pointer;border-bottom:3px solid transparent;transition:color .2s,border-color .2s;margin-bottom:-2px;white-space:nowrap}
+#navtabs button:hover{color:#F8F5F0}
+#navtabs button.active{color:var(--terra);border-bottom-color:var(--terra)}
+.tab-badge{display:inline-block;background:var(--danger);color:#fff;font-size:9px;border-radius:10px;padding:1px 5px;margin-left:4px;vertical-align:middle}
+
+/* MAIN */
+#main{display:flex;flex:1;overflow:hidden}
+
+/* LISTA */
+#lista-panel{width:260px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+#lh{padding:12px 12px 10px;border-bottom:1px solid var(--border);flex-shrink:0}
+#lh h3{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+#busca{width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:var(--r);font-family:'Georgia',serif;font-size:12px;background:var(--bg);color:var(--text);outline:none;transition:border-color .2s}
+#busca:focus{border-color:var(--terra)}
+#btn-novo{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:8px;padding:8px;background:var(--terra);border:none;border-radius:var(--r);color:#fff;font-family:'Georgia',serif;font-size:11px;letter-spacing:1px;cursor:pointer;transition:opacity .2s}
+#btn-novo:hover{opacity:.88}
+#ls{flex:1;overflow-y:auto;padding:6px 0}
+#ls::-webkit-scrollbar{width:3px}
+#ls::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.pi{padding:9px 12px;cursor:pointer;border-left:3px solid transparent;transition:background .15s,border-color .15s}
+.pi:hover{background:#F0E8DE}
+.pi.ativo{background:#F0E8DE;border-left-color:var(--terra)}
+.pi-row{display:flex;align-items:center;gap:9px}
+.pi-av{width:32px;height:32px;border-radius:50%;background:var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;overflow:hidden}
+.pi-av img{width:100%;height:100%;object-fit:cover}
+.pi-info{flex:1;min-width:0}
+.pi-nome{font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pi-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.pi-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.pi-dot.d{background:var(--danger)}.pi-dot.w{background:var(--warn)}.pi-dot.o{background:var(--verde)}.pi-dot.n{background:transparent}
+.le{padding:20px 12px;font-size:12px;color:var(--muted);text-align:center}
+
+/* FICHA */
+#fw{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#vazio{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--muted)}
+#vazio svg{opacity:.25}
+#vazio p{font-size:13px}
+
+/* HEADER FICHA */
+#fh{display:none;align-items:center;gap:14px;padding:14px 22px 0;flex-shrink:0}
+#foto-wrap{position:relative;flex-shrink:0}
+#foto-el{width:68px;height:68px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;border:3px solid var(--border);overflow:hidden;cursor:pointer;transition:border-color .2s;font-size:22px}
+#foto-el:hover{border-color:var(--terra)}
+#foto-el img{width:100%;height:100%;object-fit:cover}
+#foto-cam-btn{position:absolute;bottom:0;right:0;width:20px;height:20px;background:var(--terra);border:2px solid var(--bg);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:9px;color:#fff}
+#fh-info{flex:1}
+#fh-nome{font-size:19px;color:var(--text)}
+#fh-sub{font-size:11px;color:var(--muted);margin-top:3px}
+#fh-badges{display:flex;gap:6px;align-items:center;margin-top:5px}
+.badge-s{display:inline-block;padding:2px 10px;border-radius:20px;font-size:10px;letter-spacing:1px;text-transform:uppercase}
+.badge-s.ok{background:#EDF5F2;color:var(--verde)}
+.badge-s.danger{background:#FDF0EE;color:var(--danger)}
+.ind-count{display:inline-flex;align-items:center;gap:4px;background:#F5EFE8;border:1px solid var(--terra);color:var(--terra);border-radius:20px;padding:2px 8px;font-size:10px;letter-spacing:1px}
+
+/* SCROLL */
+#fscroll{flex:1;overflow-y:auto;padding:16px 22px;display:flex;flex-direction:column;gap:16px}
+#fscroll::-webkit-scrollbar{width:4px}
+#fscroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;animation:fup .22s ease both}
+@keyframes fup{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.ch{background:#F5EFE8;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.ch h2{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+.ch span{font-size:10px;color:var(--muted)}
+.cb{padding:14px}
+
+/* FORM */
+.fg{display:flex;flex-direction:column;gap:3px}
+.fg label{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+.fg input,.fg select,.fg textarea{border:1px solid var(--border);border-radius:var(--r);padding:7px 9px;font-family:'Georgia',serif;font-size:12px;color:var(--text);background:var(--bg);outline:none;transition:border-color .2s;width:100%}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--terra)}
+.fg textarea{resize:vertical;min-height:54px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px}
+.s2{grid-column:span 2}.s3{grid-column:span 3}.s4{grid-column:span 4}
+.col-gap{display:flex;flex-direction:column;gap:10px}
+
+/* CHIPS */
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.chip{padding:5px 10px;border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--muted);cursor:pointer;transition:all .2s;user-select:none}
+.chip:hover{border-color:var(--terra);color:var(--terra)}
+.chip.sel{background:var(--terra);border-color:var(--terra);color:#fff}
+
+/* REL */
+.rel-g{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rel-item{padding:10px 12px;background:var(--bg);border-radius:var(--r);border:1px solid var(--border);display:flex;flex-direction:column;gap:3px}
+.rel-item label{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--terra)}
+.rel-item input,.rel-item select{border:none;background:none;font-family:'Georgia',serif;font-size:12px;color:var(--text);outline:none;width:100%;padding:2px 0}
+.rel-item textarea{border:none;background:none;font-family:'Georgia',serif;font-size:12px;color:var(--text);outline:none;width:100%;resize:vertical;min-height:60px;padding:2px 0}
+
+/* ALERTAS */
+.al{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:var(--r);font-size:12px;border:1px solid;line-height:1.5}
+.al.danger{background:#FDF0EE;color:var(--danger);border-color:#F5C6C0}
+.al.warn{background:#FEF6E7;color:var(--warn);border-color:#F5DFA0}
+.al.ok{background:#EDF5F2;color:var(--verde);border-color:#B8D8CF}
+.al.info{background:#EEF3F8;color:#2C5F8A;border-color:#B8D0E8}
+.al strong{display:block;margin-bottom:2px}
+
+/* HIST */
+.hi{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;background:var(--bg);border-radius:var(--r);border:1px solid var(--border)}
+.hd{width:9px;height:9px;border-radius:50%;margin-top:4px;flex-shrink:0}
+.hd.t{background:var(--terra)}.hd.v{background:var(--verde)}.hd.m{background:var(--muted)}
+.hi-info{flex:1}.hi-nome{font-size:13px;color:var(--text)}.hi-sub{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5}
+.hi-data{font-size:10px;color:var(--muted);white-space:nowrap}
+
+/* IA */
+#ia-out{background:linear-gradient(135deg,#1A1714,#2C2420);border-radius:var(--r);padding:14px 16px;color:#F8F5F0;font-size:13px;line-height:1.75;min-height:80px;white-space:pre-wrap}
+.ia-dots{display:flex;gap:5px;align-items:center}
+.iad{width:6px;height:6px;border-radius:50%;background:var(--terra);animation:p 1.2s ease-in-out infinite}
+.iad:nth-child(2){animation-delay:.2s}.iad:nth-child(3){animation-delay:.4s}
+@keyframes p{0%,80%,100%{opacity:.2}40%{opacity:1}}
+.ia-qrow{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.ia-q{padding:5px 10px;border:1px solid var(--border);border-radius:20px;background:none;font-family:'Georgia',serif;font-size:10px;color:var(--muted);cursor:pointer;transition:all .2s;letter-spacing:.5px}
+.ia-q:hover{border-color:var(--terra);color:var(--terra)}
+#ia-row{display:flex;gap:8px;margin-top:8px}
+#ia-inp{flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r);font-family:'Georgia',serif;font-size:12px;background:var(--bg);color:var(--text);outline:none}
+#ia-inp:focus{border-color:var(--terra)}
+
+/* MÉTRICAS */
+.mg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.mc{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:12px;text-align:center}
+.mv{font-size:24px;color:var(--terra);display:block}
+.ml{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:3px;display:block}
+.mrow{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px}
+
+/* SAVE BAR */
+#sb{background:rgba(248,245,240,.96);backdrop-filter:blur(8px);border-top:1px solid var(--border);padding:10px 22px;display:none;align-items:center;gap:10px;flex-shrink:0}
+#sm{font-size:12px;color:var(--verde);margin-right:auto;opacity:0;transition:opacity .3s}
+.btn-s{padding:7px 14px;border:1px solid var(--border);border-radius:var(--r);background:none;font-family:'Georgia',serif;font-size:11px;color:var(--muted);cursor:pointer;transition:all .2s}
+.btn-s:hover{border-color:var(--terra);color:var(--terra)}
+.btn-p{padding:7px 16px;border:none;border-radius:var(--r);background:var(--terra);font-family:'Georgia',serif;font-size:11px;color:#fff;cursor:pointer;transition:opacity .2s}
+.btn-p:hover{opacity:.88}
+.btn-d{padding:7px 14px;border:1px solid var(--danger);border-radius:var(--r);background:none;font-family:'Georgia',serif;font-size:11px;color:var(--danger);cursor:pointer;transition:all .2s}
+.btn-d:hover{background:var(--danger);color:#fff}
+
+/* MODAL */
+#mo{display:none;position:fixed;inset:0;background:rgba(26,23,20,.6);z-index:200;align-items:center;justify-content:center}
+#mo.open{display:flex}
+.modal{background:var(--card);border-radius:var(--r);width:440px;max-width:94vw;border:1px solid var(--border);box-shadow:0 16px 48px rgba(0,0,0,.2);overflow:hidden;max-height:90vh;display:flex;flex-direction:column}
+.mh{background:#F5EFE8;padding:13px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0}
+.mh h3{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+.mc-btn{background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer}
+.mb{padding:16px;display:flex;flex-direction:column;gap:10px;overflow-y:auto}
+.mf{padding:12px 16px;display:flex;justify-content:flex-end;gap:8px;border-top:1px solid var(--border);flex-shrink:0}
+
+/* CAM */
+#co{display:none;position:fixed;inset:0;background:rgba(26,23,20,.85);z-index:300;align-items:center;justify-content:center}
+#co.open{display:flex}
+#cm{background:var(--dk);border-radius:var(--r);width:480px;max-width:94vw;overflow:hidden;border:1px solid #333}
+#cmh{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #333}
+#cmh span{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--terra)}
+#cmh button{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer}
+#cmb{padding:16px;display:flex;flex-direction:column;align-items:center;gap:10px}
+#cvid{width:100%;max-width:380px;height:270px;object-fit:cover;border-radius:var(--r);background:#000}
+#cprev{width:100%;max-width:380px;height:270px;object-fit:cover;border-radius:var(--r);display:none}
+#cst{font-size:11px;color:var(--muted);text-align:center}
+#cmf{padding:12px 16px;display:flex;justify-content:center;gap:10px;border-top:1px solid #333}
+
+/* TOAST */
+#toast{position:fixed;bottom:20px;right:20px;background:var(--dk);color:#F8F5F0;padding:10px 16px;border-radius:var(--r);font-size:12px;z-index:999;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;pointer-events:none;max-width:300px}
+#toast.show{opacity:1;transform:translateY(0)}
+
+/* LOADING */
+#lding{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:500;flex-direction:column;gap:12px;transition:opacity .4s}
+#lding.hide{opacity:0;pointer-events:none}
+.ldr{display:flex;gap:6px}
+.ldot{width:8px;height:8px;border-radius:50%;background:var(--terra);animation:p 1.2s ease-in-out infinite}
+.ldot:nth-child(2){animation-delay:.15s}.ldot:nth-child(3){animation-delay:.3s}
+
+body.iframe-mode #topbar{display:none}
+body.iframe-mode #sb{display:none!important}
+</style>
+</head>
+<body>
+
+<div id="lding">
+  <span style="font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--terra)">CLÍNICA Luisa Costa</span>
+  <div class="ldr"><div class="ldot"></div><div class="ldot"></div><div class="ldot"></div></div>
+</div>
+
+<div id="topbar"><span class="bs">CLÍNICA</span><span class="bm">Luisa Costa</span></div>
+
+<div id="navtabs">
+  <button class="active" onclick="setTab('ficha',this)">Ficha</button>
+  <button onclick="setTab('relacionamento',this)">Relacionamento</button>
+  <button onclick="setTab('historico',this)">Histórico</button>
+  <button onclick="setTab('alertas',this)" id="tab-al-btn">Alertas</button>
+  <button onclick="setTab('ia',this)">Inteligência IA</button>
+  <button onclick="setTab('metricas',this)">Métricas</button>
+</div>
+
+<div id="main">
+  <!-- LISTA -->
+  <div id="lista-panel">
+    <div id="lh">
+      <h3>Pacientes</h3>
+      <input type="text" id="busca" placeholder="Buscar nome, CPF, telefone…" oninput="filtrar()"/>
+      <button id="btn-novo" onclick="abrirNovo()">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 1v8M1 5h8" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+        Novo Paciente
+      </button>
+    </div>
+    <div id="ls"></div>
+  </div>
+
+  <!-- FICHA -->
+  <div id="fw">
+    <div id="vazio">
+      <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+        <circle cx="26" cy="18" r="10" stroke="#C17B3E" stroke-width="1.5"/>
+        <path d="M8 44c0-9.941 8.059-18 18-18s18 8.059 18 18" stroke="#C17B3E" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <p>Selecione um paciente ou crie um novo</p>
+    </div>
+
+    <div id="fh">
+      <div id="foto-wrap">
+        <div id="foto-el" onclick="abrirCam()">👤</div>
+        <div id="foto-cam-btn" onclick="abrirCam()" title="Tirar foto">📷</div>
+      </div>
+      <div id="fh-info">
+        <div id="fh-nome">—</div>
+        <div id="fh-sub">—</div>
+        <div id="fh-badges">
+          <span class="badge-s ok" id="fh-badge">Ativo</span>
+          <span id="fh-ind" style="display:none"></span>
+        </div>
+      </div>
+      <div style="margin-left:auto">
+        <button class="btn-s" style="font-size:10px" onclick="gerarLink()">🔗 Link Cadastro</button>
+      </div>
+    </div>
+
+    <div id="fscroll"><div id="tc"></div></div>
+
+    <div id="sb">
+      <span id="sm">✓ Salvo com sucesso</span>
+      <button class="btn-d" onclick="excluir()">Excluir</button>
+      <button class="btn-s" onclick="cancelar()">Cancelar</button>
+      <button class="btn-p" onclick="salvar()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- MODAL NOVO -->
+<div id="mo">
+  <div class="modal">
+    <div class="mh"><h3>Novo Paciente</h3><button class="mc-btn" onclick="fecharNovo()">×</button></div>
+    <div class="mb">
+      <div class="fg"><label>Nome Completo *</label><input type="text" id="m-nome" placeholder="Nome completo"/></div>
+      <div class="g2">
+        <div class="fg"><label>CPF</label><input type="text" id="m-cpf" placeholder="000.000.000-00" maxlength="14" oninput="maskCPF(this)"/></div>
+        <div class="fg"><label>Telefone</label><input type="text" id="m-tel" placeholder="(11) 99999-9999" maxlength="15" oninput="maskTel(this)"/></div>
+      </div>
+      <div class="fg"><label>E-mail</label><input type="email" id="m-email" placeholder="email@exemplo.com"/></div>
+      <div class="g2">
+        <div class="fg"><label>Nascimento</label><input type="date" id="m-nasc"/></div>
+        <div class="fg"><label>Gênero</label>
+          <select id="m-gen"><option value="">—</option><option>Feminino</option><option>Masculino</option><option>Não binário</option><option>Prefiro não informar</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn-s" onclick="fecharNovo()">Cancelar</button>
+      <button class="btn-p" onclick="criarPaciente()">Criar Paciente</button>
+    </div>
+  </div>
+</div>
+
+<!-- CAM MODAL -->
+<div id="co">
+  <div id="cm">
+    <div id="cmh"><span>Captura de Foto</span><button onclick="fecharCam()">×</button></div>
+    <div id="cmb">
+      <video id="cvid" autoplay playsinline></video>
+      <canvas id="ccan" style="display:none"></canvas>
+      <img id="cprev" alt="preview"/>
+      <p id="cst">Posicione o rosto no centro e clique em Fotografar</p>
+    </div>
+    <div id="cmf">
+      <button class="btn-s" onclick="fecharCam()">Cancelar</button>
+      <button class="btn-p" id="cbf" onclick="fotografar()">📷 Fotografar</button>
+      <button class="btn-p" id="cbu" onclick="usarFoto()" style="display:none">✓ Usar esta foto</button>
+      <button class="btn-s" id="cbr" onclick="refazerFoto()" style="display:none">↩ Refazer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPA_URL='https://eeianweavbnrikzqquxq.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVlaWFud2VhdmJucmlrenFxdXhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU5ODAzOTAsImV4cCI6MjA5MTU1NjM5MH0.bEhCI8QHHK11IQW-_2Jn6qtzr2jmreuwvOoVh61gk0s';
+const BUCKET='pacientes-fotos';
+const {createClient}=supabase;
+const db=createClient(SUPA_URL,SUPA_KEY);
+
+const ORIGENS=['Instagram','Google','Indicação de paciente','TikTok','Indicação médica','Evento','Outros'];
+const OBJETIVOS=['Reposição hormonal','Emagrecimento','Envelhecimento saudável / Qualidade de vida','Lipedema','Menopausa','Performance','Controle de patologia','Outros'];
+
+let pacientes=[],pAtual=null,tabAtual='ficha',camStream=null,fotoCapt=null;
+
+if(window.self!==window.top)document.body.classList.add('iframe-mode');
+
+async function init(){
+  await carregar();
+  document.getElementById('lding').classList.add('hide');
+}
+
+async function carregar(){
+  const{data,error}=await db.from('pacientes').select('*').order('nome');
+  if(error){toast('Erro: '+error.message);return;}
+  pacientes=data||[];
+  renderLista();
+  badgeAlertas();
+}
+
+// MÁSCARAS
+function maskCPF(el){let v=el.value.replace(/\D/g,'');v=v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2');el.value=v;}
+function maskTel(el){let v=el.value.replace(/\D/g,'');v=v.replace(/^(\d{2})(\d)/,'($1) $2').replace(/(\d{5})(\d)/,'$1-$2');el.value=v;}
+function maskCEP(el){let v=el.value.replace(/\D/g,'');v=v.replace(/(\d{5})(\d)/,'$1-$2');el.value=v;if(v.replace('-','').length===8)buscaCEP(v.replace('-',''));}
+
+async function buscaCEP(cep){
+  try{const r=await fetch(`https://viacep.com.br/ws/${cep}/json/`);const d=await r.json();
+  if(d.erro){toast('CEP não encontrado.');return;}
+  sv('f-log',d.logradouro);sv('f-bairro',d.bairro);sv('f-cidade',d.localidade);sv('f-uf',d.uf);
+  document.getElementById('f-num')?.focus();}catch{toast('Erro ao buscar CEP.');}
+}
+
+// LISTA
+function filtrar(){renderLista(document.getElementById('busca').value.toLowerCase());}
+
+function renderLista(q=''){
+  const cont=document.getElementById('ls');
+  const list=pacientes.filter(p=>p.nome.toLowerCase().includes(q)||(p.cpf||'').includes(q)||(p.telefone||'').includes(q));
+  if(!list.length){cont.innerHTML='<div class="le">Nenhum paciente encontrado.</div>';return;}
+  cont.innerHTML=list.map(p=>{
+    const a=pAtual?.id===p.id?'ativo':'';
+    const bc=dotClass(p);
+    const foto=p.foto_url?`<img src="${p.foto_url}" alt=""/>`:`👤`;
+    return`<div class="pi ${a}" onclick="sel('${p.id}')">
+      <div class="pi-row">
+        <div class="pi-av">${foto}</div>
+        <div class="pi-info"><div class="pi-nome">${esc(p.nome)}</div><div class="pi-sub">${esc(p.telefone||p.email||p.cpf||'—')}</div></div>
+        <div class="pi-dot ${bc}"></div>
+      </div></div>`;}).join('');
+}
+
+function dotClass(p){const al=calcAl(p);if(al.some(a=>a.t==='danger'))return'd';if(al.some(a=>a.t==='warn'))return'w';if(al.length)return'o';return'n';}
+
+async function sel(id){
+  pAtual=pacientes.find(p=>p.id===id);if(!pAtual)return;
+  renderLista(document.getElementById('busca').value.toLowerCase());
+  document.getElementById('vazio').style.display='none';
+  document.getElementById('fh').style.display='flex';
+  document.getElementById('sb').style.display='flex';
+  updHeader();renderTab();
+}
+
+function updHeader(){
+  const p=pAtual;
+  document.getElementById('fh-nome').textContent=p.nome;
+  const idade=p.nascimento?calcIdade(p.nascimento)+' anos · ':'';
+  document.getElementById('fh-sub').textContent=idade+(p.email||p.telefone||'');
+  const fe=document.getElementById('foto-el');
+  fe.innerHTML=p.foto_url?`<img src="${p.foto_url}" alt=""/>`:'👤';
+  const inds=pacientes.filter(x=>(x.origem_indicador_nome||'').toLowerCase().trim()===p.nome.toLowerCase().trim()).length;
+  const indEl=document.getElementById('fh-ind');
+  if(inds>0){indEl.style.display='inline-flex';indEl.className='ind-count';indEl.innerHTML=`⭐ ${inds} indicaç${inds>1?'ões':'ão'}`;}
+  else indEl.style.display='none';
+}
+
+// TABS
+function setTab(tab,btn){
+  tabAtual=tab;
+  document.querySelectorAll('#navtabs button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(pAtual)renderTab();
+}
+
+function renderTab(){
+  const c=document.getElementById('tc');
+  if(tabAtual==='ficha')rFicha(c);
+  else if(tabAtual==='relacionamento')rRel(c);
+  else if(tabAtual==='historico')rHist(c);
+  else if(tabAtual==='alertas')rAl(c);
+  else if(tabAtual==='ia')rIA(c);
+  else if(tabAtual==='metricas')rMet(c);
+}
+
+// ── FICHA ─────────────────────────────────────────────────
+function rFicha(c){
+  const p=pAtual;
+  const objs=p.objetivos||[];
+  const origSel=p.origem||'';
+  c.innerHTML=`
+  <div class="card"><div class="ch"><h2>Dados Pessoais</h2></div><div class="cb col-gap">
+    <div class="g3">
+      <div class="fg s2"><label>Nome Completo *</label><input type="text" id="f-nome" value="${esc(p.nome)}"/></div>
+      <div class="fg"><label>Apelido / Como prefere ser chamado(a)</label><input type="text" id="f-apelido" value="${esc(p.apelido||'')}" placeholder="Apelido"/></div>
+    </div>
+    <div class="g4">
+      <div class="fg"><label>CPF</label><input type="text" id="f-cpf" value="${esc(p.cpf||'')}" maxlength="14" oninput="maskCPF(this)"/></div>
+      <div class="fg"><label>Nascimento</label><input type="date" id="f-nasc" value="${p.nascimento||''}"/></div>
+      <div class="fg"><label>Gênero</label><select id="f-gen">${opts(['','Feminino','Masculino','Não binário','Prefiro não informar'],p.genero)}</select></div>
+      <div class="fg"><label>Estado Civil</label><select id="f-ec">${opts(['','Solteiro(a)','Casado(a)','União estável','Divorciado(a)','Viúvo(a)'],p.estado_civil)}</select></div>
+    </div>
+    <div class="g3">
+      <div class="fg"><label>Telefone</label><input type="text" id="f-tel" value="${esc(p.telefone||'')}" maxlength="15" oninput="maskTel(this)"/></div>
+      <div class="fg s2"><label>E-mail</label><input type="email" id="f-email" value="${esc(p.email||'')}"/></div>
+    </div>
+    <div class="g3">
+      <div class="fg"><label>Profissão</label><input type="text" id="f-prof" value="${esc(p.profissao||'')}"/></div>
+      <div class="fg"><label>Altura (cm)</label><input type="number" id="f-alt" value="${p.altura||''}" placeholder="165"/></div>
+      <div class="fg"><label>Peso Inicial (kg)</label><input type="number" id="f-peso" value="${p.peso_inicial||''}" placeholder="70"/></div>
+    </div>
+    <div class="fg"><label>Hobbies / Interesses</label><input type="text" id="f-hob" value="${esc(p.hobbies||'')}" placeholder="Ex: Yoga, leitura, culinária…"/></div>
+    <div class="fg"><label>Medicamentos em uso</label><textarea id="f-med" placeholder="Liste os medicamentos atuais…">${esc(p.medicamentos||'')}</textarea></div>
+  </div></div>
+
+  <div class="card"><div class="ch"><h2>Endereço</h2><span>CEP preenche automaticamente</span></div><div class="cb col-gap">
+    <div class="g3">
+      <div class="fg"><label>CEP</label><input type="text" id="f-cep" value="${esc(p.cep||'')}" maxlength="9" oninput="maskCEP(this)" placeholder="00000-000"/></div>
+      <div class="fg s2"><label>Logradouro</label><input type="text" id="f-log" value="${esc(p.logradouro||'')}"/></div>
+    </div>
+    <div class="g4">
+      <div class="fg"><label>Número</label><input type="text" id="f-num" value="${esc(p.numero||'')}"/></div>
+      <div class="fg s2"><label>Complemento</label><input type="text" id="f-comp" value="${esc(p.complemento||'')}"/></div>
+      <div class="fg"><label>Bairro</label><input type="text" id="f-bairro" value="${esc(p.bairro||'')}"/></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><label>Cidade</label><input type="text" id="f-cidade" value="${esc(p.cidade||'')}"/></div>
+      <div class="fg"><label>UF</label><input type="text" id="f-uf" value="${esc(p.estado||'')}" maxlength="2" placeholder="SP"/></div>
+    </div>
+  </div></div>
+
+  <div class="card"><div class="ch"><h2>Como Conheceu a Clínica</h2></div><div class="cb col-gap">
+    <div class="chips" id="orig-chips">${ORIGENS.map(o=>`<div class="chip ${origSel===o?'sel':''}" onclick="togOrig(this,'${o}')">${o}</div>`).join('')}</div>
+    <div id="orig-ind" style="${origSel==='Indicação de paciente'?'':'display:none'}">
+      <div class="fg"><label>Nome do Paciente que Indicou</label><input type="text" id="f-ind" value="${esc(p.origem_indicador_nome||'')}" placeholder="Nome e sobrenome"/></div>
+    </div>
+    <div id="orig-out" style="${origSel==='Outros'?'':'display:none'}">
+      <div class="fg"><label>Especifique</label><input type="text" id="f-orig-out" value="${esc(p.origem_outro||'')}"/></div>
+    </div>
+  </div></div>
+
+  <div class="card"><div class="ch"><h2>Objetivos Principais</h2></div><div class="cb col-gap">
+    <div class="chips" id="obj-chips">${OBJETIVOS.map(o=>`<label class="chip ${objs.includes(o)?'sel':''}" onclick="togObj(this,'${esc(o)}')">${o}</label>`).join('')}</div>
+    <div id="obj-out" style="${objs.includes('Outros')?'':'display:none'}">
+      <div class="fg"><label>Especifique</label><input type="text" id="f-obj-out" value="${esc(p.objetivo_outro||'')}"/></div>
+    </div>
+  </div></div>`;
+}
+
+function opts(arr,sel){return arr.map(o=>`<option ${sel===o?'selected':''}>${o}</option>`).join('');}
+function togObj(el,v){el.classList.toggle('sel');if(v==='Outros')document.getElementById('obj-out').style.display=el.classList.contains('sel')?'':'';}
+function togOrig(chip,v){
+  document.querySelectorAll('#orig-chips .chip').forEach(c=>c.classList.remove('sel'));
+  chip.classList.add('sel');
+  document.getElementById('orig-ind').style.display=v==='Indicação de paciente'?'':'none';
+  document.getElementById('orig-out').style.display=v==='Outros'?'':'none';
+}
+
+// ── RELACIONAMENTO ────────────────────────────────────────
+function rRel(c){
+  const r=pAtual.relacionamento||{};
+  c.innerHTML=`
+  <div class="card"><div class="ch"><h2>Preferências e Perfil de Relacionamento</h2><span style="color:var(--terra)">Preencher na 1ª consulta</span></div>
+  <div class="cb">
+    <div class="rel-g">
+      <div class="rel-item"><label>☕ Café — como gosta?</label><input type="text" id="r-cafe" value="${esc(r.cafe||'')}" placeholder="Ex: Preto, sem açúcar…"/></div>
+      <div class="rel-item"><label>🕐 Horário preferido de atendimento</label><input type="text" id="r-hor" value="${esc(r.horario_preferido||'')}" placeholder="Ex: Manhã, após 10h…"/></div>
+      <div class="rel-item"><label>💬 Gosta de conversar?</label>
+        <select id="r-conv"><option value="">—</option>${['Sim, muito!','Moderadamente','Prefere objetividade','Depende do dia'].map(o=>`<option ${r.gosta_conversar===o?'selected':''}>${o}</option>`).join('')}</select>
+      </div>
+      <div class="rel-item"><label>📱 Prefere ser contatado(a) por</label>
+        <select id="r-cont"><option value="">—</option>${['WhatsApp','Ligação','E-mail','Qualquer um'].map(o=>`<option ${r.como_prefere_contato===o?'selected':''}>${o}</option>`).join('')}</select>
+      </div>
+      <div class="rel-item"><label>👨‍👩‍👧 Tem filhos?</label><input type="text" id="r-filhos" value="${esc(r.tem_filhos||'')}" placeholder="Ex: Sim, 2 filhos pequenos"/></div>
+      <div class="rel-item"><label>🥗 Restrição alimentar relevante</label><input type="text" id="r-rest" value="${esc(r.restricao_alimentar||'')}" placeholder="Ex: Vegetariana, intolerante a lactose…"/></div>
+      <div class="rel-item"><label>🎯 Principal motivação declarada</label><input type="text" id="r-mot" value="${esc(r.motivacao||'')}" placeholder="O que mais a motiva?"/></div>
+      <div class="rel-item"><label>📅 Melhor dia para retorno</label><input type="text" id="r-dia" value="${esc(r.melhor_dia||'')}" placeholder="Ex: Terças e quintas"/></div>
+    </div>
+    <div class="rel-item" style="margin-top:8px">
+      <label>📝 Anotações livres (secretária / médico)</label>
+      <textarea id="r-notas">${esc(r.anotacoes_livres||'')}</textarea>
+    </div>
+  </div></div>`;
+}
+
+// ── HISTÓRICO ─────────────────────────────────────────────
+function rHist(c){
+  const p=pAtual;
+  const cs=p.consultas||[];
+  const ps=p.protocolos||[];
+  const total=cs.reduce((s,x)=>s+(parseFloat(x.valor)||0),0);
+  const csHTML=cs.length?[...cs].reverse().map(x=>`
+    <div class="hi"><div class="hd t"></div><div class="hi-info"><div class="hi-nome">${esc(x.tipo||'Consulta')}</div><div class="hi-sub">${esc(x.obs||'—')}${x.valor?` · <strong>R$ ${x.valor}</strong>`:''}</div></div><div class="hi-data">${fmtD(x.data)}</div></div>`).join('')
+    :'<div class="le">Nenhuma consulta registrada.</div>';
+  const psHTML=ps.length?ps.map(x=>`
+    <div class="hi"><div class="hd ${x.ativo?'t':'v'}"></div><div class="hi-info"><div class="hi-nome">${esc(x.nome)}</div><div class="hi-sub">Semana ${x.semanaAtual} de ${x.totalSemanas} · ${x.ativo?'<strong>Em andamento</strong>':'Concluído'}</div></div><div class="hi-data">${fmtD(x.dataInicio)}</div></div>`).join('')
+    :'<div class="le">Nenhum protocolo vinculado.</div>';
+  c.innerHTML=`
+  <div class="card"><div class="ch"><h2>Resumo Financeiro do Paciente</h2></div><div class="cb">
+    <div class="mg" style="grid-template-columns:repeat(3,1fr)">
+      <div class="mc"><span class="mv">R$ ${total.toLocaleString('pt-BR',{minimumFractionDigits:0})}</span><span class="ml">Total Investido</span></div>
+      <div class="mc"><span class="mv">${cs.length}</span><span class="ml">Consultas</span></div>
+      <div class="mc"><span class="mv">${ps.length}</span><span class="ml">Protocolos</span></div>
+    </div>
+  </div></div>
+  <div class="card"><div class="ch"><h2>Registrar Consulta / Sessão</h2></div><div class="cb col-gap">
+    <div class="g3">
+      <div class="fg"><label>Data</label><input type="date" id="hc-data" value="${new Date().toISOString().split('T')[0]}"/></div>
+      <div class="fg"><label>Tipo</label><select id="hc-tipo"><option>Consulta</option><option>Retorno</option><option>Sessão de protocolo</option><option>Exame</option><option>Procedimento</option></select></div>
+      <div class="fg"><label>Valor (R$)</label><input type="number" id="hc-val" placeholder="0"/></div>
+    </div>
+    <div class="fg"><label>Observação</label><input type="text" id="hc-obs" placeholder="Breve resumo…"/></div>
+    <div style="display:flex;justify-content:flex-end"><button class="btn-p" onclick="regConsulta()">+ Registrar</button></div>
+  </div></div>
+  <div class="card"><div class="ch"><h2>Histórico de Consultas</h2></div><div class="cb" style="display:flex;flex-direction:column;gap:6px">${csHTML}</div></div>
+  <div class="card"><div class="ch"><h2>Protocolos Vinculados</h2></div><div class="cb" style="display:flex;flex-direction:column;gap:6px">${psHTML}</div></div>`;
+}
+
+async function regConsulta(){
+  if(!pAtual)return;
+  const nova={data:gv('hc-data'),tipo:gv('hc-tipo'),valor:gv('hc-val'),obs:gv('hc-obs')};
+  if(!nova.data){toast('Informe a data.');return;}
+  if(!pAtual.consultas)pAtual.consultas=[];
+  pAtual.consultas.push(nova);
+  await saveDB();toast('Consulta registrada!');renderTab();
+}
+
+// ── ALERTAS ───────────────────────────────────────────────
+function calcAl(p){
+  const al=[];const hoje=new Date();
+  if(p.nascimento){
+    const n=new Date(p.nascimento);const aniv=new Date(hoje.getFullYear(),n.getMonth(),n.getDate());
+    if(aniv<hoje)aniv.setFullYear(hoje.getFullYear()+1);
+    const d=Math.ceil((aniv-hoje)/86400000);
+    if(d<=7)al.push({t:'info',titulo:'🎂 Aniversário em breve',msg:`${p.nome} faz aniversário em ${d} dia${d>1?'s':''}!`});
+  }
+  const ps=p.protocolos||[];const ativo=ps.find(x=>x.ativo);
+  if(ativo){const r=ativo.totalSemanas-ativo.semanaAtual;
+    if(r<=0)al.push({t:'danger',titulo:'⚠ Protocolo encerrado',msg:`"${ativo.nome}" atingiu a semana final. Renovação necessária.`});
+    else if(r<=2)al.push({t:'warn',titulo:'◉ Renovação próxima',msg:`${r} semana${r>1?'s':''} restante${r>1?'s':''} no protocolo "${ativo.nome}".`});
+  }
+  const cs=p.consultas||[];
+  if(cs.length){const ul=new Date(Math.max(...cs.map(x=>new Date(x.data))));const d=Math.ceil((hoje-ul)/86400000);
+    if(d>90)al.push({t:'danger',titulo:'😶 Paciente inativo',msg:`Sem consultas há ${d} dias. Última: ${fmtD(ul.toISOString().split('T')[0])}.`});
+    else if(d>45)al.push({t:'warn',titulo:'⏳ Atenção',msg:`${d} dias desde a última consulta.`});
+  }
+  if(!p.telefone&&!p.email)al.push({t:'warn',titulo:'📋 Dados incompletos',msg:'Sem telefone nem e-mail cadastrado.'});
+  return al;
+}
+
+function rAl(c){
+  const al=calcAl(pAtual);
+  const html=al.length?al.map(a=>`<div class="al ${a.t}"><div><strong>${a.titulo}</strong>${a.msg}</div></div>`).join('')
+    :'<div class="le" style="padding:20px">✓ Nenhum alerta para este paciente.</div>';
+  c.innerHTML=`
+  <div class="card"><div class="ch"><h2>Central de Alertas</h2><span>${al.length} alerta${al.length!==1?'s':''}</span></div><div class="cb" style="display:flex;flex-direction:column;gap:8px">${html}</div></div>
+  <div class="card"><div class="ch"><h2>Próximas Consultas</h2><span>Integração com Agenda em breve</span></div><div class="cb"><div class="le" style="opacity:.5">Aguardando módulo de Agenda.</div></div></div>`;
+}
+
+function badgeAlertas(){
+  const total=pacientes.reduce((s,p)=>s+calcAl(p).filter(a=>a.t==='danger'||a.t==='warn').length,0);
+  const btn=document.getElementById('tab-al-btn');
+  const old=btn.querySelector('.tab-badge');if(old)old.remove();
+  if(total>0)btn.innerHTML+=`<span class="tab-badge">${total}</span>`;
+}
+
+// ── IA ────────────────────────────────────────────────────
+function rIA(c){
+  c.innerHTML=`
+  <div class="card"><div class="ch"><h2>Inteligência IA — Assistente Clínico</h2></div><div class="cb col-gap">
+    <div class="ia-qrow">
+      <button class="ia-q" onclick="iaQ('Faça um briefing completo deste paciente para a consulta de hoje.')">📋 Briefing pré-consulta</button>
+      <button class="ia-q" onclick="iaQ('Analise o perfil e sugira a melhor abordagem de relacionamento.')">💬 Abordagem</button>
+      <button class="ia-q" onclick="iaQ('Este paciente está em risco de abandono? Analise e sugira ações.')">⚠ Risco de abandono</button>
+      <button class="ia-q" onclick="iaQ('Crie uma mensagem personalizada de aniversário para este paciente.')">🎂 Mensagem aniversário</button>
+      <button class="ia-q" onclick="iaQ('Com base nos objetivos e perfil, quais protocolos seriam mais indicados?')">🎯 Sugestão de protocolo</button>
+    </div>
+    <div id="ia-out"><span style="color:var(--muted);font-size:12px">Selecione uma ação ou faça uma pergunta livre sobre este paciente.</span></div>
+    <div id="ia-row">
+      <input type="text" id="ia-inp" placeholder="Pergunte algo sobre este paciente…" onkeydown="if(event.key==='Enter')iaEnv()"/>
+      <button class="btn-p" onclick="iaEnv()">Enviar</button>
+    </div>
+  </div></div>`;
+}
+
+async function iaQ(prompt){
+  if(!pAtual)return;
+  const out=document.getElementById('ia-out');
+  out.innerHTML=`<div class="ia-dots"><div class="iad"></div><div class="iad"></div><div class="iad"></div><span style="font-size:11px;color:var(--muted);margin-left:6px">Analisando…</span></div>`;
+  const ctx=`Você é assistente médico da Clínica Luisa Costa, clínica de alto padrão focada em emagrecimento, longevidade e bem-estar.
+Dados do paciente:
+- Nome: ${pAtual.nome}
+- Nascimento: ${pAtual.nascimento?fmtD(pAtual.nascimento)+' ('+calcIdade(pAtual.nascimento)+' anos)':'N/A'}
+- Gênero: ${pAtual.genero||'N/A'} | Estado civil: ${pAtual.estado_civil||'N/A'}
+- Profissão: ${pAtual.profissao||'N/A'} | Hobbies: ${pAtual.hobbies||'N/A'}
+- Objetivos: ${(pAtual.objetivos||[]).join(', ')||'N/A'}
+- Medicamentos: ${pAtual.medicamentos||'Nenhum'}
+- Como conheceu: ${pAtual.origem||'N/A'}
+- Altura: ${pAtual.altura?pAtual.altura+'cm':'N/A'} | Peso inicial: ${pAtual.peso_inicial?pAtual.peso_inicial+'kg':'N/A'}
+- Consultas: ${(pAtual.consultas||[]).length} | Protocolos: ${(pAtual.protocolos||[]).map(p=>p.nome).join(', ')||'Nenhum'}
+- Relacionamento: ${JSON.stringify(pAtual.relacionamento||{})}
+Responda em português, de forma profissional, empática e objetiva. Máximo 3 parágrafos.`;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:ctx,messages:[{role:'user',content:prompt}]})});
+    const data=await res.json();
+    out.textContent=data.content?.[0]?.text||'Sem resposta.';
+  }catch(e){out.innerHTML=`<span style="color:var(--danger)">Erro: ${e.message}</span>`;}
+}
+function iaEnv(){const i=document.getElementById('ia-inp');const q=i.value.trim();if(!q)return;i.value='';iaQ(q);}
+
+// ── MÉTRICAS ──────────────────────────────────────────────
+function rMet(c){
+  const total=pacientes.length;
+  const comProto=pacientes.filter(p=>(p.protocolos||[]).some(x=>x.ativo)).length;
+  const hoje=new Date();
+  const inativos=pacientes.filter(p=>{const cs=p.consultas||[];if(!cs.length)return false;const ul=new Date(Math.max(...cs.map(x=>new Date(x.data))));return(hoje-ul)/86400000>90;}).length;
+  const anivs=pacientes.filter(p=>{if(!p.nascimento)return false;const n=new Date(p.nascimento);const a=new Date(hoje.getFullYear(),n.getMonth(),n.getDate());if(a<hoje)a.setFullYear(hoje.getFullYear()+1);return(a-hoje)/86400000<=30;}).length;
+  const om={};pacientes.forEach(p=>{const o=p.origem||'Não informado';om[o]=(om[o]||0)+1;});
+  const objm={};pacientes.forEach(p=>(p.objetivos||[]).forEach(o=>{objm[o]=(objm[o]||0)+1;}));
+  const indm={};pacientes.forEach(p=>{if(p.origem==='Indicação de paciente'&&p.origem_indicador_nome){const n=p.origem_indicador_nome.trim();indm[n]=(indm[n]||0)+1;}});
+  const topInd=Object.entries(indm).sort((a,b)=>b[1]-a[1]).slice(0,5);
+
+  const oRows=Object.entries(om).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="mrow"><span>${k}</span><span style="color:var(--terra);font-weight:bold">${v}</span></div>`).join('');
+  const objRows=Object.entries(objm).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="mrow"><span>${k}</span><span style="color:var(--verde);font-weight:bold">${v}</span></div>`).join('');
+  const indRows=topInd.length?topInd.map(([n,v],i)=>`<div class="mrow"><span>${['🥇','🥈','🥉','4°','5°'][i]} ${n}</span><span class="ind-count">⭐ ${v}</span></div>`).join(''):'<div class="le">Sem dados de indicação.</div>';
+
+  c.innerHTML=`
+  <div class="card"><div class="ch"><h2>Visão Geral da Carteira</h2></div><div class="cb">
+    <div class="mg">
+      <div class="mc"><span class="mv">${total}</span><span class="ml">Total Pacientes</span></div>
+      <div class="mc"><span class="mv">${comProto}</span><span class="ml">Em Protocolo</span></div>
+      <div class="mc"><span class="mv" style="color:var(--danger)">${inativos}</span><span class="ml">Inativos +90d</span></div>
+      <div class="mc"><span class="mv" style="color:var(--verde)">${anivs}</span><span class="ml">Aniversários /30d</span></div>
+    </div>
+  </div></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div class="card"><div class="ch"><h2>Origem dos Pacientes</h2></div><div class="cb">${oRows||'<div class="le">Sem dados.</div>'}</div></div>
+    <div class="card"><div class="ch"><h2>Objetivos mais Buscados</h2></div><div class="cb">${objRows||'<div class="le">Sem dados.</div>'}</div></div>
+  </div>
+  <div class="card"><div class="ch"><h2>Top Indicadores da Clínica</h2></div><div class="cb">${indRows}</div></div>`;
+}
+
+// ── SALVAR ────────────────────────────────────────────────
+function coletFicha(){
+  const map={'f-nome':'nome','f-apelido':'apelido','f-cpf':'cpf','f-nasc':'nascimento','f-gen':'genero','f-ec':'estado_civil','f-tel':'telefone','f-email':'email','f-prof':'profissao','f-alt':'altura','f-peso':'peso_inicial','f-hob':'hobbies','f-med':'medicamentos','f-cep':'cep','f-log':'logradouro','f-num':'numero','f-comp':'complemento','f-bairro':'bairro','f-cidade':'cidade','f-uf':'estado','f-ind':'origem_indicador_nome','f-obj-out':'objetivo_outro','f-orig-out':'origem_outro'};
+  const obj={};
+  for(const[id,key]of Object.entries(map)){const el=document.getElementById(id);if(el)obj[key]=el.value||null;}
+  const oSel=document.querySelector('#orig-chips .chip.sel');if(oSel)obj.origem=oSel.textContent.trim();
+  obj.objetivos=[...document.querySelectorAll('#obj-chips .chip.sel')].map(c=>c.textContent.trim());
+  return obj;
+}
+function coletRel(){return{cafe:gv('r-cafe'),horario_preferido:gv('r-hor'),gosta_conversar:gv('r-conv'),como_prefere_contato:gv('r-cont'),tem_filhos:gv('r-filhos'),restricao_alimentar:gv('r-rest'),motivacao:gv('r-mot'),melhor_dia:gv('r-dia'),anotacoes_livres:gv('r-notas')};}
+
+async function salvar(){
+  if(!pAtual)return;
+  let upd={};
+  if(tabAtual==='ficha')upd=coletFicha();
+  else if(tabAtual==='relacionamento')upd={relacionamento:coletRel()};
+  Object.assign(pAtual,upd);
+  await saveDB();
+  const sm=document.getElementById('sm');sm.style.opacity='1';setTimeout(()=>sm.style.opacity='0',2000);
+  updHeader();renderLista(document.getElementById('busca').value.toLowerCase());
+}
+
+async function saveDB(){
+  const{id,created_at,...d}=pAtual;d.updated_at=new Date().toISOString();
+  const{error}=await db.from('pacientes').update(d).eq('id',id);
+  if(error)toast('Erro ao salvar: '+error.message);
+  else{const i=pacientes.findIndex(p=>p.id===id);if(i>=0)pacientes[i]={...pAtual};}
+}
+
+function cancelar(){carregar();toast('Alterações descartadas.');}
+
+async function excluir(){
+  if(!pAtual)return;
+  if(!confirm(`Excluir permanentemente "${pAtual.nome}"?`))return;
+  const{error}=await db.from('pacientes').delete().eq('id',pAtual.id);
+  if(error){toast('Erro ao excluir.');return;}
+  pacientes=pacientes.filter(p=>p.id!==pAtual.id);pAtual=null;
+  document.getElementById('vazio').style.display='flex';
+  document.getElementById('fh').style.display='none';
+  document.getElementById('sb').style.display='none';
+  document.getElementById('tc').innerHTML='';
+  renderLista();toast('Paciente excluído.');
+}
+
+// ── CRIAR ─────────────────────────────────────────────────
+async function criarPaciente(){
+  const nome=document.getElementById('m-nome').value.trim();
+  if(!nome){toast('Informe o nome.');return;}
+  const novo={nome,cpf:document.getElementById('m-cpf').value||null,telefone:document.getElementById('m-tel').value||null,email:document.getElementById('m-email').value||null,nascimento:document.getElementById('m-nasc').value||null,genero:document.getElementById('m-gen').value||null,cadastro_origem:'interno',status:'ativo',consultas:[],protocolos:[],objetivos:[],relacionamento:{}};
+  const{data,error}=await db.from('pacientes').insert(novo).select().single();
+  if(error){toast('Erro: '+error.message);return;}
+  pacientes.push(data);fecharNovo();renderLista();sel(data.id);toast(`"${nome}" criado com sucesso!`);
+}
+
+function abrirNovo(){document.getElementById('mo').classList.add('open');document.getElementById('m-nome').focus();}
+function fecharNovo(){document.getElementById('mo').classList.remove('open');['m-nome','m-cpf','m-tel','m-email','m-nasc'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});}
+
+// ── WEBCAM ────────────────────────────────────────────────
+async function abrirCam(){
+  if(!pAtual)return;
+  document.getElementById('co').classList.add('open');
+  const vid=document.getElementById('cvid');
+  try{
+    camStream=await navigator.mediaDevices.getUserMedia({video:{width:640,height:480,facingMode:'user'},audio:false});
+    vid.srcObject=camStream;vid.style.display='block';
+    document.getElementById('cprev').style.display='none';
+    document.getElementById('cbf').style.display='inline-flex';
+    document.getElementById('cbu').style.display='none';
+    document.getElementById('cbr').style.display='none';
+    document.getElementById('cst').textContent='Posicione o rosto no centro e clique em Fotografar';
+  }catch(e){document.getElementById('cst').textContent='Câmera não disponível: '+e.message;}
+}
+
+function fotografar(){
+  const vid=document.getElementById('cvid');const can=document.getElementById('ccan');const prev=document.getElementById('cprev');
+  can.width=vid.videoWidth;can.height=vid.videoHeight;can.getContext('2d').drawImage(vid,0,0);
+  fotoCapt=can.toDataURL('image/jpeg',0.85);
+  prev.src=fotoCapt;prev.style.display='block';vid.style.display='none';
+  document.getElementById('cbf').style.display='none';
+  document.getElementById('cbu').style.display='inline-flex';
+  document.getElementById('cbr').style.display='inline-flex';
+  document.getElementById('cst').textContent='Foto tirada! Confirme ou refaça.';
+}
+
+function refazerFoto(){
+  document.getElementById('cvid').style.display='block';document.getElementById('cprev').style.display='none';
+  document.getElementById('cbf').style.display='inline-flex';document.getElementById('cbu').style.display='none';document.getElementById('cbr').style.display='none';
+  fotoCapt=null;
+}
+
+async function usarFoto(){
+  if(!fotoCapt||!pAtual)return;
+  fecharCam();toast('Fazendo upload…');
+  try{
+    const blob=await(await fetch(fotoCapt)).blob();
+    const fn=`${pAtual.id}.jpg`;
+    const{error:ue}=await db.storage.from(BUCKET).upload(fn,blob,{upsert:true,contentType:'image/jpeg'});
+    if(ue)throw ue;
+    const{data:ud}=db.storage.from(BUCKET).getPublicUrl(fn);
+    pAtual.foto_url=ud.publicUrl+'?t='+Date.now();
+    await saveDB();updHeader();renderLista(document.getElementById('busca').value.toLowerCase());toast('Foto salva!');
+  }catch(e){toast('Erro no upload: '+e.message);}
+}
+
+function fecharCam(){
+  if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}
+  document.getElementById('co').classList.remove('open');fotoCapt=null;
+}
+
+// ── LINK ──────────────────────────────────────────────────
+function gerarLink(){
+  const link=`${window.location.origin}/cadastro.html`;
+  navigator.clipboard?.writeText(link);toast('Link copiado: '+link);
+}
+
+// ── UTIL ──────────────────────────────────────────────────
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function gv(id){return document.getElementById(id)?.value?.trim()||null;}
+function sv(id,v){const el=document.getElementById(id);if(el)el.value=v||'';}
+function fmtD(s){if(!s)return'—';const[y,m,d]=s.split('T')[0].split('-');return`${d}/${m}/${y}`;}
+function calcIdade(n){const d=new Date(n),h=new Date();let a=h.getFullYear()-d.getFullYear();if(h<new Date(h.getFullYear(),d.getMonth(),d.getDate()))a--;return a;}
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2800);}
+
+init();
+</script>
+</body>
+</html>
