@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Administração - Clínica Luisa Costa</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--terra:#C17B3E;--terra-d:#8B5520;--terra-l:#E8D5BC;--verde:#4A7C6B;--dk:#1A1714;--bg:#F8F5F0;--bg2:#FFFDF9;--line:#E5DDD4;--muted:#8A7E74;--text:#2C2420;--danger:#A33A32;--warn:#A76A0A;--r:6px}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column}
+#topbar{height:78px;background:var(--bg2);border-bottom:2px solid var(--terra);display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0}
+.brand{text-align:center}.brand small{display:block;font-size:9px;letter-spacing:5px;text-transform:uppercase;color:var(--terra);font-weight:700}.brand strong{display:block;font-family:Georgia,serif;font-size:27px;font-weight:400;color:var(--dk);line-height:1.05}
+#user-pill{position:absolute;right:24px;top:24px;font-size:11px;color:var(--muted)}
+#navtabs{height:40px;background:var(--dk);display:flex;align-items:stretch;justify-content:center;border-bottom:1px solid #2C2420;flex-shrink:0}
+#navtabs button{background:none;border:none;color:rgba(232,213,188,.45);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;padding:0 18px;cursor:pointer;border-bottom:2px solid transparent;font-weight:700}
+#navtabs button:hover{color:rgba(232,213,188,.78)}
+#navtabs button.active{color:#F8F5F0;border-bottom-color:var(--terra)}
+#main{flex:1;overflow:auto;padding:24px 28px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.hero{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;display:flex;align-items:flex-start;justify-content:space-between;gap:18px}
+.hero h1{font-family:Georgia,serif;font-size:26px;font-weight:400;color:var(--dk)}
+.hero p{font-size:12px;color:var(--muted);line-height:1.55;margin-top:4px;max-width:720px}
+.status{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--verde);background:#EAF1ED;border:1px solid #C9DDD4;border-radius:var(--r);padding:6px 9px;white-space:nowrap}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.ch{padding:12px 15px;border-bottom:1px solid var(--line);background:#F5EFE8;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ch h2{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--terra)}
+.ch span{font-size:11px;color:var(--muted)}
+.cb{padding:15px}
+.page{display:none}.page.on{display:block}
+.fg{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.fg label{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:700}
+.fg input,.fg select,.fg textarea{width:100%;border:1px solid #DDD0C6;border-radius:var(--r);background:var(--bg2);padding:8px 10px;font-size:12px;color:var(--text);outline:none}
+.fg textarea{min-height:58px;resize:vertical}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--terra)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.btn{border:1px solid var(--line);border-radius:var(--r);background:var(--bg2);color:var(--text);font-size:11px;font-weight:700;padding:8px 12px;cursor:pointer}
+.btn:hover{border-color:var(--terra);color:var(--terra)}
+.btn-p{border-color:var(--terra);background:var(--terra);color:#fff}
+.btn-p:hover{color:#fff;opacity:.9}
+.btn-v{border-color:var(--verde);background:var(--verde);color:#fff}
+.btn-v:hover{color:#fff;opacity:.9}
+.btn-d{border-color:var(--danger);color:var(--danger);background:transparent}
+.btn-d:hover{background:var(--danger);color:#fff}
+.actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{border:1px solid var(--line);border-radius:var(--r);background:#fff;padding:12px 13px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.item h3{font-size:14px;color:var(--text);font-weight:650}
+.item p{font-size:11px;color:var(--muted);line-height:1.45;margin-top:3px}
+.tag{display:inline-flex;border:1px solid var(--terra-l);border-radius:var(--r);background:var(--bg);color:var(--terra);padding:3px 8px;font-size:9px;letter-spacing:1px;text-transform:uppercase;font-weight:700}
+.tag.off{border-color:#E0C6C1;background:#FDF0EE;color:var(--danger)}
+.perm-table{width:100%;border-collapse:collapse;font-size:12px}
+.perm-table th,.perm-table td{border-bottom:1px solid var(--line);padding:10px;text-align:center}
+.perm-table th:first-child,.perm-table td:first-child{text-align:left}
+.perm-table th{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);background:#FBF8F3}
+.perm-table input{width:16px;height:16px}
+.metric{border:1px solid var(--line);border-radius:var(--r);background:#fff;padding:13px}
+.metric b{display:block;font-size:22px;color:var(--terra);font-weight:500}
+.metric span{display:block;font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:var(--r)}
+table.data{width:100%;border-collapse:collapse;font-size:12px;background:#fff}
+table.data th,table.data td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+table.data th{font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);background:#FBF8F3}
+#toast{position:fixed;right:20px;bottom:20px;background:var(--dk);color:#fff;border-radius:var(--r);padding:12px 16px;font-size:12px;opacity:0;transform:translateY(12px);transition:.2s;z-index:30;max-width:360px}
+#toast.show{opacity:1;transform:translateY(0)}
+.empty{padding:24px;text-align:center;color:var(--muted);font-size:12px;border:1px dashed var(--line);border-radius:var(--r);background:#fff}
+.muted{color:var(--muted)}
+body.iframe-mode #topbar{display:none}
+body.iframe-mode{background:var(--bg)}
+@media(max-width:820px){.grid,.grid-3,.row,.row3{grid-template-columns:1fr}#main{padding:18px 14px}.hero{flex-direction:column}#navtabs{justify-content:flex-start;overflow-x:auto}}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <div class="brand"><small>Clínica</small><strong>Luisa Costa</strong></div>
+  <div id="user-pill">—</div>
+</div>
+<div id="navtabs">
+  <button class="active" onclick="tab('usuarios',this)">Usuários</button>
+  <button onclick="tab('permissoes',this)">Permissões</button>
+  <button onclick="tab('clinica',this)">Clínica</button>
+  <button onclick="tab('sistema',this)">Sistema</button>
+  <button onclick="tab('importacao',this)">Importação</button>
+  <button onclick="tab('integracoes',this)">Integrações</button>
+  <button onclick="tab('auditoria',this)">Auditoria</button>
+</div>
+<main id="main">
+  <div class="wrap">
+    <section class="hero">
+      <div>
+        <h1>Administração</h1>
+        <p>Central de usuários, permissões e configurações estruturais da Clínica Luisa Costa. Este módulo concentra controles do sistema inteiro, fora dos setores operacionais.</p>
+      </div>
+      <div class="status" id="sync-status">Conectando</div>
+    </section>
+
+    <section id="pg-usuarios" class="page on">
+      <div class="grid">
+        <div class="card">
+          <div class="ch"><h2>Criar usuário</h2><span>Convite interno</span></div>
+          <div class="cb">
+            <div class="fg"><label>Nome completo</label><input id="usr-nome" type="text" placeholder="Nome do colaborador"></div>
+            <div class="fg"><label>E-mail</label><input id="usr-email" type="email" placeholder="email@clinica.com.br"></div>
+            <div class="fg"><label>Senha temporária</label><input id="usr-senha" type="password" placeholder="Mínimo 6 caracteres"></div>
+            <div class="fg"><label>Nível de acesso</label><select id="usr-nivel">
+              <option value="administrador">Administrador</option>
+              <option value="medico">Médico</option>
+              <option value="secretaria">Secretária</option>
+              <option value="financeiro">Financeiro</option>
+              <option value="compras">Estoque / Compras</option>
+              <option value="colaborador">Colaborador</option>
+            </select></div>
+            <div class="actions"><button class="btn btn-p" onclick="criarUsuario()">Criar usuário</button></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="ch"><h2>Resumo de acesso</h2><span>Base atual</span></div>
+          <div class="cb">
+            <div class="grid-3">
+              <div class="metric"><b id="mt-users">0</b><span>Usuários</span></div>
+              <div class="metric"><b id="mt-admins">0</b><span>Admins</span></div>
+              <div class="metric"><b id="mt-off">0</b><span>Inativos</span></div>
+            </div>
+            <p class="muted" style="font-size:12px;line-height:1.55;margin-top:12px">A criação usa a função segura do Supabase. A chave de serviço permanece no servidor, não no navegador.</p>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <div class="ch"><h2>Usuários cadastrados</h2><button class="btn" onclick="renderUsuarios()">Atualizar</button></div>
+        <div class="cb"><div class="list" id="usuarios-lista"></div></div>
+      </div>
+    </section>
+
+    <section id="pg-permissoes" class="page">
+      <div class="card">
+        <div class="ch"><h2>Permissões por perfil</h2><span>Matriz inicial</span></div>
+        <div class="cb">
+          <div class="table-wrap"><table class="perm-table" id="perm-table"></table></div>
+          <div class="actions" style="margin-top:12px"><button class="btn btn-p" onclick="salvarPermissoes()">Salvar permissões</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pg-clinica" class="page">
+      <div class="card">
+        <div class="ch"><h2>Dados da clínica</h2><span>Documentos e identidade</span></div>
+        <div class="cb">
+          <div class="row"><div class="fg"><label>Nome da clínica</label><input id="cl-nome"></div><div class="fg"><label>Nome fantasia</label><input id="cl-fantasia"></div></div>
+          <div class="row"><div class="fg"><label>CNPJ</label><input id="cl-cnpj"></div><div class="fg"><label>E-mail</label><input id="cl-email"></div></div>
+          <div class="row"><div class="fg"><label>Telefone</label><input id="cl-telefone"></div><div class="fg"><label>WhatsApp</label><input id="cl-whatsapp"></div></div>
+          <div class="fg"><label>Endereço completo</label><input id="cl-endereco"></div>
+          <div class="row3"><div class="fg"><label>Médica responsável</label><input id="cl-medica"></div><div class="fg"><label>CRM</label><input id="cl-crm"></div><div class="fg"><label>RQE</label><input id="cl-rqe"></div></div>
+          <div class="fg"><label>Rodapé padrão de documentos</label><textarea id="cl-rodape"></textarea></div>
+          <div class="actions"><button class="btn btn-p" onclick="salvarClinica()">Salvar dados da clínica</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pg-sistema" class="page">
+      <div class="card">
+        <div class="ch"><h2>Preferências do sistema</h2><span>Alertas e padrões</span></div>
+        <div class="cb">
+          <div class="row3">
+            <div class="fg"><label>Duração padrão de protocolo</label><input id="sys-duracao" type="number" min="1" placeholder="12"></div>
+            <div class="fg"><label>Alerta de renovação em dias</label><input id="sys-renovacao" type="number" min="1" placeholder="14"></div>
+            <div class="fg"><label>Inatividade após dias</label><input id="sys-inatividade" type="number" min="1" placeholder="90"></div>
+          </div>
+          <div class="row3">
+            <div class="fg"><label>Aniversários com antecedência</label><input id="sys-aniversario" type="number" min="1" placeholder="30"></div>
+            <div class="fg"><label>Estoque mínimo padrão</label><input id="sys-estoque-min" type="number" min="0" placeholder="2"></div>
+            <div class="fg"><label>Vencimento de lote em dias</label><input id="sys-validade" type="number" min="1" placeholder="60"></div>
+          </div>
+          <div class="actions"><button class="btn btn-p" onclick="salvarSistema()">Salvar preferências</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pg-importacao" class="page">
+      <div class="card">
+        <div class="ch"><h2>Importação de pacientes</h2><span>CSV</span></div>
+        <div class="cb">
+          <div class="fg"><label>Arquivo CSV</label><input id="csv-file" type="file" accept=".csv,text/csv" onchange="lerCSV(event)"></div>
+          <p class="muted" style="font-size:12px;line-height:1.55;margin-bottom:12px">Colunas reconhecidas: nome, cpf, telefone, email, nascimento, genero, estado civil, profissao, cep, endereco, bairro, cidade, estado, origem, objetivos, medicamentos.</p>
+          <div id="csv-preview" class="empty">Nenhum arquivo selecionado.</div>
+          <div class="actions" style="margin-top:12px"><button class="btn btn-p" onclick="importarCSV()">Importar pacientes</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pg-integracoes" class="page">
+      <div class="grid-3" id="integracoes-lista"></div>
+    </section>
+
+    <section id="pg-auditoria" class="page">
+      <div class="card">
+        <div class="ch"><h2>Auditoria</h2><button class="btn" onclick="renderAuditoria()">Atualizar</button></div>
+        <div class="cb"><div id="audit-list" class="empty">Nenhum evento carregado.</div></div>
+      </div>
+    </section>
+  </div>
+</main>
+<div id="toast"></div>
+<script>
+const SUPA_URL='https://eeianweavbnrikzqquxq.supabase.co';
+const SUPA_KEY='sb_publishable_RWouef1R4SySi3PyBxq0lQ_AEEpGHly';
+const AI_PROXY=SUPA_URL+'/functions/v1/ai-proxy';
+const {createClient}=supabase;
+const db=createClient(SUPA_URL,SUPA_KEY);
+let USER=null,PERFIL=null,CSV_ROWS=[];
+const NIVEIS=['administrador','medico','secretaria','financeiro','compras','colaborador'];
+const MODS=[
+  ['dashboard','Dashboard'],['precificador','Precificador'],['pacientes','Pacientes'],['estoque','Estoque'],
+  ['financeiro','Financeiro'],['prontuario','Prontuário'],['administracao','Administração']
+];
+let PERMS={};
+if(window.self!==window.top)document.body.classList.add('iframe-mode');
+init();
+async function init(){
+  const {data:{session}}=await db.auth.getSession();
+  if(!session){setStatus('Sem sessão ativa');toast('Acesse pelo login principal do sistema.');return;}
+  USER=session.user;
+  try{const{data}=await db.from('perfis').select('*').eq('id',USER.id).single();PERFIL=data;}catch(e){}
+  document.getElementById('user-pill').textContent=PERFIL?.nome||USER.email;
+  setStatus('Conectado');
+  await Promise.all([renderUsuarios(),carregarPermissoes(),carregarClinica(),carregarSistema(),renderAuditoria()]);
+  renderIntegracoes();
+}
+function tab(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.getElementById('pg-'+id)?.classList.add('on');
+  document.querySelectorAll('#navtabs button').forEach(b=>b.classList.remove('active'));
+  btn?.classList.add('active');
+}
+function setStatus(t){document.getElementById('sync-status').textContent=t;}
+function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function gv(id){return document.getElementById(id)?.value?.trim()||'';}
+function sv(id,v){const el=document.getElementById(id);if(el)el.value=v??'';}
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),3200);}
+function fmt(d){return d?new Date(d).toLocaleDateString('pt-BR'):'—';}
+function isAdmin(){const n=(PERFIL?.nivel||'administrador').toLowerCase();return n==='administrador'||n==='admin';}
+
+async function renderUsuarios(){
+  const el=document.getElementById('usuarios-lista');
+  const {data,error}=await db.from('perfis').select('*').order('criado_em',{ascending:false});
+  if(error){el.innerHTML='<div class="empty">Não foi possível carregar usuários. Verifique a tabela perfis.</div>';return;}
+  const users=data||[];
+  document.getElementById('mt-users').textContent=users.length;
+  document.getElementById('mt-admins').textContent=users.filter(u=>String(u.nivel).includes('admin')||u.nivel==='administrador').length;
+  document.getElementById('mt-off').textContent=users.filter(u=>u.ativo===false).length;
+  if(!users.length){el.innerHTML='<div class="empty">Nenhum usuário cadastrado.</div>';return;}
+  el.innerHTML=users.map(u=>`<div class="item">
+    <div><h3>${esc(u.nome||u.email||'Usuário')}</h3><p>${esc(u.email||'')} · Cadastrado em ${fmt(u.criado_em)}</p></div>
+    <div class="actions">
+      <span class="tag ${u.ativo===false?'off':''}">${u.ativo===false?'Inativo':esc(u.nivel||'colaborador')}</span>
+      <select onchange="mudarNivel('${u.id}',this.value)">${NIVEIS.map(n=>`<option value="${n}" ${u.nivel===n?'selected':''}>${n}</option>`).join('')}</select>
+      <button class="btn ${u.ativo===false?'btn-v':'btn-d'}" onclick="setAtivo('${u.id}',${u.ativo===false?'true':'false'})">${u.ativo===false?'Ativar':'Desativar'}</button>
+    </div>
+  </div>`).join('');
+}
+async function criarUsuario(){
+  if(!isAdmin()){toast('Apenas administradores podem criar usuários.');return;}
+  const email=gv('usr-email'),nome=gv('usr-nome'),password=gv('usr-senha'),nivel=gv('usr-nivel');
+  if(!email||!nome||!password){toast('Preencha nome, e-mail e senha.');return;}
+  if(password.length<6){toast('A senha temporária precisa ter ao menos 6 caracteres.');return;}
+  try{
+    const resp=await fetch(AI_PROXY,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPA_KEY},body:JSON.stringify({action:'create_user',email,password,nome,nivel})});
+    const data=await resp.json();
+    if(data.error)throw new Error(data.error);
+    ['usr-email','usr-nome','usr-senha'].forEach(id=>sv(id,''));
+    toast('Usuário criado com sucesso.');
+    renderUsuarios();
+  }catch(e){toast('Erro ao criar usuário: '+e.message);}
+}
+async function mudarNivel(id,nivel){const{error}=await db.from('perfis').update({nivel}).eq('id',id);toast(error?'Erro ao alterar nível.':'Nível atualizado.');renderUsuarios();}
+async function setAtivo(id,ativo){const{error}=await db.from('perfis').update({ativo}).eq('id',id);toast(error?'Erro ao alterar acesso.':(ativo?'Usuário ativado.':'Usuário desativado.'));renderUsuarios();}
+
+function defaultPerms(){
+  const p={};
+  NIVEIS.forEach(n=>{p[n]={};MODS.forEach(([k])=>p[n][k]=false);});
+  MODS.forEach(([k])=>p.administrador[k]=true);
+  ['dashboard','precificador','pacientes','prontuario'].forEach(k=>p.medico[k]=true);
+  ['dashboard','pacientes','precificador'].forEach(k=>p.secretaria[k]=true);
+  ['dashboard','financeiro','pacientes'].forEach(k=>p.financeiro[k]=true);
+  ['dashboard','estoque'].forEach(k=>p.compras[k]=true);
+  ['dashboard','pacientes'].forEach(k=>p.colaborador[k]=true);
+  return p;
+}
+async function carregarPermissoes(){
+  PERMS=defaultPerms();
+  try{
+    const {data}=await db.from('permissoes_modulos').select('*');
+    (data||[]).forEach(r=>{if(!PERMS[r.nivel])PERMS[r.nivel]={};PERMS[r.nivel][r.modulo]=!!r.pode_acessar;});
+  }catch(e){}
+  renderPermissoes();
+}
+function renderPermissoes(){
+  const table=document.getElementById('perm-table');
+  table.innerHTML='<thead><tr><th>Perfil</th>'+MODS.map(m=>`<th>${m[1]}</th>`).join('')+'</tr></thead><tbody>'+
+  NIVEIS.map(n=>`<tr><td><strong>${n}</strong></td>${MODS.map(([k])=>`<td><input type="checkbox" data-nivel="${n}" data-mod="${k}" ${PERMS[n]?.[k]?'checked':''}></td>`).join('')}</tr>`).join('')+'</tbody>';
+}
+async function salvarPermissoes(){
+  const rows=[...document.querySelectorAll('#perm-table input')].map(i=>({nivel:i.dataset.nivel,modulo:i.dataset.mod,pode_acessar:i.checked,updated_at:new Date().toISOString()}));
+  const {error}=await db.from('permissoes_modulos').upsert(rows,{onConflict:'nivel,modulo'});
+  toast(error?'Erro ao salvar permissões. Rode o SQL de administração no Supabase.':'Permissões salvas.');
+}
+async function carregarClinica(){
+  try{const{data}=await db.from('config_clinica').select('*').eq('id',1).single();if(data)Object.entries({
+    'cl-nome':data.nome_clinica,'cl-fantasia':data.nome_fantasia,'cl-cnpj':data.cnpj,'cl-email':data.email,'cl-telefone':data.telefone,'cl-whatsapp':data.whatsapp,'cl-endereco':data.endereco,'cl-medica':data.medica_responsavel,'cl-crm':data.crm,'cl-rqe':data.rqe,'cl-rodape':data.rodape_documentos
+  }).forEach(([id,v])=>sv(id,v));}catch(e){}
+}
+async function salvarClinica(){
+  const payload={id:1,nome_clinica:gv('cl-nome'),nome_fantasia:gv('cl-fantasia'),cnpj:gv('cl-cnpj'),email:gv('cl-email'),telefone:gv('cl-telefone'),whatsapp:gv('cl-whatsapp'),endereco:gv('cl-endereco'),medica_responsavel:gv('cl-medica'),crm:gv('cl-crm'),rqe:gv('cl-rqe'),rodape_documentos:gv('cl-rodape'),updated_at:new Date().toISOString()};
+  const{error}=await db.from('config_clinica').upsert(payload);
+  toast(error?'Erro ao salvar. Rode o SQL de administração no Supabase.':'Dados da clínica salvos.');
+}
+async function carregarSistema(){
+  try{const{data}=await db.from('config_sistema').select('*').eq('id',1).single();if(data)Object.entries({
+    'sys-duracao':data.duracao_protocolo_padrao,'sys-renovacao':data.alerta_renovacao_dias,'sys-inatividade':data.alerta_inatividade_dias,'sys-aniversario':data.alerta_aniversario_dias,'sys-estoque-min':data.estoque_minimo_padrao,'sys-validade':data.alerta_validade_lote_dias
+  }).forEach(([id,v])=>sv(id,v));}catch(e){}
+}
+async function salvarSistema(){
+  const payload={id:1,duracao_protocolo_padrao:Number(gv('sys-duracao')||12),alerta_renovacao_dias:Number(gv('sys-renovacao')||14),alerta_inatividade_dias:Number(gv('sys-inatividade')||90),alerta_aniversario_dias:Number(gv('sys-aniversario')||30),estoque_minimo_padrao:Number(gv('sys-estoque-min')||2),alerta_validade_lote_dias:Number(gv('sys-validade')||60),updated_at:new Date().toISOString()};
+  const{error}=await db.from('config_sistema').upsert(payload);
+  toast(error?'Erro ao salvar. Rode o SQL de administração no Supabase.':'Preferências salvas.');
+}
+function parseCSV(text){
+  const rows=[];let row=[],cur='',q=false;
+  for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];if(c==='"'&&q&&n==='"'){cur+='"';i++;}else if(c==='"'){q=!q;}else if(c===','&&!q){row.push(cur);cur='';}else if((c==='\n'||c==='\r')&&!q){if(cur||row.length){row.push(cur);rows.push(row);row=[];cur='';}if(c==='\r'&&n==='\n')i++;}else cur+=c;}
+  if(cur||row.length){row.push(cur);rows.push(row);}
+  return rows;
+}
+function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'');}
+function lerCSV(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();r.onload=ev=>{
+    const arr=parseCSV(ev.target.result);if(arr.length<2){toast('CSV vazio.');return;}
+    const headers=arr[0].map(norm);
+    CSV_ROWS=arr.slice(1).filter(x=>x.some(Boolean)).map(line=>Object.fromEntries(headers.map((h,i)=>[h,line[i]||''])));
+    renderCSVPreview();
+  };r.readAsText(f);
+}
+function rowPaciente(r){
+  const get=(...ks)=>ks.map(norm).map(k=>r[k]).find(Boolean)||null;
+  return {nome:get('nome','nome_completo','paciente'),cpf:get('cpf'),telefone:get('telefone','celular','whatsapp'),email:get('email','e_mail'),nascimento:get('nascimento','data_nascimento'),genero:get('genero'),estado_civil:get('estado_civil'),profissao:get('profissao'),cep:get('cep'),logradouro:get('endereco','logradouro'),bairro:get('bairro'),cidade:get('cidade'),estado:get('estado','uf'),origem:get('origem','como_conheceu'),medicamentos:get('medicamentos'),objetivos:(get('objetivos','objetivo')||'').split(/[;|]/).map(s=>s.trim()).filter(Boolean),cadastro_origem:'csv',status:'ativo',relacionamento:{},consultas:[],protocolos:[]};
+}
+function renderCSVPreview(){
+  const el=document.getElementById('csv-preview');
+  if(!CSV_ROWS.length){el.className='empty';el.textContent='Nenhum registro válido.';return;}
+  const rows=CSV_ROWS.slice(0,8).map(rowPaciente);
+  el.className='table-wrap';
+  el.innerHTML='<table class="data"><thead><tr><th>Nome</th><th>CPF</th><th>Telefone</th><th>Email</th></tr></thead><tbody>'+rows.map(r=>`<tr><td>${esc(r.nome)}</td><td>${esc(r.cpf)}</td><td>${esc(r.telefone)}</td><td>${esc(r.email)}</td></tr>`).join('')+'</tbody></table><p class="muted" style="padding:10px">${CSV_ROWS.length} registro(s) prontos para importar.</p>';
+}
+async function importarCSV(){
+  if(!CSV_ROWS.length){toast('Selecione um CSV antes.');return;}
+  const payload=CSV_ROWS.map(rowPaciente).filter(p=>p.nome);
+  if(!payload.length){toast('Nenhum paciente com nome encontrado.');return;}
+  const{error}=await db.from('pacientes').insert(payload);
+  toast(error?'Erro ao importar pacientes: '+error.message:payload.length+' paciente(s) importado(s).');
+}
+function renderIntegracoes(){
+  const items=[
+    ['Supabase','Banco de dados, autenticação e storage','Ativo'],
+    ['WhatsApp','Mensagens e confirmação de consultas','Preparado'],
+    ['E-mail','Envio de comunicação e documentos','Preparado'],
+    ['Agenda','Consultas, check-ins e faltas','Preparado'],
+    ['Exames','Integração futura com prontuário','Preparado'],
+    ['Life Up','Importações e migração de base','Preparado']
+  ];
+  document.getElementById('integracoes-lista').innerHTML=items.map(i=>`<div class="card"><div class="cb"><span class="tag">${i[2]}</span><h3 style="margin-top:12px">${i[0]}</h3><p class="muted" style="font-size:12px;line-height:1.55;margin-top:5px">${i[1]}</p></div></div>`).join('');
+}
+async function renderAuditoria(){
+  const el=document.getElementById('audit-list');
+  try{
+    const{data,error}=await db.from('audit_logs').select('*').order('created_at',{ascending:false}).limit(50);
+    if(error)throw error;
+    if(!data?.length){el.className='empty';el.textContent='Nenhum evento registrado.';return;}
+    el.className='list';
+    el.innerHTML=data.map(a=>`<div class="item"><div><h3>${esc(a.acao||'Evento')}</h3><p>${esc(a.tabela||'Sistema')} · ${fmt(a.created_at)} · ${esc(a.usuario_nome||'Usuário')}</p></div><span class="tag">${esc(a.tipo||'log')}</span></div>`).join('');
+  }catch(e){el.className='empty';el.textContent='Rode o SQL de administração para habilitar a auditoria.';}
+}
+</script>
+</body>
+</html>

@@ -590,6 +590,13 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
       <div class="sb-tt">Dashboard</div>
     </button>
 
+    <!-- PACIENTES -->
+    <button class="sb-btn" onclick="carregarPacientes(this)" id="sb-pacientes">
+      <svg viewBox="0 0 18 18" fill="none" stroke="#7A6E65" stroke-width="1.5"><circle cx="9" cy="6" r="3.5"/><path d="M2 16c0-3.866 3.134-7 7-7s7 3.134 7 7"/></svg>
+      <span>PACIENT.</span>
+      <div class="sb-tt">Pacientes</div>
+    </button>
+
     <!-- PRECIFICADOR -->
     <button class="sb-btn" onclick="carregarPrecificador(this)" id="sb-precificador">
       <svg viewBox="0 0 18 18" fill="none" stroke="#7A6E65" stroke-width="1.5"><rect x="2" y="2" width="14" height="14" rx="2.5"/><line x1="5" y1="7" x2="13" y2="7"/><line x1="5" y1="10" x2="11" y2="10"/><line x1="5" y1="13" x2="9" y2="13"/></svg>
@@ -612,11 +619,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
       <div class="sb-tt">Financeiro</div>
     </button>
 
-    <!-- PACIENTES -->
-    <button class="sb-btn" onclick="carregarPacientes(this)" id="sb-pacientes">
-      <svg viewBox="0 0 18 18" fill="none" stroke="#7A6E65" stroke-width="1.5"><circle cx="9" cy="6" r="3.5"/><path d="M2 16c0-3.866 3.134-7 7-7s7 3.134 7 7"/></svg>
-      <span>PACIENT.</span>
-      <div class="sb-tt">Pacientes</div>
+    <!-- ADMINISTRAÇÃO -->
+    <button class="sb-btn" onclick="carregarAdministracao(this)" id="sb-administracao">
+      <svg viewBox="0 0 18 18" fill="none" stroke="#7A6E65" stroke-width="1.5"><circle cx="9" cy="9" r="2.5"/><path d="M9 1.8v2M9 14.2v2M14.1 3.9l-1.4 1.4M5.3 12.7l-1.4 1.4M16.2 9h-2M4.2 9h-2M14.1 14.1l-1.4-1.4M5.3 5.3 3.9 3.9"/></svg>
+      <span>ADMIN.</span>
+      <div class="sb-tt">Administração</div>
     </button>
 
     <!-- Usuário / Logout -->
@@ -714,6 +721,15 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
           <span style="font-size:12px">Carregando pacientes...</span>
         </div>
         <iframe id="iframe-pacientes" style="width:100%;height:100%;border:none;display:none"></iframe>
+      </div>
+
+      <!-- ══ ADMINISTRAÇÃO ══════════════════════════════════════════ -->
+      <div id="pg-administracao" class="page" style="padding:0">
+        <div id="administracao-loading" style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:12px;color:var(--tl)">
+          <div style="width:32px;height:32px;border:3px solid var(--bd);border-top-color:var(--terra);border-radius:50%;animation:spin .8s linear infinite"></div>
+          <span style="font-size:12px">Carregando administração...</span>
+        </div>
+        <iframe id="iframe-administracao" style="width:100%;height:100%;border:none;display:none"></iframe>
       </div>
 
     </div><!-- /content-wrap -->
@@ -832,10 +848,10 @@ function dtLabel(i){const ini=document.getElementById('dt-inicio')?document.getE
 function fmtCPF(el){let v=el.value.replace(/\D/g,'').slice(0,11);v=v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2');el.value=v;}
 
 // ── NAVIGATION ────────────────────────────────────────────────────────
-const PAGE_LABELS={dashboard:'',precificador:'',estoque:'',financeiro:'',pacientes:''};
-const PAGE_PREFIX={dashboard:'Dashboard',precificador:'Precificador',estoque:'Estoque',financeiro:'Financeiro',pacientes:'Pacientes'};
+const PAGE_LABELS={dashboard:'',precificador:'',estoque:'',financeiro:'',pacientes:'',administracao:''};
+const PAGE_PREFIX={dashboard:'Dashboard',precificador:'Precificador',estoque:'Estoque',financeiro:'Financeiro',pacientes:'Pacientes',administracao:'Administração'};
 
-let estoqueLoaded=false,financeiroLoaded=false,precificadorLoaded=false,pacientesLoaded=false;
+let estoqueLoaded=false,financeiroLoaded=false,precificadorLoaded=false,pacientesLoaded=false,administracaoLoaded=false;
 
 function goPage(id,btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
@@ -898,7 +914,25 @@ function carregarPacientes(btn){
       pacientesLoaded=true;
     })
     .catch(()=>{
-      if(loading)loading.innerHTML='<div style="text-align:center;padding:24px"><div style="font-size:36px;margin-bottom:12px">👥</div><div style="font-size:14px;font-weight:600;color:var(--tx);margin-bottom:8px">Pacientes não encontrado</div><div style="font-size:12px;color:var(--tl)">Certifique-se que <strong>pacientes.html</strong> está no repositório GitHub.</div></div>';
+      if(loading)loading.innerHTML='<div style="text-align:center;padding:24px"><div style="font-size:14px;font-weight:600;color:var(--tx);margin-bottom:8px">Pacientes não encontrado</div><div style="font-size:12px;color:var(--tl)">Certifique-se que <strong>pacientes.html</strong> está no repositório GitHub.</div></div>';
+    });
+}
+
+function carregarAdministracao(btn){
+  goPage('administracao',btn);
+  if(administracaoLoaded)return;
+  const iframe=document.getElementById('iframe-administracao');
+  const loading=document.getElementById('administracao-loading');
+  fetch('administracao.html')
+    .then(r=>{if(!r.ok)throw new Error('not found');return r.text();})
+    .then(html=>{
+      iframe.srcdoc=html;
+      iframe.style.display='block';
+      if(loading)loading.style.display='none';
+      administracaoLoaded=true;
+    })
+    .catch(()=>{
+      if(loading)loading.innerHTML='<div style="text-align:center;padding:24px"><div style="font-size:14px;font-weight:600;color:var(--tx);margin-bottom:8px">Administração não encontrada</div><div style="font-size:12px;color:var(--tl)">Certifique-se que <strong>administracao.html</strong> está no repositório GitHub.</div></div>';
     });
 }
 
@@ -940,7 +974,7 @@ function carregarEstoque(){
 }
 
 function syncSbBtns(activeId){
-  const map={dashboard:0,precificador:1,estoque:2,financeiro:3,pacientes:4};
+  const map={dashboard:0,pacientes:1,precificador:2,estoque:3,financeiro:4,administracao:5};
   document.querySelectorAll('.sb-btn').forEach((b,i)=>{
     const isOn=activeId?i===map[activeId]:b.classList.contains('on');
     if(activeId){b.classList.toggle('on',i===map[activeId]);}

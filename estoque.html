@@ -389,7 +389,6 @@ body{font-family:Raleway,sans-serif;background:var(--c8);color:var(--c);min-heig
       <div class="ntab" onclick="tab('ia')">Assistente IA</div>
       <div class="ndiv"></div>
       <div class="ntab" onclick="tab('hist')">Histórico</div>
-      <div class="ntab admin-only" onclick="tab('usuarios')">Usuários</div>
     </div>
   </div>
 
@@ -944,7 +943,7 @@ async function fazerLogout(){
 })();
 
 // ── TABS ─────────────────────────────────────────────────────────────
-var TABS=['dash','meds','tirz','impl','insumos','outros','nfs','pedidos','fin','ia','hist','usuarios'];
+var TABS=['dash','meds','tirz','impl','insumos','outros','nfs','pedidos','fin','ia','hist'];
 function tab(t){
   document.querySelectorAll('.pg').forEach(function(el){el.classList.remove('on');});
   document.querySelectorAll('.ntab').forEach(function(el,i){el.classList.toggle('on',TABS[i]===t);});
@@ -958,7 +957,6 @@ function tab(t){
   if(t==='pedidos') renderPedidos();
   if(t==='dash')    renderDash();
   if(t==='nfs')     renderNFs();
-  if(t==='usuarios') renderUsuarios();
   if(t==='ia')      gerarResumo();
   if(t==='insumos') renderSetor('insumos','ins-c');
   if(t==='outros')  renderOutros();
