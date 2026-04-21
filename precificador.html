@@ -1286,7 +1286,7 @@ document.addEventListener('change',e=>{
 if(window.self!==window.top){
   document.getElementById('app-sidebar').style.display='none';
   document.getElementById('app-topbar').style.display='none';
-  document.getElementById('app-navtabs').style.display='none';
+  // navtabs mantidas visíveis — navegação interna do precificador
 }
 
 document.getElementById('dt-inicio').value=new Date().toISOString().slice(0,10);
