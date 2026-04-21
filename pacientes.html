@@ -24,7 +24,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 #topbar .bm{font-family:Georgia,serif;font-size:20px;font-weight:normal;color:var(--text);letter-spacing:1px;display:block;margin-top:1px}
 
 /* NAVTABS */
-#navtabs{height:40px;background:var(--dk);display:flex;align-items:stretch;border-bottom:1px solid var(--dk2);flex-shrink:0;overflow-x:auto}
+#navtabs{height:40px;background:var(--dk);display:flex;align-items:stretch;justify-content:center;border-bottom:1px solid var(--dk2);flex-shrink:0;overflow-x:auto}
 #navtabs::-webkit-scrollbar{height:0}
 #navtabs button{background:none;border:none;color:rgba(232,213,188,.45);font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:0 18px;cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap;font-weight:600}
 #navtabs button:hover{color:rgba(232,213,188,.75)}
@@ -37,10 +37,17 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 #main.global-panel #fw{width:100%}
 #main.list-mode #lista-panel{width:100%;border-right:none}
 #main.list-mode #fw{display:none}
-#main.list-mode #lh{padding:18px 22px 14px}
-#main.list-mode #lh h3,#main.list-mode #lh input,#main.list-mode #lh button{max-width:920px;margin-left:auto;margin-right:auto}
-#main.list-mode #ls{padding:14px 22px;max-width:960px;margin:0 auto;width:100%}
-#main.list-mode .pi{border:1px solid var(--border);border-left:3px solid transparent;border-radius:var(--r);margin-bottom:8px;background:var(--bg2)}
+#main.list-mode #lh{padding:22px 22px 16px;background:#fff;border-bottom:1px solid var(--border)}
+#main.list-mode #lh h3,#main.list-mode #lh input,#main.list-mode .list-actions{max-width:920px;margin-left:auto;margin-right:auto}
+#main.list-mode #lh h3{text-align:center;margin-bottom:12px;color:var(--terra);letter-spacing:3px}
+#main.list-mode #busca{height:42px;border-color:var(--terra-l);background:var(--terra-xl);box-shadow:inset 3px 0 0 var(--terra)}
+#main.list-mode #ls{padding:18px 22px;max-width:920px;margin:0 auto;width:100%}
+#main.list-mode .pi{border:1px solid var(--border);border-left:3px solid transparent;border-radius:var(--r);margin-bottom:10px;background:var(--bg2);padding:16px 20px 16px 18px;min-height:76px;overflow:visible}
+#main.list-mode .pi-row{gap:14px;min-height:46px}
+#main.list-mode .pi-av{width:44px;height:44px}
+#main.list-mode .pi-info{padding-left:2px}
+#main.list-mode .pi-nome{font-size:14px;font-weight:600;line-height:1.35}
+#main.list-mode .pi-sub{font-size:11px;margin-top:4px}
 #main.detail-mode #lista-panel{display:none}
 #main.detail-mode #fw{width:100%}
 #main.detail-mode{background:#FBFAF7}
@@ -53,9 +60,11 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 #busca:focus{border-color:var(--terra)}
 #btn-novo{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:8px;padding:8px;background:var(--terra);border:none;border-radius:var(--r);color:#fff;font-size:11px;letter-spacing:.3px;font-weight:600;cursor:pointer;transition:opacity .2s}
 #btn-novo:hover{opacity:.88}
-.list-actions{display:flex;gap:8px;margin-top:8px}
-.list-actions #btn-novo{margin-top:0;flex:1}
-.list-actions .btn-s{flex:1;background:#fff}
+.list-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.list-actions #btn-novo,.list-actions .btn-s{height:40px;margin-top:0;width:100%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;letter-spacing:.4px}
+.list-actions #btn-novo{background:var(--terra);border:1px solid var(--terra);color:#fff}
+.list-actions .btn-s{background:var(--verde);border-color:var(--verde);color:#fff}
+.list-actions .btn-s:hover{border-color:var(--verde);color:#fff;opacity:.88}
 #ls{flex:1;overflow-y:auto;padding:6px 0}
 #ls::-webkit-scrollbar{width:3px}
 #ls::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
