@@ -430,12 +430,23 @@ function renderSlots(){
   renderDaySlots();
 }
 function renderDaySlots(){
-  const hours=[];for(let h=7;h<=19;h++)hours.push(String(h).padStart(2,'0')+':00');
   const list=filteredEvents();
-  document.getElementById('slots').innerHTML=hours.map(h=>{
-    const evs=list.filter(e=>(e.hora_inicio||'').slice(0,2)===h.slice(0,2));
-    return `<div class="slot"><div class="time">${h}</div><div class="slot-body">${evs.length?evs.map(apptHtml).join(''):'<div style="height:24px"></div>'}</div></div>`;
-  }).join('');
+  const start=7*60,end=20*60,pxPerMin=1,total=(end-start)*pxPerMin;
+  const labels=[];for(let h=7;h<=20;h++)labels.push(`<div class="time-label" style="top:${(h*60-start)*pxPerMin}px">${String(h).padStart(2,'0')}:00</div>`);
+  document.getElementById('slots').innerHTML=`<div class="day-timeline" style="height:${total}px"><div class="time-rail">${labels.join('')}</div><div class="event-rail">${list.map(e=>timedEventHtml(e,start,end,pxPerMin)).join('')}</div></div>`;
+}
+function timeToMin(v){const [h,m]=String(v||'00:00').slice(0,5).split(':').map(Number);return (h||0)*60+(m||0);}
+function timedEventHtml(e,start,end,pxPerMin){
+  const p=profCfg(e.profissional);
+  const cor=e.cor||tipoCfg(e.tipo).cor||p?.cor||'#C17B3E';
+  const block=e.status==='bloqueado';
+  const ini=Math.max(start,timeToMin(e.hora_inicio));
+  const rawFim=e.hora_fim?timeToMin(e.hora_fim):(timeToMin(e.hora_inicio)+(Number(e.duracao_min)||60));
+  const fim=Math.min(end,rawFim<=timeToMin(e.hora_inicio)?rawFim+1440:rawFim);
+  const top=Math.max(0,(ini-start)*pxPerMin);
+  const height=Math.max(20,(fim-ini)*pxPerMin);
+  const compact=height<42?'compact':'';
+  return `<div class="timed-appt ${block?'block':''} ${compact}" onclick="abrirEdicaoEvento('${e.id}')" style="top:${top}px;height:${height-6}px;border-left-color:${esc(cor)}"><strong>${esc((e.hora_inicio||'--:--').slice(0,5))} a ${esc((e.hora_fim||'').slice(0,5))} · ${esc(block?'Agenda fechada':(e.paciente_nome||'Paciente'))}</strong><span>${esc(p?.nome||'Agenda')} · ${esc(e.tipo||'Consulta')}</span></div>`;
 }
 function renderWeekSlots(){
   const days=[];for(let i=0;i<7;i++)days.push(addDays(selectedDate,i));
@@ -551,6 +562,7 @@ function tab(id,btn){document.querySelectorAll('#navtabs button').forEach(b=>b.c
 function abrirConsulta(){
   document.querySelector('#modal-consulta .box-title').textContent='Nova consulta';
   document.getElementById('modal-consulta').dataset.edit='';
+  document.getElementById('delete-consulta-btn').style.display='none';
   setPacienteNoModal('');
   document.getElementById('c-data').value=selectedDate;
   document.getElementById('c-hora').value='09:00';
@@ -570,6 +582,8 @@ function editarConsulta(id){
   abrirConsulta();
   document.querySelector('#modal-consulta .box-title').textContent=e.status==='bloqueado'?'Editar bloqueio':'Editar consulta';
   document.getElementById('modal-consulta').dataset.edit=id;
+  document.getElementById('delete-consulta-btn').style.display='inline-flex';
+  document.getElementById('delete-consulta-btn').textContent=e.status==='bloqueado'?'Excluir bloqueio':'Excluir consulta';
   setPacienteNoModal(e.paciente_id||'');
   if(e.status==='bloqueado')document.getElementById('c-paciente-busca').value='Agenda fechada';
   document.getElementById('c-profissional').value=e.profissional||'dra_luisa';
@@ -671,6 +685,37 @@ async function excluirEvento(id){
     if(!usingLocal&&!String(id).startsWith('local-')){const {error}=await db.from('agenda_eventos').delete().eq('id',id);if(error)throw error;}
     eventos=eventos.filter(e=>e.id!==id);localStorage.setItem('clc_agenda_eventos',JSON.stringify(eventos));selectedId=null;renderAll();toast('Agendamento excluído.');
   }catch(e){console.error(e);toast('Erro ao excluir agendamento.','err');}
+}
+async function excluirConsultaAtual(){
+  const id=document.getElementById('modal-consulta').dataset.edit;
+  if(!id){toast('Abra uma consulta salva para excluir.','warn');return;}
+  await excluirEvento(id);
+  fecharModais();
+}
+function eventosMesAtual(){
+  const mes=selectedDate.slice(0,7);
+  return eventos.filter(e=>e.data?.startsWith(mes)&&e.status!=='bloqueado');
+}
+function responderIA(tipo){
+  const el=document.getElementById('ai-answer');
+  const mesEventos=eventosMesAtual();
+  const semana=[0,1,2,3,4,5,6].map(i=>addDays(selectedDate,i));
+  const semanaEventos=eventos.filter(e=>semana.includes(e.data)&&e.status!=='bloqueado');
+  const luisa=mesEventos.filter(e=>e.profissional==='dra_luisa');
+  const pend=eventos.filter(e=>e.status==='aguardando_confirmacao').filter(e=>{
+    const diff=Math.round((new Date(e.data+'T12:00')-new Date(today()+'T12:00'))/86400000);
+    return diff===7||diff===1;
+  });
+  const novos=mesEventos.filter(e=>e.primeira_consulta||e.tipo==='Primeira consulta');
+  if(tipo==='luisa_mes')el.innerHTML=`<strong>${luisa.length} consulta(s)</strong><br>A Dra. Luisa tem ${luisa.length} atendimento(s) registrado(s) no mês selecionado. Desses, ${luisa.filter(e=>e.status==='confirmado').length} estão confirmados e ${luisa.filter(e=>e.status==='aguardando_confirmacao').length} aguardam confirmação.`;
+  if(tipo==='ocupacao_semana')el.innerHTML=`<strong>${semanaEventos.length} agendamento(s) na semana</strong><br>A semana selecionada soma ${semanaEventos.length} atendimento(s). As agendas mais movimentadas são ${rankingProfissionais(semanaEventos)}.`;
+  if(tipo==='confirmacoes')el.innerHTML=`<strong>${pend.length} confirmação(ões) prioritária(s)</strong><br>Estão listadas apenas consultas a 7 dias ou 1 dia da data. Essa janela evita acionar pacientes cedo demais.`;
+  if(tipo==='novos')el.innerHTML=`<strong>${novos.length} paciente(s) novo(s)</strong><br>Há ${novos.length} primeira(s) consulta(s) no mês selecionado. Isso ajuda a equipe a preparar cadastro, foto interna e fluxo de chegada.`;
+}
+function rankingProfissionais(lista){
+  const map={};lista.forEach(e=>{const n=profCfg(e.profissional)?.nome||e.profissional||'Agenda';map[n]=(map[n]||0)+1;});
+  const arr=Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,2);
+  return arr.length?arr.map(([n,q])=>`${n} (${q})`).join(' e '):'sem volume relevante';
 }
 function abrirPacienteNoModulo(id){
   if(!id){toast('Paciente não vinculado.','warn');return;}

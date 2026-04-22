@@ -34,6 +34,23 @@ create table if not exists public.config_sistema (
   constraint config_sistema_singleton check (id = 1)
 );
 
+create table if not exists public.perfis (
+  id uuid primary key references auth.users(id) on delete cascade,
+  nome text,
+  email text,
+  nivel text default 'colaborador',
+  ativo boolean default true,
+  criado_em timestamptz default now(),
+  atualizado_em timestamptz default now()
+);
+
+alter table public.perfis add column if not exists nome text;
+alter table public.perfis add column if not exists email text;
+alter table public.perfis add column if not exists nivel text default 'colaborador';
+alter table public.perfis add column if not exists ativo boolean default true;
+alter table public.perfis add column if not exists criado_em timestamptz default now();
+alter table public.perfis add column if not exists atualizado_em timestamptz default now();
+
 create table if not exists public.permissoes_modulos (
   nivel text not null,
   modulo text not null,
@@ -58,17 +75,20 @@ create table if not exists public.audit_logs (
 
 alter table public.config_clinica enable row level security;
 alter table public.config_sistema enable row level security;
+alter table public.perfis enable row level security;
 alter table public.permissoes_modulos enable row level security;
 alter table public.audit_logs enable row level security;
 
 grant usage on schema public to authenticated;
 grant select, insert, update, delete on public.config_clinica to authenticated;
 grant select, insert, update, delete on public.config_sistema to authenticated;
+grant select, insert, update, delete on public.perfis to authenticated;
 grant select, insert, update, delete on public.permissoes_modulos to authenticated;
 grant select, insert on public.audit_logs to authenticated;
 
 drop policy if exists "config_clinica_all_authenticated" on public.config_clinica;
 drop policy if exists "config_sistema_all_authenticated" on public.config_sistema;
+drop policy if exists "perfis_all_authenticated" on public.perfis;
 drop policy if exists "permissoes_modulos_all_authenticated" on public.permissoes_modulos;
 drop policy if exists "audit_logs_select_authenticated" on public.audit_logs;
 drop policy if exists "audit_logs_insert_authenticated" on public.audit_logs;
@@ -82,6 +102,13 @@ with check (true);
 
 create policy "config_sistema_all_authenticated"
 on public.config_sistema
+for all
+to authenticated
+using (true)
+with check (true);
+
+create policy "perfis_all_authenticated"
+on public.perfis
 for all
 to authenticated
 using (true)
@@ -117,6 +144,7 @@ on conflict (id) do nothing;
 insert into public.permissoes_modulos (nivel, modulo, pode_acessar)
 values
 ('administrador','dashboard',true),
+('administrador','agenda',true),
 ('administrador','precificador',true),
 ('administrador','pacientes',true),
 ('administrador','estoque',true),
@@ -124,6 +152,7 @@ values
 ('administrador','prontuario',true),
 ('administrador','administracao',true),
 ('medico','dashboard',true),
+('medico','agenda',true),
 ('medico','precificador',true),
 ('medico','pacientes',true),
 ('medico','estoque',false),
@@ -131,6 +160,7 @@ values
 ('medico','prontuario',true),
 ('medico','administracao',false),
 ('secretaria','dashboard',true),
+('secretaria','agenda',true),
 ('secretaria','precificador',true),
 ('secretaria','pacientes',true),
 ('secretaria','estoque',false),
@@ -138,6 +168,7 @@ values
 ('secretaria','prontuario',false),
 ('secretaria','administracao',false),
 ('financeiro','dashboard',true),
+('financeiro','agenda',false),
 ('financeiro','precificador',false),
 ('financeiro','pacientes',true),
 ('financeiro','estoque',false),
@@ -145,6 +176,7 @@ values
 ('financeiro','prontuario',false),
 ('financeiro','administracao',false),
 ('compras','dashboard',true),
+('compras','agenda',false),
 ('compras','precificador',false),
 ('compras','pacientes',false),
 ('compras','estoque',true),
@@ -152,6 +184,7 @@ values
 ('compras','prontuario',false),
 ('compras','administracao',false),
 ('colaborador','dashboard',true),
+('colaborador','agenda',false),
 ('colaborador','precificador',false),
 ('colaborador','pacientes',true),
 ('colaborador','estoque',false),

@@ -381,7 +381,7 @@ body.iframe-mode #sb{display:none!important}
     <div id="patient-tabs">
       <button class="active" onclick="setPatientTab('ficha',this)">Ficha</button>
       <button onclick="setPatientTab('relacionamento',this)">Preferências</button>
-      <button onclick="setPatientTab('historico',this)">Acompanhamento</button>
+      <button onclick="setPatientTab('historico',this)">Histórico e evolução</button>
     </div>
 
     <div id="fscroll"><div id="tc"></div></div>
@@ -1111,7 +1111,7 @@ function rHist(c){
     </div>`).join(''):'<div class="le">Nenhum evento registrado na linha do tempo.</div>';
   c.innerHTML=`
   <div class="record-page">
-    ${recordHead(p,'Acompanhamento',ativo,'','')}
+    ${recordHead(p,'Histórico e evolução',ativo,'','')}
     <div class="record-body">
       ${recordSection('Resumo',[
         ['Total investido','R$ '+total.toLocaleString('pt-BR',{minimumFractionDigits:0})],
@@ -1243,7 +1243,7 @@ function rAlertasGlobal(c){
       <div class="mc"><span class="mv">${avisos}</span><span class="ml">Atenção</span></div>
     </div>
   </div></div>
-  <div class="card"><div class="ch"><h2>Itens para Acompanhamento</h2><span>secretária e médico</span></div><div class="cb" style="display:flex;flex-direction:column;gap:8px">${html}</div></div>`;
+  <div class="card"><div class="ch"><h2>Itens de atenção</h2><span>secretária e médico</span></div><div class="cb" style="display:flex;flex-direction:column;gap:8px">${html}</div></div>`;
 }
 
 function badgeAlertas(){

@@ -213,7 +213,7 @@ const db=createClient(SUPA_URL,SUPA_KEY);
 let USER=null,PERFIL=null,CSV_ROWS=[];
 const NIVEIS=['administrador','medico','secretaria','financeiro','compras','colaborador'];
 const MODS=[
-  ['dashboard','Dashboard'],['precificador','Precificador'],['pacientes','Pacientes'],['estoque','Estoque'],
+  ['dashboard','Dashboard'],['pacientes','Pacientes'],['agenda','Agenda'],['precificador','Precificador'],['estoque','Estoque'],
   ['financeiro','Financeiro'],['prontuario','Prontuário'],['administracao','Administração']
 ];
 let PERMS={};
@@ -270,9 +270,21 @@ async function criarUsuario(){
   if(!email||!nome||!password){toast('Preencha nome, e-mail e senha.');return;}
   if(password.length<6){toast('A senha temporária precisa ter ao menos 6 caracteres.');return;}
   try{
-    const resp=await fetch(AI_PROXY,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPA_KEY},body:JSON.stringify({action:'create_user',email,password,nome,nivel})});
-    const data=await resp.json();
-    if(data.error)throw new Error(data.error);
+    let authUser=null;
+    try{
+      const resp=await fetch(AI_PROXY,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPA_KEY},body:JSON.stringify({action:'create_user',email,password,nome,nivel})});
+      const data=await resp.json();
+      if(data.error)throw new Error(data.error);
+      authUser=data.user||data.data?.user||null;
+    }catch(proxyErr){
+      const {data,error}=await db.auth.signUp({email,password,options:{data:{nome,nivel}}});
+      if(error)throw error;
+      authUser=data.user;
+    }
+    if(authUser?.id){
+      const {error:perfilError}=await db.from('perfis').upsert({id:authUser.id,email,nome,nivel,ativo:true,atualizado_em:new Date().toISOString()},{onConflict:'id'});
+      if(perfilError)throw perfilError;
+    }
     ['usr-email','usr-nome','usr-senha'].forEach(id=>sv(id,''));
     toast('Usuário criado com sucesso.');
     await logAudit('criou_usuario','perfis',{email,nome,nivel});
@@ -287,7 +299,7 @@ function defaultPerms(){
   NIVEIS.forEach(n=>{p[n]={};MODS.forEach(([k])=>p[n][k]=false);});
   MODS.forEach(([k])=>p.administrador[k]=true);
   ['dashboard','precificador','pacientes','prontuario'].forEach(k=>p.medico[k]=true);
-  ['dashboard','pacientes','precificador'].forEach(k=>p.secretaria[k]=true);
+  ['dashboard','pacientes','agenda','precificador'].forEach(k=>p.secretaria[k]=true);
   ['dashboard','financeiro','pacientes'].forEach(k=>p.financeiro[k]=true);
   ['dashboard','estoque'].forEach(k=>p.compras[k]=true);
   ['dashboard','pacientes'].forEach(k=>p.colaborador[k]=true);

@@ -828,7 +828,7 @@ async function iniciar(user){
   setSafe('tb-user',nome);
   S('login-wrap').style.display='none';
   S('app').classList.add('on');
-  carregarPacs();
+  await carregarPacs();
   carregarFavs();
   await carregar();
   renderDash();
@@ -1664,6 +1664,25 @@ function exportarDRE(){showToast('Exportação PDF em breve','warn');}
 
 // ── IA ─────────────────────────────────────────────────────────
 let IA_HIST=[];
+function dreContexto(mes=mesAtual()){
+  const get=(cod)=>LANCS.filter(l=>l.data?.startsWith(mes)&&l.categoria_dre?.startsWith(cod))
+    .reduce((s,l)=>s+Number(l.valor||0),0);
+  const recBruta=get('1.');
+  const ded=get('2.');
+  const recLiq=recBruta-ded;
+  const custos=get('3.');
+  const lucroBruto=recLiq-custos;
+  const pessoal=get('4.');
+  const resPessoal=lucroBruto-pessoal;
+  const operacionais=get('5.');
+  const resOp=resPessoal-operacionais;
+  const financeiras=get('6.');
+  const resultado=resOp-financeiras;
+  const topDes=[...LANCS.filter(l=>l.tipo==='despesa'&&l.data?.startsWith(mes))]
+    .sort((a,b)=>Number(b.valor||0)-Number(a.valor||0)).slice(0,5)
+    .map(l=>`${l.descricao||l.categoria_dre}: ${fmt(l.valor)}`).join('; ');
+  return `DRE ${fmtMes(mes)}: Receita bruta ${fmt(recBruta)}, deduções ${fmt(ded)}, receita líquida ${fmt(recLiq)}, custos dos serviços ${fmt(custos)}, lucro bruto ${fmt(lucroBruto)}, pessoal ${fmt(pessoal)}, despesas operacionais ${fmt(operacionais)}, despesas financeiras ${fmt(financeiras)}, resultado do mês ${fmt(resultado)}. Maiores despesas: ${topDes||'sem despesas relevantes'}.`;
+}
 async function gerarResumo(){
   const el=S('ia-resumo'); if(!el)return;
   const mes=mesAtual();
@@ -1673,7 +1692,7 @@ async function gerarResumo(){
   const tDes=des.reduce((s,l)=>s+Number(l.valor||0),0);
   if(!LANCS.length){el.textContent='Sem lançamentos registrados. Adicione receitas e despesas para ver o resumo.';return;}
   el.textContent='Analisando...';
-  const ctx=`Assistente financeiro da Clínica Luisa Costa. Resumo executivo CURTO (2-3 frases), sem markdown. Dados do mês: Receitas ${fmt(tRec)} (${rec.length} lançamentos), Despesas ${fmt(tDes)}, Saldo ${fmt(tRec-tDes)}. Seja direto.`;
+  const ctx=`Assistente financeiro da Clínica Luisa Costa. Resumo executivo CURTO (2-3 frases), sem markdown. Dados do mês: Receitas ${fmt(tRec)} (${rec.length} lançamentos), Despesas ${fmt(tDes)}, Saldo ${fmt(tRec-tDes)}. ${dreContexto(mes)} Seja direto.`;
   try{
     const {data:{session}}=await db.auth.getSession();
     const token=session?session.access_token:SUPA_KEY;
@@ -1696,7 +1715,7 @@ async function enviarIA(){
   const mes=mesAtual();
   const tRec=LANCS.filter(l=>l.tipo==='receita'&&l.data?.startsWith(mes)).reduce((s,l)=>s+Number(l.valor||0),0);
   const tDes=LANCS.filter(l=>l.tipo==='despesa'&&l.data?.startsWith(mes)).reduce((s,l)=>s+Number(l.valor||0),0);
-  const sys=`Assistente financeiro da Clínica Luisa Costa. Dados do mês: Receitas ${fmt(tRec)}, Despesas ${fmt(tDes)}, Saldo ${fmt(tRec-tDes)}.`;
+  const sys=`Assistente financeiro da Clínica Luisa Costa. Use os dados do DRE, receitas, despesas, contas, inadimplentes e pacientes quando responder. Dados do mês: Receitas ${fmt(tRec)}, Despesas ${fmt(tDes)}, Saldo ${fmt(tRec-tDes)}. ${dreContexto(mes)}`;
   IA_HIST.push({role:'user',content:q});
   if(IA_HIST.length>10) IA_HIST=IA_HIST.slice(-10);
   try{
