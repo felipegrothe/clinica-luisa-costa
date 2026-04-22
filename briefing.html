@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Briefing IA - Clínica Luisa Costa</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --terra:#C17B3E;--terra-d:#8B5520;--verde:#4A7C6B;--dk:#020202;
+  --line:rgba(255,255,255,.14);--muted:rgba(255,255,255,.62);--soft:rgba(255,255,255,.08);
+  --r:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:system-ui,-apple-system,sans-serif;background:#020202;color:#fff}
+button{font-family:inherit;cursor:pointer}
+.page{min-height:100vh;display:flex;flex-direction:column;position:relative;overflow:hidden;background:#020202}
+.grid-bg{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(0deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:76px 76px;mask-image:radial-gradient(circle at center,black,transparent 78%);opacity:.42}
+.top{height:76px;display:flex;align-items:center;justify-content:space-between;padding:0 34px;position:relative;z-index:2}
+.brand small{display:block;font-size:9px;letter-spacing:4.5px;text-transform:uppercase;color:rgba(255,255,255,.55);font-weight:800}
+.brand strong{display:block;margin-top:4px;font-family:Georgia,serif;font-size:24px;font-weight:400;letter-spacing:.8px}
+.top-actions{display:flex;align-items:center;gap:10px}
+.ghost{height:38px;border:1px solid var(--line);background:rgba(255,255,255,.04);border-radius:var(--r);color:#fff;padding:0 14px;font-size:10px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase}
+.ghost:hover{border-color:rgba(255,255,255,.32)}
+.stage{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:44px;align-items:center;width:min(1180px,calc(100% - 84px));margin:0 auto;position:relative;z-index:1;padding:20px 0 86px}
+.kicker{font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--terra);font-weight:900;margin-bottom:22px}
+.title{font-family:Georgia,serif;font-size:clamp(56px,7vw,118px);line-height:.92;font-weight:400;letter-spacing:0;max-width:850px;text-shadow:0 0 34px rgba(193,123,62,.2)}
+.line{font-size:18px;line-height:1.55;color:rgba(255,255,255,.76);max-width:670px;margin-top:26px}
+.summary{margin-top:24px;padding:18px 20px;border-left:2px solid var(--terra);background:rgba(255,255,255,.045);color:rgba(255,255,255,.86);font-size:14px;line-height:1.65;max-width:760px}
+.panel{display:flex;flex-direction:column;gap:12px}
+.metric{border:1px solid var(--line);border-radius:var(--r);background:var(--soft);padding:20px}
+.metric-label{font-size:9px;letter-spacing:2.1px;text-transform:uppercase;color:rgba(255,255,255,.52);font-weight:900}
+.metric-value{font-family:Georgia,serif;font-size:48px;line-height:1;margin:10px 0 4px}
+.metric-sub{font-size:12px;color:var(--muted);line-height:1.45}
+.actions{margin-top:8px;display:grid;gap:8px}
+.action{border:1px solid rgba(193,123,62,.28);background:rgba(193,123,62,.07);border-radius:var(--r);padding:10px 12px;color:rgba(255,255,255,.72);font-size:11px;letter-spacing:.9px;text-transform:uppercase}
+.action:before{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--terra);margin-right:9px;vertical-align:1px}
+.nav{height:76px;position:absolute;left:34px;right:34px;bottom:0;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:18px}
+.step-name{font-size:10px;letter-spacing:2.4px;text-transform:uppercase;color:rgba(255,255,255,.58);font-weight:900;min-width:175px}
+.progress{display:flex;gap:9px;flex:1;max-width:390px}
+.dot{height:3px;flex:1;background:rgba(255,255,255,.22);border-radius:4px}
+.dot.on{background:var(--terra)}
+.btns{display:flex;gap:10px}
+.btn{height:40px;border-radius:var(--r);padding:0 18px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:#fff;font-size:10px;font-weight:900;letter-spacing:1.4px;text-transform:uppercase}
+.btn.primary{background:var(--terra);border-color:var(--terra)}
+.btn:disabled{opacity:.35;cursor:default}
+.status{position:absolute;left:34px;bottom:86px;z-index:3;font-size:11px;color:rgba(255,255,255,.46)}
+@media(max-width:920px){
+  html,body{overflow:auto}
+  .page{min-height:100vh;overflow:auto}
+  .stage{grid-template-columns:1fr;width:min(100% - 36px,760px);gap:22px;padding-bottom:116px}
+  .panel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .actions{grid-column:1/-1}
+  .title{font-size:54px}
+  .line{font-size:15px}
+  .nav{height:auto;bottom:18px;left:18px;right:18px;align-items:stretch;flex-direction:column}
+  .progress{max-width:none}
+  .btns{width:100%}.btn{flex:1}
+}
+@media(max-width:620px){.top{height:auto;padding:18px}.stage{padding-top:18px}.panel{grid-template-columns:1fr}.title{font-size:44px}.status{display:none}}
+</style>
+</head>
+<body>
+<main class="page">
+  <div class="grid-bg"></div>
+  <header class="top">
+    <div class="brand"><small>Clínica</small><strong>Luisa Costa</strong></div>
+    <div class="top-actions">
+      <button class="ghost" type="button" id="btn-refresh">Atualizar</button>
+      <button class="ghost" type="button" onclick="location.href='index.html'">Dashboard</button>
+    </div>
+  </header>
+  <section class="stage">
+    <div>
+      <div class="kicker" id="kicker">Briefing</div>
+      <h1 class="title" id="title">Olá, Dra. Luisa.</h1>
+      <p class="line" id="line">Vamos atualizar as métricas principais da clínica.</p>
+      <div class="summary" id="summary">Carregando leitura do dia.</div>
+    </div>
+    <aside class="panel">
+      <div id="metrics"></div>
+      <div class="actions" id="actions"></div>
+    </aside>
+  </section>
+  <div class="status" id="status">Preparando briefing.</div>
+  <nav class="nav">
+    <div class="step-name" id="step-name">Abertura</div>
+    <div class="progress" id="progress"></div>
+    <div class="btns">
+      <button class="btn" id="prev" type="button">Voltar</button>
+      <button class="btn primary" id="next" type="button">Avançar</button>
+    </div>
+  </nav>
+</main>
+
+<script>
+const SUPA_URL='https://eeianweavbnrikzqquxq.supabase.co';
+const SUPA_KEY='sb_publishable_RWouef1R4SySi3PyBxq0lQ_AEEpGHly';
+const {createClient}=supabase;
+const db=createClient(SUPA_URL,SUPA_KEY);
+
+let idx=0;
+let steps=[];
+let loaded=false;
+
+function fmt(v){return 'R$\u00a0'+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function num(v){return Number(v||0).toLocaleString('pt-BR');}
+function safe(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function iso(d=new Date()){return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);}
+function monthStart(){const d=new Date();return iso(new Date(d.getFullYear(),d.getMonth(),1));}
+async function query(fn,fallback){
+  try{const {data,error}=await fn();if(error)throw error;return data??fallback;}
+  catch(e){console.warn('Briefing fonte indisponível:',e?.message||e);return fallback;}
+}
+function emptyCtx(){
+  return {pacientes:[],consultasHoje:0,consultasSemana:0,mediaTempo:0,semResposta:0,pendentes:0,semFoto:0,incompletos:0,ativos:0,concluidos:0,vencendoProtocolos:0,faturado:0,sessoes:0,receitas:0,despesas:0,saldo:0,inadAberto:0,vencidos:0,vencendo:0,estoqueMin:0};
+}
+function consultas(p){return Array.isArray(p?.consultas)?p.consultas.filter(c=>c&&c.data):[];}
+async function loadCtx(){
+  const [sessionResp,pacientes,protocolos,fin,inad,dashEstoque,estoque]=await Promise.all([
+    db.auth.getSession(),
+    query(()=>db.from('pacientes').select('id,nome,telefone,email,cpf,foto_url,status,cadastro_origem,consultas,created_at').order('created_at',{ascending:false}),[]),
+    query(()=>db.from('protocolos').select('*').order('created_at',{ascending:false}),[]),
+    query(()=>db.from('fin_lancamentos').select('tipo,valor,data,pago,vencimento').gte('data',monthStart()),[]),
+    query(()=>db.from('fin_inadimplentes').select('valor_total,valor_pago,status').limit(300),[]),
+    query(()=>db.from('dashboard').select('*').single(),null),
+    query(()=>db.from('estoque_atual').select('nome,disponivel,estoque_min,status_estoque,status_validade,proxima_validade').eq('ativo',true).limit(300),[])
+  ]);
+  const session=sessionResp?.data?.session;
+  const hoje=iso();
+  const d7=new Date();d7.setDate(d7.getDate()+7);
+  const semana=iso(d7);
+  const agenda=pacientes.flatMap(p=>consultas(p).map(c=>({...c,paciente:p.nome})));
+  const tempo=agenda.filter(c=>Number(c.duracao_minutos||c.duracao)).map(c=>Number(c.duracao_minutos||c.duracao));
+  const ativos=protocolos.filter(p=>p.status==='andamento');
+  const concluidos=protocolos.filter(p=>p.status==='concluido');
+  const receitas=fin.filter(l=>l.tipo==='receita').reduce((s,l)=>s+(Number(l.valor)||0),0);
+  const despesas=fin.filter(l=>l.tipo==='despesa').reduce((s,l)=>s+(Number(l.valor)||0),0);
+  return {
+    session,
+    pacientes,
+    consultasHoje:agenda.filter(c=>c.data===hoje).length,
+    consultasSemana:agenda.filter(c=>c.data>=hoje&&c.data<=semana).length,
+    mediaTempo:tempo.length?Math.round(tempo.reduce((a,b)=>a+b,0)/tempo.length):0,
+    semResposta:0,
+    pendentes:pacientes.filter(p=>(p.status||'')==='aguardando_revisao'||p.cadastro_origem==='publico').length,
+    semFoto:pacientes.filter(p=>!p.foto_url).length,
+    incompletos:pacientes.filter(p=>!p.telefone||!p.email||!p.cpf).length,
+    ativos:ativos.length,
+    concluidos:concluidos.length,
+    vencendoProtocolos:ativos.filter(p=>(Number(p.sessoes_realizadas)||0)>=10).length,
+    faturado:protocolos.reduce((s,p)=>s+(Number(p.valor_total)||0),0),
+    sessoes:protocolos.reduce((s,p)=>s+(Number(p.sessoes_realizadas)||0),0),
+    receitas,despesas,saldo:receitas-despesas,
+    inadAberto:inad.filter(i=>(i.status||'aberto')!=='quitado').reduce((s,i)=>s+((Number(i.valor_total)||0)-(Number(i.valor_pago)||0)),0),
+    vencidos:Number(dashEstoque?.itens_vencidos)||estoque.filter(i=>i.status_validade==='vencido').length,
+    vencendo:Number(dashEstoque?.itens_vencendo)||estoque.filter(i=>i.status_validade==='critico'||i.status_validade==='atencao').length,
+    estoqueMin:Number(dashEstoque?.itens_estoque_minimo)||estoque.filter(i=>i.status_estoque==='critico'||Number(i.disponivel)<=Number(i.estoque_min||0)).length
+  };
+}
+function makeSteps(ctx){
+  const pontos=(ctx.pendentes>0)+(ctx.incompletos>0)+(ctx.vencendoProtocolos>0)+(ctx.inadAberto>0)+(ctx.vencidos>0)+(ctx.estoqueMin>0);
+  const atendimento=ctx.consultasSemana?`Há ${ctx.consultasSemana} consulta${ctx.consultasSemana!==1?'s':''} prevista${ctx.consultasSemana!==1?'s':''} nos próximos sete dias. ${ctx.mediaTempo?`Tempo médio registrado: ${ctx.mediaTempo} minutos.`:'O tempo médio será calculado quando a agenda estiver preenchida.'}`:'A agenda ainda não trouxe consultas para os próximos sete dias. O painel está pronto para receber essa integração.';
+  return [
+    {setor:'Abertura',kicker:'Bom dia',title:'Olá, Dra. Luisa.',line:'Vamos atualizar sobre as métricas de hoje.',summary:'Este briefing concentra os sinais mais importantes antes de entrar nos módulos operacionais.',metrics:[['Pontos de atenção',num(pontos),'áreas para revisar'],['Pacientes cadastrados',num(ctx.pacientes.length),'base atual no Supabase']],actions:['Avançar pela análise']},
+    {setor:'Atendimentos',kicker:'Atendimentos',title:'Agenda e resposta.',line:'A rotina do dia em primeiro plano.',summary:atendimento,metrics:[['Hoje',num(ctx.consultasHoje),'consultas agendadas'],['Semana',num(ctx.consultasSemana),'consultas previstas'],['Sem resposta',num(ctx.semResposta),'aguardando integração de mensagens']],actions:['Confirmar consultas','Revisar contatos pendentes']},
+    {setor:'Pacientes',kicker:'Pacientes',title:'Carteira ativa.',line:'Qualidade e completude da base.',summary:`Existem ${ctx.pendentes} cadastro${ctx.pendentes!==1?'s':''} aguardando revisão, ${ctx.semFoto} paciente${ctx.semFoto!==1?'s':''} sem foto oficial e ${ctx.incompletos} cadastro${ctx.incompletos!==1?'s':''} com dados essenciais incompletos.`,metrics:[['Em revisão',num(ctx.pendentes),'cadastros por link'],['Sem foto',num(ctx.semFoto),'identificação pendente'],['Incompletos',num(ctx.incompletos),'CPF, telefone ou e-mail']],actions:['Revisar cadastros','Atualizar fotos oficiais']},
+    {setor:'Protocolos',kicker:'Protocolos',title:'Evolução comercial.',line:'Protocolos, sessões e renovação.',summary:`Há ${ctx.ativos} protocolo${ctx.ativos!==1?'s':''} em andamento e ${ctx.concluidos} concluído${ctx.concluidos!==1?'s':''}. O total registrado em protocolos é ${fmt(ctx.faturado)}.`,metrics:[['Ativos',num(ctx.ativos),'em andamento'],['Sessões',num(ctx.sessoes),'realizadas'],['Renovação',num(ctx.vencendoProtocolos),'perto do fim']],actions:['Ver protocolos ativos','Preparar renovações']},
+    {setor:'Financeiro',kicker:'Financeiro',title:'Resumo do mês.',line:'Leitura compacta. O detalhe fica no módulo financeiro.',summary:`Saldo parcial de ${fmt(ctx.saldo)}. Entradas de ${fmt(ctx.receitas)} e saídas de ${fmt(ctx.despesas)} no mês atual.`,metrics:[['Saldo',fmt(ctx.saldo),'mês atual'],['Receitas',fmt(ctx.receitas),'entradas registradas'],['Em aberto',fmt(ctx.inadAberto),'inadimplência registrada']],actions:['Abrir financeiro','Cobrar pendências']},
+    {setor:'Estoque',kicker:'Estoque',title:'Risco operacional.',line:'Validade e mínimo em uma leitura rápida.',summary:ctx.vencidos||ctx.vencendo||ctx.estoqueMin?`O estoque tem ${ctx.vencidos} vencido${ctx.vencidos!==1?'s':''}, ${ctx.vencendo} vencendo e ${ctx.estoqueMin} abaixo do mínimo.`:'Estoque sem alertas críticos nos dados disponíveis.',metrics:[['Vencidos',num(ctx.vencidos),'retirar ou revisar'],['Vencendo',num(ctx.vencendo),'próximos alertas'],['Mínimo',num(ctx.estoqueMin),'abaixo do ideal']],actions:['Abrir estoque','Gerar lista de compra']},
+    {setor:'Conclusão',kicker:'Conclusão',title:'Pronta para começar.',line:'O dashboard operacional fica a um clique.',summary:pontos?`Sugestão: comece pelos ${pontos} ponto${pontos!==1?'s':''} de atenção e depois siga para os módulos específicos.`:'Nenhum ponto crítico apareceu no briefing. Vale seguir para os detalhes normais do dashboard.',metrics:[['Prioridade',num(pontos),'itens para revisar'],['Base',num(ctx.pacientes.length),'pacientes monitorados']],actions:['Voltar ao dashboard']}
+  ];
+}
+function render(){
+  const s=steps[idx]||steps[0];
+  document.getElementById('kicker').textContent=s.kicker;
+  document.getElementById('title').textContent=s.title;
+  document.getElementById('line').textContent=s.line;
+  document.getElementById('summary').textContent=s.summary;
+  document.getElementById('step-name').textContent=s.setor;
+  document.getElementById('metrics').innerHTML=s.metrics.map(m=>`<div class="metric"><div class="metric-label">${safe(m[0])}</div><div class="metric-value">${safe(m[1])}</div><div class="metric-sub">${safe(m[2])}</div></div>`).join('');
+  document.getElementById('actions').innerHTML=s.actions.map(a=>`<div class="action">${safe(a)}</div>`).join('');
+  document.getElementById('progress').innerHTML=steps.map((_,i)=>`<div class="dot${i<=idx?' on':''}"></div>`).join('');
+  document.getElementById('prev').disabled=idx===0;
+  document.getElementById('next').textContent=idx===steps.length-1?'Dashboard':'Avançar';
+}
+function next(){if(idx>=steps.length-1){location.href='index.html';return;}idx++;render();}
+function prev(){if(idx<=0)return;idx--;render();}
+async function refresh(){
+  document.getElementById('status').textContent='Atualizando dados.';
+  steps=makeSteps(emptyCtx());
+  idx=0;
+  render();
+  const ctx=await loadCtx();
+  loaded=true;
+  steps=makeSteps(ctx);
+  document.getElementById('status').textContent=ctx.session?'Dados atualizados pelo Supabase.':'Sem sessão ativa. Exibindo dados disponíveis.';
+  render();
+}
+document.getElementById('next').addEventListener('click',next);
+document.getElementById('prev').addEventListener('click',prev);
+document.getElementById('btn-refresh').addEventListener('click',refresh);
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='Enter')next();if(e.key==='ArrowLeft')prev();if(e.key==='Escape')location.href='index.html';});
+steps=makeSteps(emptyCtx());
+render();
+refresh();
+</script>
+</body>
+</html>

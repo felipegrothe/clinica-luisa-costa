@@ -391,6 +391,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
 .metric-label{font-size:9px;letter-spacing:1.5px;font-weight:600;text-transform:uppercase;color:var(--tl);margin-bottom:6px}
 .metric-value{font-size:26px;font-weight:500;color:var(--tx);line-height:1}
 .metric-sub{font-size:10px;color:var(--tl);margin-top:4px}
+.dash-brief-link{background:var(--dk);border-color:var(--dk3);border-top-color:var(--verde);cursor:pointer;transition:transform .12s,box-shadow .12s}
+.dash-brief-link:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(26,23,20,.12)}
+.dash-brief-link .metric-label{color:rgba(232,213,188,.6)}
+.dash-brief-link .metric-value{color:#fff;font-size:19px;line-height:1.15}
+.dash-brief-link .metric-sub{color:rgba(232,213,188,.62)}
 .dash-chart-card{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:1rem 1.125rem;margin-bottom:14px}
 .chart-bars{display:flex;align-items:flex-end;gap:6px;height:72px;margin-top:10px}
 .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
@@ -666,6 +671,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
           <div class="metric-card"><div class="metric-label">Faturado em protocolos</div><div class="metric-value" id="dm-faturado">—</div><div class="metric-sub" id="dm-faturado-sub"></div></div>
           <div class="metric-card verde"><div class="metric-label">Sessões realizadas</div><div class="metric-value" id="dm-sessoes">—</div><div class="metric-sub" id="dm-sessoes-sub"></div></div>
           <div class="metric-card verde"><div class="metric-label">Concluídos</div><div class="metric-value" id="dm-concluidos">—</div><div class="metric-sub" id="dm-concluidos-sub"></div></div>
+          <div class="metric-card dash-brief-link" onclick="location.href='briefing.html'"><div class="metric-label">Briefing IA</div><div class="metric-value">Abrir leitura do dia</div><div class="metric-sub">Pacientes, financeiro e estoque</div></div>
         </div>
         <div class="two">
           <div>
