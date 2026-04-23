@@ -283,7 +283,7 @@ const STATUS=[
   ['cancelado','Cancelado'],
   ['bloqueado','Agenda fechada']
 ];
-let CONFIG=clone(DEFAULT_CONFIG),pacientes=[],eventos=[],selectedDate=today(),monthRef=new Date(),profFiltro='todos',selectedId=null,usingLocal=false,agendaView='dia';
+let CONFIG=clone(DEFAULT_CONFIG),pacientes=[],eventos=[],selectedDate=today(),monthRef=new Date(),profFiltro='todos',selectedId=null,agendaSupabaseOk=false,pacientesSupabaseOk=false,agendaView='dia';
 function clone(v){return JSON.parse(JSON.stringify(v));}
 function profs(activeOnly=false){return (CONFIG.profissionais||[]).filter(p=>!activeOnly||p.ativo!==false);}
 function tipoCfg(nome){return (CONFIG.tipos||[]).find(t=>t.nome===nome)||CONFIG.tipos[0]||{nome:'Consulta',duracao:60,cor:'#C17B3E'};}
@@ -295,7 +295,17 @@ function addMonths(iso,n){const d=new Date(iso+'T12:00');d.setMonth(d.getMonth()
 function fmtD(iso){return new Date(iso+'T12:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});}
 function brDate(iso){return new Date(iso+'T12:00').toLocaleDateString('pt-BR');}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
-function toast(msg,type='ok'){const t=document.getElementById('toast');t.textContent=msg;t.style.background=type==='err'?'#8B2020':type==='warn'?'#8B5520':'#1A1714';t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),3000);}
+function toast(msg,type='ok'){const t=document.getElementById('toast');t.textContent=msg;t.style.background=type==='err'?'#8B2020':type==='warn'?'#8B5520':'#1A1714';t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),type==='err'?7000:3000);}
+function bloquearAgendaSemSupabase(acao='executar esta ação'){
+  if(agendaSupabaseOk)return false;
+  toast('NÃO FOI SALVO: Supabase indisponível. Não foi possível '+acao+'. Refaça a ação quando a conexão/permissão voltar.','err');
+  return true;
+}
+function bloquearPacientesSemSupabase(acao='executar esta ação'){
+  if(pacientesSupabaseOk)return false;
+  toast('NÃO FOI SALVO: pacientes indisponíveis no Supabase. Não foi possível '+acao+'.','err');
+  return true;
+}
 function maskTel(el){let v=el.value.replace(/\D/g,'').slice(0,11);v=v.replace(/^(\d{2})(\d)/,'($1) $2').replace(/(\d{5})(\d)/,'$1-$2');el.value=v;}
 async function init(){
   await carregarConfig();
@@ -316,12 +326,12 @@ async function carregarConfig(){
   }catch(e){console.warn('Configuração da agenda em modo local',e);}
 }
 async function persistConfig(){
-  localStorage.setItem('clc_agenda_config',JSON.stringify(CONFIG));
   try{
     const {error}=await db.from('agenda_configuracoes').upsert({chave:'principal',valor:CONFIG,updated_at:new Date().toISOString()});
     if(error)throw error;
+    localStorage.setItem('clc_agenda_config',JSON.stringify(CONFIG));
     toast('Configurações salvas.');
-  }catch(e){console.warn(e);toast('Configurações salvas localmente. Rode o SQL da agenda para salvar no Supabase.','warn');}
+  }catch(e){console.warn(e);toast('NÃO FOI SALVO: configurações não foram gravadas no Supabase. Verifique conexão/permissões e tente novamente.','err');}
 }
 function renderStatic(){
   const all=`<button class="prof ${profFiltro==='todos'?'active':''}" onclick="setProf('todos',this)"><div><div class="prof-name">Todas as agendas</div><div class="prof-role">Visão consolidada</div></div><div class="prof-count" id="count-todos">0</div></button>`;
@@ -362,8 +372,9 @@ async function carregarPacientes(){
   try{
     const {data,error}=await db.from('pacientes').select('id,nome,telefone,email,foto_url,objetivos,status,cadastro_origem,nascimento,genero').order('nome');
     if(error)throw error;
+    pacientesSupabaseOk=true;
     pacientes=data||[];
-  }catch(e){console.warn(e);pacientes=[];}
+  }catch(e){console.warn(e);pacientesSupabaseOk=false;pacientes=[];toast('Pacientes não carregaram do Supabase. Novos cadastros e agendamentos foram bloqueados para evitar perda de dados.','err');}
   renderPacSelect();
 }
 function renderPacSelect(){
@@ -382,17 +393,19 @@ function setPacienteNoModal(pacId){
   document.getElementById('c-paciente-busca').value=p?labelPaciente(p):'';
 }
 async function carregarEventos(){
-  usingLocal=false;
   try{
     const base=new Date(selectedDate+'T12:00');
     const ini=toISO(new Date(base.getFullYear(),base.getMonth(),1));
     const fim=toISO(new Date(base.getFullYear(),base.getMonth()+1,0));
     const {data,error}=await db.from('agenda_eventos').select('*').gte('data',ini).lte('data',fim).order('data').order('hora_inicio');
     if(error)throw error;
+    agendaSupabaseOk=true;
     eventos=data||[];
   }catch(e){
-    usingLocal=true;
-    try{eventos=JSON.parse(localStorage.getItem('clc_agenda_eventos')||'[]');}catch(_){eventos=[];}
+    console.warn(e);
+    agendaSupabaseOk=false;
+    eventos=[];
+    toast('Agenda não carregou do Supabase. Novos agendamentos e alterações foram bloqueados para evitar perda de dados.','err');
   }
 }
 function renderAll(){renderCalendar();renderTitle();renderSlots();renderDetail();renderPendencias();updateCounts();}
@@ -623,10 +636,12 @@ function datasRecorrentes(data,regra,reps){
   return out;
 }
 async function salvarConsulta(){
+  if(bloquearAgendaSemSupabase('salvar a consulta'))return;
   const pacId=document.getElementById('c-paciente').value;
   const pac=pacientes.find(p=>p.id===pacId);
   const editId=document.getElementById('modal-consulta').dataset.edit;
   const editingBlock=editId&&eventos.find(e=>e.id===editId)?.status==='bloqueado';
+  if(!editingBlock&&bloquearPacientesSemSupabase('selecionar paciente para a consulta'))return;
   if(!pac&&!editingBlock){toast('Selecione um paciente.','warn');return;}
   const data=document.getElementById('c-data').value,hora=document.getElementById('c-hora').value,horaFimManual=document.getElementById('c-hora-fim').value;
   if(!data||!hora){toast('Informe data e hora.','warn');return;}
@@ -637,6 +652,7 @@ async function salvarConsulta(){
   await salvarPayloads(payloads,editId,'Consulta salva.');
 }
 async function salvarBloqueio(){
+  if(bloquearAgendaSemSupabase('fechar a agenda'))return;
   const data=document.getElementById('b-data').value,ini=document.getElementById('b-inicio').value,fim=document.getElementById('b-fim').value;
   if(!data||!ini||!fim){toast('Informe data e horários.','warn');return;}
   const prof=document.getElementById('b-profissional').value;
@@ -645,46 +661,44 @@ async function salvarBloqueio(){
   await salvarPayloads(payloads,null,'Agenda fechada.');
 }
 async function salvarPayloads(payloads,editId,msg){
+  if(bloquearAgendaSemSupabase('salvar o agendamento'))return;
   try{
-    if(!usingLocal){
-      if(editId){
-        const {data,error}=await db.from('agenda_eventos').update(payloads[0]).eq('id',editId).select().single();
-        if(error)throw error;eventos=eventos.map(e=>e.id===editId?data:e);selectedId=editId;
-      }else{
-        const {data,error}=await db.from('agenda_eventos').insert(payloads).select();
-        if(error)throw error;eventos.push(...(data||[]));selectedId=(data||[])[0]?.id||selectedId;
-      }
+    if(editId){
+      const {data,error}=await db.from('agenda_eventos').update(payloads[0]).eq('id',editId).select().single();
+      if(error)throw error;eventos=eventos.map(e=>e.id===editId?data:e);selectedId=editId;
     }else{
-      const local=payloads.map((p,i)=>({...p,id:editId||('local-'+Date.now()+'-'+i),created_at:new Date().toISOString()}));
-      if(editId)eventos=eventos.map(e=>e.id===editId?local[0]:e);else eventos.push(...local);
-      selectedId=local[0]?.id||selectedId;localStorage.setItem('clc_agenda_eventos',JSON.stringify(eventos));
+      const {data,error}=await db.from('agenda_eventos').insert(payloads).select();
+      if(error)throw error;eventos.push(...(data||[]));selectedId=(data||[])[0]?.id||selectedId;
     }
     selectedDate=payloads[0].data;fecharModais();renderAll();toast(msg);
-  }catch(e){console.error(e);toast('Não salvou no Supabase. Rode o SQL atualizado da agenda e tente novamente.','err');}
+  }catch(e){console.error(e);toast('NÃO FOI SALVO: o agendamento não foi gravado no Supabase. Refaça a ação após corrigir conexão/permissão.','err');}
 }
 async function salvarPacienteRapido(){
+  if(bloquearPacientesSemSupabase('salvar paciente'))return;
   const nome=document.getElementById('p-nome').value.trim(),telefone=document.getElementById('p-tel').value.trim(),email=document.getElementById('p-email').value.trim();
   if(!nome){toast('Informe o nome do paciente.','warn');return;}
   try{
     const {data,error}=await db.from('pacientes').insert({nome,telefone:telefone||null,email:email||null,status:'ativo',cadastro_origem:'agenda'}).select().single();
     if(error)throw error;
     pacientes.push(data);pacientes.sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));renderPacSelect();fecharModais();abrirConsulta();setPacienteNoModal(data.id);toast('Paciente adicionado.');
-  }catch(e){console.error(e);toast('Não foi possível salvar paciente no Supabase.','err');}
+  }catch(e){console.error(e);toast('NÃO FOI SALVO: o paciente não foi gravado no Supabase. Refaça o cadastro após corrigir conexão/permissão.','err');}
 }
 async function mudarStatus(id,status){
+  if(bloquearAgendaSemSupabase('atualizar o status'))return;
   const item=eventos.find(e=>e.id===id);if(!item)return;
   try{
-    if(!usingLocal&&!String(id).startsWith('local-')){const {error}=await db.from('agenda_eventos').update({status,updated_at:new Date().toISOString()}).eq('id',id);if(error)throw error;}
-    item.status=status;localStorage.setItem('clc_agenda_eventos',JSON.stringify(eventos));renderAll();toast('Status atualizado.');
-  }catch(e){console.error(e);toast('Erro ao atualizar status.','err');}
+    const {error}=await db.from('agenda_eventos').update({status,updated_at:new Date().toISOString()}).eq('id',id);if(error)throw error;
+    item.status=status;renderAll();toast('Status atualizado.');
+  }catch(e){console.error(e);toast('NÃO FOI SALVO: o status não foi atualizado no Supabase. Refaça a ação.','err');}
 }
 async function excluirEvento(id){
+  if(bloquearAgendaSemSupabase('excluir o agendamento'))return;
   const item=eventos.find(e=>e.id===id);if(!item)return;
   if(!confirm('Excluir este agendamento?'))return;
   try{
-    if(!usingLocal&&!String(id).startsWith('local-')){const {error}=await db.from('agenda_eventos').delete().eq('id',id);if(error)throw error;}
-    eventos=eventos.filter(e=>e.id!==id);localStorage.setItem('clc_agenda_eventos',JSON.stringify(eventos));selectedId=null;renderAll();toast('Agendamento excluído.');
-  }catch(e){console.error(e);toast('Erro ao excluir agendamento.','err');}
+    const {error}=await db.from('agenda_eventos').delete().eq('id',id);if(error)throw error;
+    eventos=eventos.filter(e=>e.id!==id);selectedId=null;renderAll();toast('Agendamento excluído.');
+  }catch(e){console.error(e);toast('NÃO FOI EXCLUÍDO: o agendamento continua no Supabase. Refaça a ação após corrigir conexão/permissão.','err');}
 }
 async function excluirConsultaAtual(){
   const id=document.getElementById('modal-consulta').dataset.edit;

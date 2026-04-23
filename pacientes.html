@@ -542,6 +542,7 @@ const OBJETIVOS=['Reposição hormonal','Emagrecimento','Envelhecimento saudáve
 let pacientes=[],pAtual=null,globalTab='pacientes',tabAtual='ficha',camStream=null,fotoCapt=null,fotoNovoCapt=null,camTarget='paciente',modoCadastro='rapido';
 let editandoFicha=false,editandoRel=false;
 let protocolosPorPaciente={};
+let pacientesSupabaseOk=false;
 
 function iconUser(size=22){
   return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6"/><path d="M4.5 21c1.4-4.1 4-6.2 7.5-6.2s6.1 2.1 7.5 6.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`;
@@ -556,20 +557,26 @@ async function init(){
 
 async function carregar(){
   await carregarProtocolosExternos();
-  let supaPacs=[];
   const{data,error}=await db.from('pacientes').select('*').order('nome');
   if(error){
-    toast('Sem acesso ao Supabase. Usando pacientes salvos localmente.');
+    pacientesSupabaseOk=false;
+    pacientes=[];
+    pAtual=null;
+    toast('Supabase indisponível. Pacientes bloqueados para evitar registros locais. Nada será salvo fora do banco.');
   }else{
-    supaPacs=data||[];
+    pacientesSupabaseOk=true;
+    pacientes=(data||[]).sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
   }
-  const locais=lerLocal();
-  const ids=new Set(supaPacs.map(p=>String(p.id)));
-  pacientes=[...supaPacs,...locais.filter(p=>!ids.has(String(p.id)))].sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
   renderLista();
   atualizarSyncPanel();
   badgeAlertas();
   renderGlobalTab();
+}
+
+function bloquearPacientesSemSupabase(acao='executar esta ação'){
+  if(pacientesSupabaseOk)return false;
+  toast('NÃO FOI SALVO: Supabase indisponível. Não foi possível '+acao+'. Refaça a ação quando a conexão/permissão voltar.');
+  return true;
 }
 
 function lerLocal(){
@@ -587,6 +594,8 @@ function atualizarSyncPanel(){
   const panel=document.getElementById('sync-panel');
   const txt=document.getElementById('sync-text');
   if(!panel||!txt)return;
+  panel.classList.remove('on');
+  return;
   const qtd=pacientes.filter(isLocalPaciente).length;
   panel.classList.toggle('on',qtd>0);
   txt.textContent=qtd===1?'1 cadastro está salvo apenas neste navegador.':'Há '+qtd+' cadastros salvos apenas neste navegador.';
@@ -1411,17 +1420,15 @@ async function confirmarCadastro(){
 }
 
 async function saveDB(){
+  if(bloquearPacientesSemSupabase('salvar o paciente'))return false;
   const{id,created_at,...d}=pAtual;d.updated_at=new Date().toISOString();
   if(String(id||'').startsWith('local-')){
-    const i=pacientes.findIndex(p=>p.id===id);if(i>=0)pacientes[i]={...pAtual};
-    salvarLocal();
-    atualizarSyncPanel();
-    toast('Salvo localmente. Configure as policies RLS para sincronizar no Supabase.');
-    return true;
+    toast('NÃO FOI SALVO: este cadastro não existe no Supabase e não pode ser editado em produção.');
+    return false;
   }
   const{error}=await db.from('pacientes').update(d).eq('id',id);
   if(error){
-    toast(msgErroSupabase(error));
+    toast('NÃO FOI SALVO: '+msgErroSupabase(error));
     return false;
   }else{
     const i=pacientes.findIndex(p=>p.id===id);if(i>=0)pacientes[i]={...pAtual};
@@ -1439,18 +1446,14 @@ function cancelar(){
 
 async function excluir(){
   if(!pAtual)return;
+  if(bloquearPacientesSemSupabase('excluir o paciente'))return;
   if(!confirm(`Excluir permanentemente "${pAtual.nome}"?`))return;
   if(String(pAtual.id||'').startsWith('local-')){
-    pacientes=pacientes.filter(p=>p.id!==pAtual.id);salvarLocal();pAtual=null;
-    document.getElementById('vazio').style.display='flex';
-    document.getElementById('fh').style.display='none';
-    document.getElementById('patient-tabs').style.display='none';
-    document.getElementById('sb').style.display='none';
-    document.getElementById('tc').innerHTML='';
-    renderLista();atualizarSyncPanel();toast('Paciente local excluído.');return;
+    toast('NÃO FOI EXCLUÍDO: paciente local bloqueado porque não representa um registro salvo no Supabase.');
+    return;
   }
   const{error}=await db.from('pacientes').delete().eq('id',pAtual.id);
-  if(error){toast(msgErroSupabase(error));return;}
+  if(error){toast('NÃO FOI EXCLUÍDO: '+msgErroSupabase(error));return;}
   pacientes=pacientes.filter(p=>p.id!==pAtual.id);pAtual=null;
   document.getElementById('vazio').style.display='flex';
   document.getElementById('fh').style.display='none';
@@ -1462,6 +1465,7 @@ async function excluir(){
 
 // ── CRIAR ─────────────────────────────────────────────────
 async function criarPaciente(){
+  if(bloquearPacientesSemSupabase('criar paciente'))return;
   if(modoCadastro==='preferencias'){
     await salvarPreferenciasModal();
     return;
@@ -1472,9 +1476,7 @@ async function criarPaciente(){
   const novoDb={...novo,foto_url:null};
   const{data,error}=await db.from('pacientes').insert(novoDb).select().single();
   if(error){
-    const local={...novo,id:'local-'+Date.now(),foto_url:fotoNovoCapt||novo.foto_url,created_at:new Date().toISOString(),updated_at:new Date().toISOString()};
-    pacientes.push(local);salvarLocal();fecharNovo();renderLista();atualizarSyncPanel();sel(local.id);
-    toast(msgErroSupabase(error)+' Cadastro salvo localmente.');
+    toast('NÃO FOI SALVO: '+msgErroSupabase(error)+' Cadastro bloqueado para evitar registro local.');
     return;
   }
   let pacienteCriado=data;
@@ -1485,8 +1487,7 @@ async function criarPaciente(){
       if(fotoErr)throw fotoErr;
       pacienteCriado={...data,foto_url:fotoUrl};
     }catch(e){
-      pacienteCriado={...data,foto_url:fotoNovoCapt};
-      toast('Cadastro criado. Foto mantida localmente: '+e.message);
+      toast('PACIENTE SALVO, FOTO NÃO SALVA: a foto não foi gravada no Supabase. Abra o paciente e tente enviar novamente.');
     }
   }
   pacientes.push(pacienteCriado);fecharNovo();renderLista();atualizarSyncPanel();sel(pacienteCriado.id);toast(`"${nome}" criado com sucesso.`);
@@ -1697,6 +1698,7 @@ async function usarFoto(){
     return;
   }
   if(!pAtual)return;
+  if(bloquearPacientesSemSupabase('salvar a foto'))return;
   const capt=fotoCapt;
   fecharCam();toast('Fazendo upload...');
   try{
@@ -1705,9 +1707,7 @@ async function usarFoto(){
     updHeader();renderLista(document.getElementById('busca').value.toLowerCase());
     toast(ok?'Foto salva!':'Foto não sincronizada no Supabase.');
   }catch(e){
-    pAtual.foto_url=capt;
-    salvarLocal();updHeader();renderLista(document.getElementById('busca').value.toLowerCase());
-    toast('Upload bloqueado. Foto mantida localmente.');
+    toast('NÃO FOI SALVO: a foto não foi gravada no Supabase. Refaça o envio após corrigir conexão/permissão.');
   }
 }
 
@@ -1746,7 +1746,7 @@ function gv(id){return document.getElementById(id)?.value?.trim()||null;}
 function sv(id,v){const el=document.getElementById(id);if(el)el.value=v||'';}
 function fmtD(s){if(!s)return'—';const[y,m,d]=s.split('T')[0].split('-');return`${d}/${m}/${y}`;}
 function calcIdade(n){const d=new Date(n),h=new Date();let a=h.getFullYear()-d.getFullYear();if(h<new Date(h.getFullYear(),d.getMonth(),d.getDate()))a--;return a;}
-function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2800);}
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),msg.includes('NÃO FOI')||msg.includes('NÃO SALVA')?7000:2800);}
 
 init();
 </script>
