@@ -34,7 +34,7 @@ button{cursor:pointer;}
 .sb-btn:hover .sb-tt{opacity:1;}
 
 /* NAVTABS */
-.navtabs{background:var(--dk);display:flex;padding:0 10px;flex-shrink:0;overflow-x:auto;}
+.navtabs{background:var(--dk);display:flex;justify-content:center;padding:0 10px;flex-shrink:0;overflow-x:auto;}
 .navtabs::-webkit-scrollbar{height:0;}
 .navtab{padding:11px 20px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(232,213,188,.4);border:none;background:none;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;font-weight:500;transition:color .15s;}
 .navtab:hover{color:rgba(232,213,188,.7);}
@@ -60,7 +60,7 @@ button{cursor:pointer;}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
 .g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
-@media(max-width:900px){.two{grid-template-columns:1fr;}.g4{grid-template-columns:1fr 1fr;}}
+@media(max-width:900px){.two{grid-template-columns:1fr;}.g4{grid-template-columns:1fr 1fr;}.weeks-grid{grid-template-columns:1fr;}}
 
 /* CARDS */
 .card{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:1rem 1.125rem;margin-bottom:12px;}
@@ -117,6 +117,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
 /* PANEL */
 .panel{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:1rem 1.125rem;position:sticky;top:0;}
 .panel::before{content:'';display:block;height:3px;background:var(--terra);border-radius:var(--r) var(--r) 0 0;margin:-1rem -1.125rem 1rem;}
+.pac-help{font-size:11px;color:var(--tl);margin-top:8px;line-height:1.5}
+.pac-resumo{margin-top:10px;padding:10px 12px;border:1px solid var(--bd);border-radius:var(--r);background:var(--bg3)}
+.pac-resumo strong{display:block;font-size:12px;color:var(--tx);margin-bottom:4px}
+.pac-resumo span{display:block;font-size:11px;color:var(--tm)}
 .trow{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;}
 .tlbl{font-size:11px;color:var(--tm);}
 .tval{font-size:12px;font-weight:500;color:var(--tx);}
@@ -124,6 +128,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
 .dur-row{display:flex;gap:4px;margin-bottom:12px;}
 .dur-btn{flex:1;padding:5px 2px;border-radius:var(--r);border:1px solid var(--bd2);background:var(--bg2);color:var(--tm);font-size:10px;text-align:center;cursor:pointer;letter-spacing:.5px;}
 .dur-btn.on{background:var(--terra);color:white;border-color:var(--terra);}
+.dur-custom{display:none;gap:8px;align-items:end;margin-bottom:12px}
+.dur-custom.on{display:grid;grid-template-columns:1fr 118px}
+.hint{font-size:10px;color:var(--tl);line-height:1.5}
 .sel-box{background:var(--bg3);border-radius:var(--r);padding:8px 10px;}
 .sel-box-count{font-size:12px;font-weight:500;color:var(--tx);display:block;margin-bottom:3px;}
 .sel-box-names{font-size:10px;color:var(--tl);}
@@ -192,6 +199,20 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
 .dose-done{color:var(--tl);}
 .sem-replicar{background:var(--dk);color:var(--txw);border:none;border-radius:var(--r);padding:6px 14px;font-size:10px;letter-spacing:.8px;cursor:pointer;}
 .sem-replicar:hover{background:var(--dk2);}
+.weeks-grid{display:grid;grid-template-columns:repeat(2,minmax(280px,1fr));gap:12px}
+.week-card{border:1px solid var(--bd);border-radius:var(--r);background:var(--bg2);padding:12px}
+.week-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
+.week-title{font-size:13px;font-weight:600;color:var(--tx)}
+.week-sub{font-size:10px;color:var(--tl);margin-top:2px}
+.week-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.week-items{display:grid;gap:8px}
+.week-item{display:grid;grid-template-columns:20px 1fr auto;gap:8px;align-items:start;border:1px solid var(--bd);border-radius:var(--r);padding:8px 9px;background:#fff}
+.week-item:hover{border-color:var(--terra)}
+.week-item input[type=checkbox]{margin-top:2px;accent-color:var(--terra)}
+.week-item-name{font-size:11px;font-weight:500;color:var(--tx)}
+.week-item-meta{font-size:10px;color:var(--tl);margin-top:2px}
+.week-item-status{font-size:10px;color:var(--terra-d);background:var(--terra-xl);border:1px solid var(--terra-l);border-radius:var(--r);padding:3px 6px;white-space:nowrap}
+.week-empty{font-size:11px;color:var(--tl);padding:10px;border:1px dashed var(--bd2);border-radius:var(--r);background:var(--bg3)}
 
 /* SESSÕES */
 .ses-nav{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:14px;}
@@ -346,6 +367,12 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
               <select id="sel-pac" onchange="onPacSel()"></select>
               <input id="nome-livre" type="text" placeholder="ou digitar nome...">
             </div>
+            <div class="pac-help">A seleção puxa pacientes da base da clínica e também nomes já existentes na agenda, para manter tudo conectado.</div>
+            <div class="pac-resumo" id="pac-resumo" style="display:none">
+              <strong id="pac-resumo-nome">Paciente selecionado</strong>
+              <span id="pac-resumo-linha1">Sem histórico ainda.</span>
+              <span id="pac-resumo-linha2"></span>
+            </div>
           </div>
 
           <!-- MODELOS RÁPIDOS -->
@@ -378,6 +405,13 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
               <button class="dur-btn" id="dur-12" onclick="setDur(12)">12 MES</button>
               <button class="dur-btn" id="dur-0" onclick="setDur(0)">LIVRE</button>
             </div>
+            <div class="dur-custom" id="dur-custom-box">
+              <div>
+                <div class="sec" style="margin-bottom:4px">Meses livres</div>
+                <input type="number" id="dur-livre-meses" min="1" max="24" value="3">
+              </div>
+              <div class="hint">A quantidade de semanas acompanha automaticamente o número de meses escolhido.</div>
+            </div>
             <div class="sec">Início</div>
             <input type="date" id="dt-inicio" style="margin-bottom:12px">
             <div class="divr"></div>
@@ -401,26 +435,45 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
             <div class="sec">Forma de pagamento</div>
             <div class="pay-grid">
               <div class="pay-opt on" onclick="setPay('pix',this)"><span class="po-label">PIX</span><span class="po-sub">sem taxa</span></div>
-              <div class="pay-opt" onclick="setPay('debito',this)"><span class="po-label">DÉBITO</span><span class="po-sub">sem taxa</span></div>
+              <div class="pay-opt" onclick="setPay('debito',this)"><span class="po-label">DÉBITO</span><span class="po-sub">cartão</span></div>
               <div class="pay-opt" onclick="setPay('credito',this)"><span class="po-label">CRÉDITO</span><span class="po-sub">à vista</span></div>
               <div class="pay-opt" onclick="setPay('parcelado',this)"><span class="po-label">CRÉDITO</span><span class="po-sub">parcelado</span></div>
             </div>
             <div class="taxa-box" id="taxa-box" style="display:none">
-              <label>TAXA DA MAQUININHA</label>
+              <label>TAXA DO CARTÃO</label>
               <div class="taxa-box-right">
-                <input type="number" id="taxa-val" value="2.5" min="0" max="10" step="0.1" oninput="updTotal()">
+                <input type="number" id="taxa-val" value="0" min="0" max="10" step="0.01" oninput="updTotal()">
                 <span style="font-size:11px;color:var(--terra-d)">%</span>
                 <span class="taxa-calc" id="taxa-calc"></span>
               </div>
             </div>
             <div id="parc-sel-box" style="display:none;margin-bottom:8px">
-              <div class="sec">Parcelas</div>
-              <div style="display:flex;gap:4px;flex-wrap:wrap">
-                <button class="btn btn-sm" id="parc-2" onclick="setParc(2)">2x</button>
-                <button class="btn btn-sm" id="parc-3" onclick="setParc(3)">3x</button>
-                <button class="btn btn-sm" id="parc-6" onclick="setParc(6)">6x</button>
-                <button class="btn btn-sm" id="parc-10" onclick="setParc(10)">10x</button>
-                <button class="btn btn-sm" id="parc-12" onclick="setParc(12)">12x</button>
+              <div class="g2">
+                <div>
+                  <div class="sec" style="margin-bottom:4px">Bandeira</div>
+                  <select id="card-brand" onchange="aplicarTaxaCartao()">
+                    <option value="visa">Visa</option>
+                    <option value="mastercard">Mastercard</option>
+                    <option value="elo">Elo</option>
+                    <option value="amex">Amex</option>
+                    <option value="cabal">Cabal</option>
+                  </select>
+                </div>
+                <div>
+                  <div class="sec" style="margin-bottom:4px">Parcelas</div>
+                  <select id="parc-count" onchange="setParc(this.value)">
+                    <option value="1">1x</option>
+                    <option value="2">2x</option>
+                    <option value="3">3x</option>
+                    <option value="4">4x</option>
+                    <option value="5">5x</option>
+                    <option value="6">6x</option>
+                    <option value="7">7x</option>
+                    <option value="8">8x</option>
+                    <option value="9">9x</option>
+                    <option value="10">10x</option>
+                  </select>
+                </div>
               </div>
             </div>
             <div class="parc-box" id="parc-box" style="display:none">
@@ -469,16 +522,12 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
             <div class="sec" style="margin:0">Distribuição por semana</div>
             <div class="btns">
               <button class="sem-replicar" onclick="replicarS1()">Replicar semana 1 em todas</button>
+              <button class="btn btn-xs" onclick="recalcularDatasSemanas()">Recalcular datas</button>
               <button class="btn btn-xs btn-danger" onclick="limparSemanas()">Limpar</button>
             </div>
           </div>
-          <p style="font-size:11px;color:var(--tl);margin-bottom:12px">Marque em quais semanas cada ativo será aplicado. O contador mostra quantas doses restam conforme a quantidade vendida.</p>
-          <div class="sem-table-wrap">
-            <table class="sem-table" id="sem-table">
-              <thead id="sem-thead"></thead>
-              <tbody id="sem-tbody"></tbody>
-            </table>
-          </div>
+          <p style="font-size:11px;color:var(--tl);margin-bottom:12px">Organize o protocolo por semana, com data editável e seleção direta dos ativos previstos em cada etapa.</p>
+          <div id="weeks-grid" class="weeks-grid"></div>
         </div>
         <div class="btns" style="margin-top:10px">
           <button class="btn btn-verde" onclick="pdfProntuario()">PDF Prontuário Completo</button>
@@ -541,7 +590,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
         <div class="mf"><label>Forma de pagamento</label>
           <select id="rec-forma"><option>Pix</option><option>Cartão de débito</option><option>Cartão de crédito à vista</option><option>Cartão de crédito parcelado</option><option>Transferência bancária</option><option>Dinheiro</option></select>
         </div>
-        <div class="mf"><label>Parcelas</label><select id="rec-parc"><option>2x</option><option>3x</option><option>6x</option><option>10x</option><option>12x</option></select></div>
+        <div class="mf"><label>Parcelas</label><select id="rec-parc"><option>1x</option><option>2x</option><option>3x</option><option>4x</option><option>5x</option><option>6x</option><option>7x</option><option>8x</option><option>9x</option><option>10x</option></select></div>
         <div class="mf"><label>Taxa maquininha (%)</label><input id="rec-taxa" type="number" min="0" max="10" step="0.1" value="0"></div>
         <div class="mf"><label>Observação</label><input id="rec-obs" type="text" placeholder="Ex: 50% entrada..."></div>
       </div>
@@ -624,14 +673,22 @@ let prices={'CONSULTA PRESENCIAL':1800,'CONSULTA TELEMEDICINA':2400,'CONSULTA NU
 let costs={},ativoObs={};
 
 // STATE
+const CARD_FEE_TABLE={
+  amex:{debito:0,credito:3.11,p2a6:3.96,p7a10:4.26},
+  cabal:{debito:1.73,credito:2.94,p2a6:3.50,p7a10:3.70},
+  elo:{debito:2.88,credito:3.94,p2a6:4.47,p7a10:4.94},
+  mastercard:{debito:0.79,credito:1.19,p2a6:1.50,p7a10:1.50},
+  visa:{debito:0.79,credito:1.19,p2a6:1.50,p7a10:1.50}
+};
 let selected={},showNote={},activeCat='',duracao=3;
 let pacientes=[],activePacIdx=null;
-// semanas[i][j] = true/false (checkbox)
 let semanas=Array.from({length:12},()=>({}));
+let weekDates=Array.from({length:12},()=>(''));
 let sessoes=Array.from({length:12},()=>({realizada:false,data:'',hora:'',enfermeiro:'',obs:'',intercorrencias:'',itens:{}}));
-let activeSessao=0,editingAtivo=null,payMode='pix',parcSel=2;
+let activeSessao=0,editingAtivo=null,payMode='pix',parcSel=1;
 let modelos=[]; // [{nome, selected, duracao}]
 let historico=[]; // protocolos salvos para o dashboard
+let protocolosBanco=[];
 const signatures={};
 let saveTimer=null;
 const SUPA_URL='https://eeianweavbnrikzqquxq.supabase.co';
@@ -644,12 +701,36 @@ function getCat(n){for(const[c,ns]of Object.entries(CATS_MAP))if(ns.includes(n))
 function fmt(v){return'R$\u00a0'+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function esc(s){return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
 function getNome(){return document.getElementById('nome-livre').value||(activePacIdx!==null&&pacientes[activePacIdx]?pacientes[activePacIdx].nome:'');}
+function getMesesAtivos(){return duracao===0?Math.max(1,Number(document.getElementById('dur-livre-meses')?.value)||1):duracao;}
+function getWeekCount(){return Math.max(1,getMesesAtivos()*4);}
 function getBruto(){return Object.entries(selected).reduce((s,[n,{qty}])=>s+(prices[n]||0)*qty,0);}
 function getDisc(b){const p=parseFloat(document.getElementById('d-pct').value)||0,v=parseFloat(document.getElementById('d-val').value)||0;return Math.max(b*p/100,v);}
-function getTaxa(f){const u=payMode==='credito'||payMode==='parcelado';if(!u)return 0;const t=parseFloat(document.getElementById('taxa-val').value)||0;return f*t/100;}
-function dtLabel(i){const ini=document.getElementById('dt-inicio').value;if(!ini)return'S'+(i+1);const d=new Date(ini+'T12:00');d.setDate(d.getDate()+i*7);return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});}
-function dtFromStart(weekIdx){const ini=document.getElementById('dt-inicio').value;if(!ini)return null;const d=new Date(ini+'T12:00');d.setDate(d.getDate()+weekIdx*7);return d;}
+function getTaxaPercent(){
+  if(!['debito','credito','parcelado'].includes(payMode))return 0;
+  const brand=document.getElementById('card-brand')?.value||'visa';
+  const cfg=CARD_FEE_TABLE[brand]||CARD_FEE_TABLE.visa;
+  if(payMode==='debito')return cfg.debito||0;
+  if(payMode==='credito')return cfg.credito||0;
+  if(parcSel<=1)return cfg.credito||0;
+  if(parcSel<=6)return cfg.p2a6||0;
+  return cfg.p7a10||0;
+}
+function getTaxa(f){const t=getTaxaPercent();return t?f*t/100:0;}
+function defaultWeekDate(i){const ini=document.getElementById('dt-inicio').value;if(!ini)return'';const d=new Date(ini+'T12:00');d.setDate(d.getDate()+i*7);return d.toISOString().slice(0,10);}
+function dtLabel(i){const val=weekDates[i]||defaultWeekDate(i);if(!val)return'S'+(i+1);const d=new Date(val+'T12:00');return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});}
+function dtFromStart(weekIdx){const val=weekDates[weekIdx]||defaultWeekDate(weekIdx);return val?new Date(val+'T12:00'):null;}
 function getProtAtivos(){return Object.entries(selected).map(([n,{qty}])=>({name:n,qty,cat:getCat(n)}));}
+function novaSessao(){return{realizada:false,data:'',hora:'',enfermeiro:'',obs:'',intercorrencias:'',itens:{}};}
+function syncWeekStructures(resetDates=false){
+  const total=getWeekCount();
+  const prevSem=semanas.slice();
+  const prevDates=weekDates.slice();
+  const prevSess=sessoes.slice();
+  semanas=Array.from({length:total},(_,i)=>prevSem[i]?{...prevSem[i]}:{});
+  weekDates=Array.from({length:total},(_,i)=>resetDates?defaultWeekDate(i):(prevDates[i]||defaultWeekDate(i)));
+  sessoes=Array.from({length:total},(_,i)=>prevSess[i]?{...prevSess[i],itens:{...(prevSess[i].itens||{})}}:novaSessao());
+  if(activeSessao>=total)activeSessao=total-1;
+}
 
 // ══ NAVIGATION ═══════════════════════════════════════════════════════════════
 function goPage(id){
@@ -698,21 +779,38 @@ function toggleItem(n,c){if(c)selected[n]={qty:1,note:''};else{delete selected[n
 function chgQty(n,d){if(!selected[n])return;selected[n].qty=Math.max(1,selected[n].qty+d);renderItems();updSummary();scheduleSave();}
 function toggleNote(n){showNote[n]=!showNote[n];renderItems();}
 function setNote(n,v){if(selected[n])selected[n].note=v;}
-function setDur(d){duracao=d;['3','6','12','0'].forEach(x=>{const b=document.getElementById('dur-'+x);if(b)b.classList.toggle('on',String(d)===x);});scheduleSave();}
+function setDur(d){
+  duracao=d;
+  ['3','6','12','0'].forEach(x=>{const b=document.getElementById('dur-'+x);if(b)b.classList.toggle('on',String(d)===x);});
+  document.getElementById('dur-custom-box').classList.toggle('on',d===0);
+  syncWeekStructures(false);
+  atualizarResumoSemanas();
+  renderSemTable();
+  if(document.getElementById('sc-sessoes').style.display!=='none')renderSessoes();
+  if(document.getElementById('sc-overview').style.display!=='none')renderOverview();
+  scheduleSave();
+}
 
 function setPay(mode,btn){
   payMode=mode;
   document.querySelectorAll('.pay-opt').forEach(b=>b.classList.remove('on'));
   if(btn)btn.classList.add('on');
-  const u=mode==='credito'||mode==='parcelado';
+  const u=['debito','credito','parcelado'].includes(mode);
   document.getElementById('taxa-box').style.display=u?'flex':'none';
-  document.getElementById('parc-sel-box').style.display=mode==='parcelado'?'':'none';
+  document.getElementById('parc-sel-box').style.display=u?'':'none';
+  aplicarTaxaCartao();
   updTotal();
 }
 function setParc(n){
-  parcSel=n;
-  [2,3,6,10,12].forEach(x=>{const b=document.getElementById('parc-'+x);if(b){b.classList.toggle('on',x===n);b.style.background=x===n?'var(--terra)':'';b.style.color=x===n?'white':'';b.style.borderColor=x===n?'var(--terra)':'var(--bd2)';}});
+  parcSel=Math.max(1,Math.min(10,Number(n)||1));
+  const sel=document.getElementById('parc-count');if(sel)sel.value=String(parcSel);
+  aplicarTaxaCartao();
   updTotal();
+}
+function aplicarTaxaCartao(){
+  const taxa=getTaxaPercent();
+  const input=document.getElementById('taxa-val');
+  if(input)input.value=taxa?String(taxa.toFixed(2)):0;
 }
 
 function updSummary(){
@@ -733,7 +831,10 @@ function updTotal(){
   if(taxa>0){tr.style.display='flex';document.getElementById('t-taxa').textContent='+ '+fmt(taxa);}else tr.style.display='none';
   const tc=document.getElementById('taxa-calc');if(tc)tc.textContent=taxa>0?'= '+fmt(taxa):'';
   const pb=document.getElementById('parc-box'),pg=document.getElementById('parc-grid');
-  if(final>0&&(payMode==='parcelado'||payMode==='credito')){pb.style.display='block';pg.innerHTML=[[2,0],[3,0],[6,0.015],[10,0.02],[12,0.025]].map(([n,j])=>`<span class="parc-item">${n}x ${fmt(final*(1+j*n)/n)}</span>`).join('');}else pb.style.display='none';
+  if(final>0&&['debito','credito','parcelado'].includes(payMode)){
+    pb.style.display='block';
+    pg.innerHTML=Array.from({length:10},(_,i)=>i+1).map(n=>`<span class="parc-item">${n}x ${fmt(final/n)}</span>`).join('');
+  }else pb.style.display='none';
 }
 function updTotalByVal(){const b=getBruto(),v=parseFloat(document.getElementById('d-val').value)||0;document.getElementById('d-pct').value=b>0?(v/b*100).toFixed(1):0;updTotal();}
 function clearAll(){selected={};showNote={};document.getElementById('d-pct').value=0;document.getElementById('d-val').value=0;renderItems();updSummary();scheduleSave();}
@@ -742,7 +843,7 @@ function irParaSemanas(){
   const items=Object.keys(selected);if(!items.length){alert('Selecione pelo menos um ativo primeiro.');return;}
   const nome=getNome();
   document.getElementById('sem-pac-nome').textContent=nome||'Protocolo sem nome';
-  document.getElementById('sem-info').textContent=' · '+items.length+' ativo(s) · '+(duracao?duracao+' meses':'período livre');
+  atualizarResumoSemanas();
   openModal('pront');
 }
 
