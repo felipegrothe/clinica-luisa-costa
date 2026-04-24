@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Financeiro — Clínica Luisa Costa</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 /* ── RESET & BASE ─────────────────────────────────────────── */
 *{box-sizing:border-box;margin:0;padding:0}
@@ -135,6 +136,8 @@ body{min-height:100vh;display:flex;flex-direction:column}
 .btn-danger:hover{background:var(--red-l)}
 .btn-sm{font-size:10px;padding:5px 12px}
 .btn-xs{font-size:9px;padding:4px 10px}
+.btn-outline-verde{background:#fff;border-color:var(--verde);color:var(--verde)}
+.btn-outline-verde:hover{background:var(--verde-l)}
 
 /* ── IA BANNER ─────────────────────────────────────────────── */
 .ia-banner{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r2);padding:14px 18px;margin-bottom:14px}
@@ -180,6 +183,9 @@ body{min-height:100vh;display:flex;flex-direction:column}
 .mf textarea{resize:vertical;min-height:60px}
 .mf-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
 .mf-row .mf{margin-bottom:0}
+.import-box{border:1px dashed var(--bd2);border-radius:var(--r2);padding:14px;background:var(--bg3);display:grid;gap:10px}
+.import-note{font-size:11px;color:var(--tm);line-height:1.5}
+.import-preview{border:1px solid var(--bd);border-radius:var(--r);background:var(--bg);padding:12px}
 
 /* ── TIPO BUTTONS ──────────────────────────────────────────── */
 .tipo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
@@ -295,7 +301,7 @@ body{min-height:100vh;display:flex;flex-direction:column}
     <div class="sn" onclick="goSub('receitas',this)">Receitas</div>
     <div class="sn" onclick="goSub('despesas',this)">Despesas</div>
     <div class="sn" onclick="goSub('contas',this)">Contas a pagar</div>
-    <div class="sn" onclick="goSub('inadimplentes',this)">Inadimplentes</div>
+    <div class="sn" onclick="goSub('inadimplentes',this)">Contas a receber</div>
     <div class="sn" onclick="goSub('dre',this)">DRE</div>
     <div class="sn" onclick="goSub('ia',this)">Assistente IA</div>
     <div class="sn" onclick="goSub('config',this)">Configurações</div>
@@ -375,6 +381,8 @@ body{min-height:100vh;display:flex;flex-direction:column}
           </select>
           <input class="filtro-input" id="fr-pac" type="text" placeholder="Buscar paciente..." oninput="renderReceitas()">
           <select class="filtro-select" id="fr-mes" onchange="renderReceitas()"><option value="">Todos os meses</option></select>
+          <input class="filtro-input" id="fr-de" type="date" onchange="renderReceitas()" title="De">
+          <input class="filtro-input" id="fr-ate" type="date" onchange="renderReceitas()" title="Até">
           <button class="btn-limpar" onclick="limparFiltrosRec()">Limpar</button>
           <span class="filtro-total" id="fr-total"></span>
         </div>
@@ -398,6 +406,8 @@ body{min-height:100vh;display:flex;flex-direction:column}
         <div class="filtros">
           <select class="filtro-select" id="fd2-cat" onchange="renderDespesas()"><option value="">Todas as categorias</option></select>
           <select class="filtro-select" id="fd2-mes" onchange="renderDespesas()"><option value="">Todos os meses</option></select>
+          <input class="filtro-input" id="fd2-de" type="date" onchange="renderDespesas()" title="De">
+          <input class="filtro-input" id="fd2-ate" type="date" onchange="renderDespesas()" title="Até">
           <button class="btn-limpar" onclick="limparFiltrosDes()">Limpar</button>
           <span class="filtro-total" id="fd2-total"></span>
         </div>
@@ -421,7 +431,10 @@ body{min-height:100vh;display:flex;flex-direction:column}
       <div class="card">
         <div class="card-hd">
           <span class="card-title">Contas a pagar</span>
-          <button class="btn btn-sm btn-terra" onclick="abrirModal('despesa')">+ Adicionar</button>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="btn btn-sm btn-outline-verde" onclick="abrirImportacaoFinanceira('despesa')">Importar PDF</button>
+            <button class="btn btn-sm btn-terra" onclick="abrirModal('despesa')">+ Adicionar</button>
+          </div>
         </div>
         <div class="card-body">
           <table class="tbl">
@@ -441,13 +454,14 @@ body{min-height:100vh;display:flex;flex-direction:column}
       </div>
       <div class="card">
         <div class="card-hd">
-          <span class="card-title">Inadimplentes</span>
+          <span class="card-title">Contas a receber</span>
           <div style="display:flex;gap:8px;align-items:center">
             <div class="filtro-btns">
               <button class="filtro-btn on" id="inad-f-todos" onclick="setInadFiltro('todos')">Todos</button>
               <button class="filtro-btn" id="inad-f-aberto" onclick="setInadFiltro('aberto')">Em aberto</button>
               <button class="filtro-btn" id="inad-f-quitado" onclick="setInadFiltro('quitado')">Quitados</button>
             </div>
+            <button class="btn btn-sm btn-outline-verde" onclick="abrirImportacaoFinanceira('receita')">Importar PDF</button>
             <button class="btn btn-sm btn-terra" onclick="abrirModalInad()">+ Adicionar</button>
           </div>
         </div>
@@ -479,7 +493,7 @@ body{min-height:100vh;display:flex;flex-direction:column}
       <div class="card">
         <div class="card-hd"><span class="card-title">Assistente financeiro IA</span></div>
         <div class="ia-chat" id="ia-chat">
-          <div class="ia-msg ai"><div class="ia-msg-lbl">Assistente</div>Olá! Sou seu assistente financeiro. Pergunte sobre receitas, despesas, inadimplentes ou qualquer análise financeira da clínica.</div>
+          <div class="ia-msg ai"><div class="ia-msg-lbl">Assistente</div>Olá! Sou seu assistente financeiro. Pergunte sobre receitas, despesas, contas a pagar, contas a receber ou qualquer análise financeira da clínica.</div>
         </div>
         <div class="ia-input-wrap">
           <input class="ia-input" id="ia-input" type="text" placeholder="Faça uma pergunta sobre o financeiro..." onkeydown="if(event.key==='Enter')enviarIA()">
@@ -557,13 +571,13 @@ body{min-height:100vh;display:flex;flex-direction:column}
           <div class="pay-detail-lbl">Detalhes — Cartão</div>
           <div class="mf-row">
             <div class="mf" style="margin-bottom:0"><label>Bandeira</label>
-              <select id="m-cartao-band"><option>Visa</option><option>Mastercard</option><option>Elo</option><option>Amex</option><option>Outro</option></select>
+              <select id="m-cartao-band" onchange="atualizarTaxaCartao()"><option>Visa</option><option>Mastercard</option><option>Elo</option><option>Amex</option><option>Cabal</option><option>Outro</option></select>
             </div>
             <div class="mf" style="margin-bottom:0"><label>Parcelas</label>
-              <select id="m-cartao-parc"><option value="1">À vista</option><option value="2">2x</option><option value="3">3x</option><option value="6">6x</option><option value="12">12x</option></select>
+              <select id="m-cartao-parc" onchange="atualizarTaxaCartao()"><option value="1">1x</option><option value="2">2x</option><option value="3">3x</option><option value="4">4x</option><option value="5">5x</option><option value="6">6x</option><option value="7">7x</option><option value="8">8x</option><option value="9">9x</option><option value="10">10x</option></select>
             </div>
           </div>
-          <div class="mf" style="margin-bottom:0;margin-top:8px"><label>Taxa maquininha (%)</label><input id="m-cartao-taxa" type="number" min="0" max="10" step="0.1" value="2.5"></div>
+          <div class="mf" style="margin-bottom:0;margin-top:8px"><label>Taxa maquininha (%)</label><input id="m-cartao-taxa" type="number" min="0" max="10" step="0.01" value="1.19"></div>
         </div>
         <!-- Dinheiro -->
         <div class="pay-detail" id="det-dinheiro" style="display:none">
@@ -665,16 +679,20 @@ body{min-height:100vh;display:flex;flex-direction:column}
 <div id="m-inad" class="modal-ov" onclick="if(event.target===this)fecharInad()">
   <div class="modal-box sm" onclick="event.stopPropagation()">
     <div class="modal-hd">
-      <div><div class="modal-title">Adicionar inadimplente</div><div class="modal-sub">Registro manual de débito em aberto</div></div>
+      <div><div class="modal-title" id="inad-modal-title">Adicionar conta a receber</div><div class="modal-sub" id="inad-modal-sub">Registro manual de débito em aberto</div></div>
       <button class="modal-close" onclick="fecharInad()">✕</button>
     </div>
-    <div class="modal-body">
-      <div class="mf"><label>Paciente</label><input id="inad-pac" type="text" placeholder="Nome do paciente"></div>
-      <div class="mf"><label>Descrição do débito</label><input id="inad-desc" type="text" placeholder="Ex: Protocolo de emagrecimento"></div>
-      <div class="mf-row">
-        <div class="mf"><label>Valor total (R$)</label><input id="inad-total-inp" type="number" min="0" step="10" oninput="calcSaldoInad()"></div>
-        <div class="mf"><label>Já pago (R$)</label><input id="inad-pago-inp" type="number" min="0" step="10" value="0" oninput="calcSaldoInad()"></div>
-      </div>
+      <div class="modal-body">
+        <div class="mf"><label>Paciente</label><input id="inad-pac" type="text" placeholder="Nome do paciente"></div>
+        <div class="mf"><label>Descrição do débito</label><input id="inad-desc" type="text" placeholder="Ex: Protocolo de emagrecimento"></div>
+        <div class="mf-row">
+          <div class="mf"><label>Valor total (R$)</label><input id="inad-total-inp" type="number" min="0" step="10" oninput="calcSaldoInad()"></div>
+          <div class="mf"><label>Já pago (R$)</label><input id="inad-pago-inp" type="number" min="0" step="10" value="0" oninput="calcSaldoInad()"></div>
+        </div>
+        <div class="mf-row">
+          <div class="mf"><label>Forma prevista</label><select id="inad-forma-prev"><option value="">Não definida</option><option value="boleto">Boleto</option><option value="pix">PIX</option><option value="cartao">Cartão</option><option value="dinheiro">Dinheiro</option></select></div>
+          <div class="mf"><label>Previsão de pagamento</label><input id="inad-prev" type="date"></div>
+        </div>
       <div style="background:var(--bg3);border:1px solid var(--bd);border-radius:var(--r);padding:12px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
         <span style="font-size:10px;color:var(--tl);font-weight:600;letter-spacing:.5px">SALDO EM ABERTO</span>
         <span id="inad-saldo-preview" style="font-size:22px;font-weight:500;color:var(--red)">R$ 0</span>
@@ -683,7 +701,7 @@ body{min-height:100vh;display:flex;flex-direction:column}
     </div>
     <div class="modal-ft">
       <button class="btn" onclick="fecharInad()">Cancelar</button>
-      <button class="btn btn-terra" onclick="salvarInad()">Salvar</button>
+      <button class="btn btn-terra" id="inad-save-btn" onclick="salvarInad()">Salvar</button>
     </div>
   </div>
 </div>
@@ -727,6 +745,55 @@ body{min-height:100vh;display:flex;flex-direction:column}
   </div>
 </div>
 
+<!-- Modal importação PDF -->
+<div id="m-import-fin" class="modal-ov" onclick="if(event.target===this)fecharImportacaoFinanceira()">
+  <div class="modal-box lg" onclick="event.stopPropagation()">
+    <div class="modal-hd">
+      <div><div class="modal-title">Importar PDF financeiro</div><div class="modal-sub" id="imp-sub">Leitura assistida com prévia antes de salvar</div></div>
+      <button class="modal-close" onclick="fecharImportacaoFinanceira()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="import-box">
+        <div class="mf" style="margin-bottom:0">
+          <label>Destino</label>
+          <select id="imp-tipo">
+            <option value="despesa">Contas a pagar</option>
+            <option value="receita">Contas a receber</option>
+          </select>
+        </div>
+        <div class="mf" style="margin-bottom:0">
+          <label>Arquivo PDF</label>
+          <input id="imp-arquivo" type="file" accept="application/pdf">
+        </div>
+        <div class="import-note">O sistema lê o texto do PDF, sugere os campos principais e só grava depois da sua conferência.</div>
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button class="btn" onclick="lerPdfFinanceiro()">Ler PDF</button>
+        </div>
+      </div>
+      <div class="import-preview" style="margin-top:14px">
+        <div class="mf"><label>Status da leitura</label><div id="imp-status" class="import-note">Selecione um PDF e clique em “Ler PDF”.</div></div>
+        <div class="mf-row">
+          <div class="mf"><label>Nome / entidade</label><input id="imp-entidade" type="text" placeholder="Fornecedor ou paciente"></div>
+          <div class="mf"><label>Descrição</label><input id="imp-desc" type="text" placeholder="Descrição extraída do documento"></div>
+        </div>
+        <div class="mf-row">
+          <div class="mf"><label>Valor (R$)</label><input id="imp-valor" type="number" step="0.01" min="0"></div>
+          <div class="mf"><label>Vencimento / previsão</label><input id="imp-venc" type="date"></div>
+        </div>
+        <div class="mf-row">
+          <div class="mf"><label>Forma prevista</label><select id="imp-forma"><option value="">Não definida</option><option value="boleto">Boleto</option><option value="pix">PIX</option><option value="cartao">Cartão</option><option value="dinheiro">Dinheiro</option></select></div>
+          <div class="mf"><label>Categoria</label><select id="imp-cat"></select></div>
+        </div>
+        <div class="mf" style="margin-bottom:0"><label>Texto lido / observações</label><textarea id="imp-obs" placeholder="Trecho do PDF e observações internas."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn" onclick="fecharImportacaoFinanceira()">Cancelar</button>
+      <button class="btn btn-terra" onclick="salvarImportacaoFinanceira()">Salvar importação</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div id="toast"></div>
 
@@ -743,8 +810,17 @@ let TIPO='receita', PAY='pix';
 let DET_ID=null, QUIT_ID=null, QUIT_ORIGEM=null, QUIT_SALDO=0;
 let INAD_FILTRO='todos', DASH_FILTRO='', DASH_MES='';
 let INAD_LISTA=[];
+let INAD_EDIT_ID=null;
+let IMPORT_FIN=null;
 let REC_PG=0, DES_PG=0;
 const PG_SIZE=15;
+const CARD_FEE_TABLE={
+  amex:{credito:3.11,p2a6:3.96,p7a10:4.26},
+  cabal:{debito:1.73,credito:2.94,p2a6:3.5,p7a10:3.7},
+  elo:{debito:2.88,credito:3.94,p2a6:4.47,p7a10:4.94},
+  mastercard:{debito:0.79,credito:1.19,p2a6:1.5,p7a10:1.5},
+  visa:{debito:0.79,credito:1.19,p2a6:1.5,p7a10:1.5}
+};
 
 const CATS_REC=[
   {cod:'1.1',label:'1.1 — Consulta Dra. Luisa Costa'},
@@ -778,6 +854,50 @@ const CATS_DES=[
   {cod:'7.1',label:'7.1 — Benfeitorias / Obra'},
   {cod:'7.2',label:'7.2 — Equipamentos Médicos'},
 ];
+function labelCategoria(lista,cod){
+  return lista.find(c=>cod&&cod.startsWith(c.cod))?.label||cod||'—';
+}
+function dataNoIntervalo(data,de,ate){
+  if(!data)return false;
+  if(de&&data<de)return false;
+  if(ate&&data>ate)return false;
+  return true;
+}
+function atualizarTaxaCartao(){
+  const band=(S('m-cartao-band')?.value||'').toLowerCase();
+  const parc=Number(S('m-cartao-parc')?.value||1);
+  const tabela=CARD_FEE_TABLE[band];
+  if(!tabela||!S('m-cartao-taxa'))return;
+  const taxa=parc<=1?(tabela.credito??tabela.debito??0):(parc<=6?(tabela.p2a6??tabela.credito??0):(tabela.p7a10??tabela.p2a6??tabela.credito??0));
+  S('m-cartao-taxa').value=String(Number(taxa).toFixed(2));
+}
+function normalizarTextoPdf(txt){
+  return String(txt||'').replace(/\s+/g,' ').trim();
+}
+function sugerirValorPdf(txt){
+  const match=[...String(txt||'').matchAll(/(?:R\$\s*)?(\d{1,3}(?:\.\d{3})*,\d{2})/g)].map(m=>m[1]);
+  if(!match.length)return '';
+  const bruto=match.sort((a,b)=>{
+    const va=Number(a.replace(/\./g,'').replace(',','.'));
+    const vb=Number(b.replace(/\./g,'').replace(',','.'));
+    return vb-va;
+  })[0];
+  return Number(bruto.replace(/\./g,'').replace(',','.')).toFixed(2);
+}
+function sugerirDataPdf(txt){
+  const m=String(txt||'').match(/\b(\d{2})\/(\d{2})\/(\d{4})\b/);
+  return m?`${m[3]}-${m[2]}-${m[1]}`:'';
+}
+function sugerirEntidadePdf(txt){
+  const linhas=String(txt||'').split(/\n+/).map(s=>s.trim()).filter(Boolean);
+  const candidato=linhas.find(l=>l.length>5&&/[A-ZÀ-Ú]/.test(l))||'';
+  return candidato.slice(0,120);
+}
+function setImportCategorias(tipo){
+  const sel=S('imp-cat'); if(!sel)return;
+  const lista=tipo==='receita'?CATS_REC:CATS_DES;
+  sel.innerHTML=lista.map(c=>`<option value="${c.cod}">${c.label}</option>`).join('');
+}
 
 // ── UTILS ──────────────────────────────────────────────────────
 const fmt=(v)=>'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
@@ -990,11 +1110,11 @@ function renderDash(){
 
 // ── RECEITAS ───────────────────────────────────────────────────
 function popularFiltrosRec(){
-  const cats=[...new Set(LANCS.filter(l=>l.tipo==='receita'&&l.categoria_dre).map(l=>l.categoria_dre))].sort();
+  const cats=CATS_REC;
   const fc=S('fr-cat'); if(fc){
     const v=fc.value;
     fc.innerHTML='<option value="">Todas as categorias</option>'+
-      cats.map(c=>`<option value="${c}"${c===v?' selected':''}>${c}</option>`).join('');
+      cats.map(c=>`<option value="${c.cod}"${c.cod===v?' selected':''}>${c.label}</option>`).join('');
   }
   const meses=[...new Set(LANCS.filter(l=>l.tipo==='receita'&&l.data).map(l=>l.data.slice(0,7)))].sort().reverse();
   const fm=S('fr-mes'); if(fm){
@@ -1010,22 +1130,25 @@ function renderReceitas(){
   const pay=S('fr-pay')?.value||'';
   const pac=(S('fr-pac')?.value||'').toLowerCase().trim();
   const mes=S('fr-mes')?.value||'';
-  if(cat) lista=lista.filter(l=>l.categoria_dre&&l.categoria_dre.startsWith(cat.split(' ')[0]));
+  const de=S('fr-de')?.value||'';
+  const ate=S('fr-ate')?.value||'';
+  if(cat) lista=lista.filter(l=>l.categoria_dre&&l.categoria_dre.startsWith(cat));
   if(pay) lista=lista.filter(l=>l.forma_pagamento===pay);
   if(pac) lista=lista.filter(l=>l.paciente&&l.paciente.toLowerCase().includes(pac));
   if(mes) lista=lista.filter(l=>l.data?.startsWith(mes));
+  if(de||ate) lista=lista.filter(l=>dataNoIntervalo(l.data,de,ate));
   const total=lista.reduce((s,l)=>s+Number(l.valor||0),0);
   setSafe('fr-total',lista.length+' resultado(s) · '+fmt(total));
   renderTblPag('rec-tbody','rec-pag',lista,REC_PG,(p)=>{REC_PG=p;renderReceitas();},renderRowRec);
 }
 
 function renderRowRec(l){
-  const cat=CATS_REC.find(c=>l.categoria_dre&&l.categoria_dre.startsWith(c.cod));
+  const cat=labelCategoria(CATS_REC,l.categoria_dre);
   const pay=l.forma_pagamento?`<span class="badge ${l.forma_pagamento}">${l.forma_pagamento.toUpperCase()}</span>`:'—';
   return `<tr style="cursor:pointer" onclick="abrirDet('${l.id}')">
     <td style="white-space:nowrap;color:var(--tl)">${fmtData(l.data)}</td>
     <td>${l.descricao||'—'}</td>
-    <td style="color:var(--tl);font-size:11px">${cat?.label||l.categoria_dre||'—'}</td>
+    <td style="color:var(--tl);font-size:11px">${cat}</td>
     <td style="color:var(--tl)">${l.paciente||'—'}</td>
     <td>${pay}</td>
     <td style="text-align:right" class="val-pos">+ ${fmt(l.valor)}</td>
@@ -1034,7 +1157,7 @@ function renderRowRec(l){
 }
 
 function limparFiltrosRec(){
-  ['fr-cat','fr-pay','fr-mes'].forEach(id=>{const e=S(id);if(e)e.value='';});
+  ['fr-cat','fr-pay','fr-mes','fr-de','fr-ate'].forEach(id=>{const e=S(id);if(e)e.value='';});
   const p=S('fr-pac');if(p)p.value='';
   setSafe('fr-total','');
   REC_PG=0; renderReceitas();
@@ -1042,11 +1165,11 @@ function limparFiltrosRec(){
 
 // ── DESPESAS ───────────────────────────────────────────────────
 function popularFiltrosDes(){
-  const cats=[...new Set(LANCS.filter(l=>l.tipo==='despesa'&&l.categoria_dre).map(l=>l.categoria_dre))].sort();
+  const cats=CATS_DES;
   const fc=S('fd2-cat'); if(fc){
     const v=fc.value;
     fc.innerHTML='<option value="">Todas as categorias</option>'+
-      cats.map(c=>`<option value="${c}"${c===v?' selected':''}>${c}</option>`).join('');
+      cats.map(c=>`<option value="${c.cod}"${c.cod===v?' selected':''}>${c.label}</option>`).join('');
   }
   const meses=[...new Set(LANCS.filter(l=>l.tipo==='despesa'&&l.data).map(l=>l.data.slice(0,7)))].sort().reverse();
   const fm=S('fd2-mes'); if(fm){
@@ -1060,8 +1183,11 @@ function renderDespesas(){
   let lista=LANCS.filter(l=>l.tipo==='despesa');
   const cat=S('fd2-cat')?.value||'';
   const mes=S('fd2-mes')?.value||'';
-  if(cat) lista=lista.filter(l=>l.categoria_dre&&l.categoria_dre.startsWith(cat.split(' ')[0]));
+  const de=S('fd2-de')?.value||'';
+  const ate=S('fd2-ate')?.value||'';
+  if(cat) lista=lista.filter(l=>l.categoria_dre&&l.categoria_dre.startsWith(cat));
   if(mes) lista=lista.filter(l=>l.data?.startsWith(mes));
+  if(de||ate) lista=lista.filter(l=>dataNoIntervalo(l.data,de,ate));
   const total=lista.reduce((s,l)=>s+Number(l.valor||0),0);
   setSafe('fd2-total',lista.length+' resultado(s) · '+fmt(total));
   renderTblPag('des-tbody','des-pag',lista,DES_PG,(p)=>{DES_PG=p;renderDespesas();},renderRowDes);
@@ -1077,7 +1203,7 @@ function renderRowDes(l){
   return `<tr style="cursor:pointer" onclick="abrirDet('${l.id}')">
     <td style="white-space:nowrap;color:var(--tl)">${fmtData(l.data)}</td>
     <td>${l.descricao||'—'}</td>
-    <td style="color:var(--tl);font-size:11px">${l.categoria_dre||'—'}</td>
+    <td style="color:var(--tl);font-size:11px">${labelCategoria(CATS_DES,l.categoria_dre)}</td>
     <td style="${vencCor};white-space:nowrap">${venc}</td>
     <td>${status}</td>
     <td style="text-align:right" class="val-neg">− ${fmt(l.valor)}</td>
@@ -1086,7 +1212,7 @@ function renderRowDes(l){
 }
 
 function limparFiltrosDes(){
-  ['fd2-cat','fd2-mes'].forEach(id=>{const e=S(id);if(e)e.value='';});
+  ['fd2-cat','fd2-mes','fd2-de','fd2-ate'].forEach(id=>{const e=S(id);if(e)e.value='';});
   setSafe('fd2-total',''); DES_PG=0; renderDespesas();
 }
 
@@ -1127,7 +1253,7 @@ function renderContas(){
     return `<tr>
       <td style="${cor};white-space:nowrap;font-weight:500">${fmtData(venc)}</td>
       <td>${l.descricao||'—'}</td>
-      <td style="color:var(--tl);font-size:11px">${l.categoria_dre||'—'}</td>
+      <td style="color:var(--tl);font-size:11px">${labelCategoria(CATS_DES,l.categoria_dre)}</td>
       <td>${status}</td>
       <td style="text-align:right" class="val-neg">− ${fmt(l.valor)}</td>
       <td style="text-align:center">
@@ -1145,6 +1271,18 @@ async function marcarPago(id){
     showToast('Marcado como pago!');
     renderContas();
   }catch(e){showToast('Erro ao atualizar','err');}
+}
+
+async function marcarRecebidoBoleto(id){
+  if(!isAdmin()){showToast('Apenas administradores podem atualizar','err');return;}
+  try{
+    const{error}=await db.from('fin_lancamentos').update({pago:true}).eq('id',id);
+    if(error)throw error;
+    LANCS=LANCS.map(l=>String(l.id)===String(id)?{...l,pago:true}:l);
+    showToast('Boleto marcado como recebido!');
+    renderInad();
+    renderDash();
+  }catch(e){showToast('Erro ao atualizar recebimento','err');}
 }
 
 // ── INADIMPLENTES ──────────────────────────────────────────────
@@ -1178,7 +1316,21 @@ async function renderInad(){
     if(!error&&data) INAD_MANUAIS=data;
   }catch(e){INAD_MANUAIS=[];}
 
-  INAD_LISTA=[...inadProt,...INAD_MANUAIS.map(i=>({...i,origem:'manual'}))];
+  const boletos=LANCS.filter(l=>l.tipo==='receita'&&l.forma_pagamento==='boleto'&&l.vencimento).map(l=>({
+    id:'boleto_'+l.id,
+    paciente_nome:l.paciente||'Sem paciente',
+    titulo:l.descricao||'Boleto a receber',
+    descricao:l.descricao||'Boleto a receber',
+    valor_total:Number(l.valor||0),
+    valor_pago:l.pago?Number(l.valor||0):0,
+    saldo_devedor:l.pago?0:Number(l.valor||0),
+    origem:'boleto',
+    quitado:!!l.pago,
+    previsao_pagamento:l.vencimento,
+    lancamento_id:l.id
+  }));
+
+  INAD_LISTA=[...inadProt,...INAD_MANUAIS.map(i=>({...i,origem:'manual'})),...boletos];
   const emAberto=INAD_LISTA.filter(i=>!i.quitado);
   const totalAb=emAberto.reduce((s,i)=>s+Number(i.saldo_devedor||0),0);
   setSafe('inad-total',fmt(totalAb));
@@ -1202,13 +1354,20 @@ function renderInadTabela(){
     const pago=Number(i.valor_pago||0);
     const total=Number(i.valor_total||0);
     const pct=total>0?Math.round(pago/total*100):0;
-    const origemBadge=i.origem==='protocolo'?'<span class="badge protocolo">Protocolo</span>':'<span class="badge manual">Manual</span>';
+    const origemBadge=i.origem==='protocolo'
+      ?'<span class="badge protocolo">Protocolo</span>'
+      :(i.origem==='boleto'?'<span class="badge boleto">Boleto</span>':'<span class="badge manual">Manual</span>');
     const statusBadge=i.quitado?'<span class="badge quitado">Quitado</span>':'<span class="badge" style="background:var(--red-l);color:var(--red)">Em aberto</span>';
+    const editarBtn=i.origem==='manual'&&isAdmin()?`<button onclick="abrirEditarInad('${i.id}')" style="font-size:9px;padding:3px 8px;border:1px solid var(--bd2);border-radius:var(--r);background:none;color:var(--tl);cursor:pointer">Editar</button>`:'';
+    const removerBtn=i.origem==='manual'&&isAdmin()?`<button onclick="removerInad('${i.id}')" style="font-size:9px;padding:3px 6px;border:1px solid var(--bd2);border-radius:var(--r);background:none;color:var(--tl);cursor:pointer">Remover</button>`:'';
+    const receberBoletoBtn=i.origem==='boleto'&&!i.quitado&&isAdmin()?`<button onclick="marcarRecebidoBoleto('${i.lancamento_id}')" style="font-size:9px;padding:3px 8px;border:1px solid var(--verde);border-radius:var(--r);background:var(--verde-l);color:var(--verde);cursor:pointer;font-weight:600;white-space:nowrap">Receber</button>`:'';
     const acoes=i.quitado
-      ?`${i.origem==='manual'?`<button onclick="removerInad('${i.id}')" style="font-size:9px;padding:2px 8px;border:1px solid var(--bd2);border-radius:var(--r);background:none;color:var(--tl);cursor:pointer">Remover</button>`:'—'}`
-      :`<div style="display:flex;gap:4px;justify-content:center">
+      ?`${editarBtn||removerBtn?`<div style="display:flex;gap:4px;justify-content:center">${editarBtn}${removerBtn}</div>`:'—'}`
+      :`<div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap">
           <button onclick="abrirQuit(${idx})" style="font-size:9px;padding:3px 8px;border:1px solid var(--verde);border-radius:var(--r);background:var(--verde-l);color:var(--verde);cursor:pointer;font-weight:600;white-space:nowrap">Quitar</button>
-          ${i.origem==='manual'?`<button onclick="removerInad('${i.id}')" style="font-size:9px;padding:3px 6px;border:1px solid var(--bd2);border-radius:var(--r);background:none;color:var(--tl);cursor:pointer">✕</button>`:''}
+          ${receberBoletoBtn}
+          ${editarBtn}
+          ${removerBtn}
         </div>`;
     return `<tr>
       <td>
@@ -1217,7 +1376,7 @@ function renderInadTabela(){
           <span style="font-weight:500">${nome}</span>
         </div>
       </td>
-      <td style="color:var(--tl);font-size:11px">${i.titulo||i.descricao||'—'}</td>
+      <td style="color:var(--tl);font-size:11px">${i.titulo||i.descricao||'—'}${i.previsao_pagamento?`<br><span style="color:var(--tm)">Previsto para ${fmtData(i.previsao_pagamento)}</span>`:''}</td>
       <td>${origemBadge}</td>
       <td style="text-align:right;font-weight:500">${fmt(total)}</td>
       <td style="text-align:right;color:var(--verde)">${fmt(pago)}</td>
@@ -1235,12 +1394,116 @@ function renderInadTabela(){
 }
 
 function abrirModalInad(){
+  INAD_EDIT_ID=null;
   ['inad-pac','inad-desc','inad-obs'].forEach(id=>{const e=S(id);if(e)e.value='';});
   S('inad-total-inp').value=''; S('inad-pago-inp').value='0';
+  if(S('inad-prev'))S('inad-prev').value='';
+  if(S('inad-forma-prev'))S('inad-forma-prev').value='';
+  setSafe('inad-modal-title','Adicionar conta a receber');
+  setSafe('inad-modal-sub','Registro manual de débito em aberto');
+  if(S('inad-save-btn'))S('inad-save-btn').textContent='Salvar';
   setSafe('inad-saldo-preview','R$ 0');
   S('m-inad').classList.add('on');
 }
 function fecharInad(){S('m-inad').classList.remove('on');}
+
+function abrirImportacaoFinanceira(tipo){
+  IMPORT_FIN={tipo};
+  if(S('imp-tipo'))S('imp-tipo').value=tipo;
+  if(S('imp-arquivo'))S('imp-arquivo').value='';
+  ['imp-entidade','imp-desc','imp-valor','imp-venc','imp-obs'].forEach(id=>{if(S(id))S(id).value='';});
+  if(S('imp-forma'))S('imp-forma').value=tipo==='receita'?'boleto':'';
+  setImportCategorias(tipo);
+  setSafe('imp-status',tipo==='receita'?'Pronto para importar um PDF para contas a receber.':'Pronto para importar um PDF para contas a pagar.');
+  setSafe('imp-sub',tipo==='receita'?'Leitura assistida com prévia para contas a receber':'Leitura assistida com prévia para contas a pagar');
+  S('m-import-fin').classList.add('on');
+}
+function fecharImportacaoFinanceira(){S('m-import-fin').classList.remove('on');}
+
+async function lerPdfFinanceiro(){
+  const file=S('imp-arquivo')?.files?.[0];
+  if(!file){showToast('Selecione um PDF primeiro','warn');return;}
+  if(typeof pdfjsLib==='undefined'){showToast('Leitor de PDF indisponível neste navegador','err');return;}
+  try{
+    setSafe('imp-status','Lendo PDF...');
+    pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const arr=await file.arrayBuffer();
+    const pdf=await pdfjsLib.getDocument({data:arr}).promise;
+    let texto='';
+    for(let i=1;i<=pdf.numPages;i++){
+      const page=await pdf.getPage(i);
+      const content=await page.getTextContent();
+      texto+=content.items.map(it=>it.str).join(' ')+'\n';
+    }
+    const normal=normalizarTextoPdf(texto);
+    const tipo=S('imp-tipo')?.value||'despesa';
+    setImportCategorias(tipo);
+    if(S('imp-valor'))S('imp-valor').value=sugerirValorPdf(normal);
+    if(S('imp-venc'))S('imp-venc').value=sugerirDataPdf(normal);
+    if(S('imp-entidade'))S('imp-entidade').value=sugerirEntidadePdf(texto);
+    if(S('imp-desc'))S('imp-desc').value=tipo==='receita'?'Documento importado para recebimento':'Documento importado para pagamento';
+    if(S('imp-obs'))S('imp-obs').value=normal.slice(0,2500);
+    setSafe('imp-status','PDF lido. Revise os campos abaixo antes de salvar.');
+  }catch(e){
+    console.error(e);
+    setSafe('imp-status','Não foi possível ler este PDF. Você ainda pode preencher os campos manualmente.');
+    showToast('Erro ao ler PDF','err');
+  }
+}
+
+async function salvarImportacaoFinanceira(){
+  const tipo=S('imp-tipo')?.value||'despesa';
+  const entidade=S('imp-entidade')?.value.trim()||'';
+  const descricao=S('imp-desc')?.value.trim()||'Documento importado';
+  const valor=parseFloat(S('imp-valor')?.value)||0;
+  const venc=S('imp-venc')?.value||null;
+  const forma=S('imp-forma')?.value||null;
+  const categoria=S('imp-cat')?.value||'';
+  const obs=S('imp-obs')?.value.trim()||'';
+  if(!valor){showToast('Informe o valor antes de salvar','err');return;}
+  try{
+    if(tipo==='despesa'){
+      const payload={tipo:'despesa',descricao,categoria_dre:categoria,valor,data:hoje(),vencimento:venc,paciente:entidade||null,obs:`Importado de PDF${obs?` | ${obs}`:''}`,pago:false,user_id:USER?.id||null};
+      const{data:row,error}=await db.from('fin_lancamentos').insert(payload).select().single();
+      if(error)throw error;
+      LANCS.unshift(row);
+      renderContas();
+    }else{
+      const payload={paciente:entidade||'Paciente não identificado',descricao,valor_total:valor,valor_pago:0,saldo_devedor:valor,quitado:false,obs:`Importado de PDF${venc?` [prev:${venc}]`:''}${forma?` [forma:${forma}]`:''}${obs?` | ${obs}`:''}`,user_id:USER?.id||null};
+      const{error}=await db.from('fin_inadimplentes').insert(payload);
+      if(error)throw error;
+      await renderInad();
+    }
+    fecharImportacaoFinanceira();
+    showToast('Documento importado com sucesso!');
+    renderDash();
+  }catch(e){
+    console.error(e);
+    showToast('Não foi possível salvar a importação no Supabase','err');
+  }
+}
+
+function abrirEditarInad(id){
+  if(!isAdmin()){showToast('Apenas administradores podem editar','err');return;}
+  const item=INAD_MANUAIS.find(i=>String(i.id)===String(id));
+  if(!item){showToast('Registro manual não encontrado','err');return;}
+  INAD_EDIT_ID=String(id);
+  S('inad-pac').value=item.paciente||'';
+  S('inad-desc').value=item.descricao||'';
+  S('inad-total-inp').value=item.valor_total||0;
+  S('inad-pago-inp').value=item.valor_pago||0;
+  const obs=item.obs||'';
+  const prev=obs.match(/\[prev:([0-9-]+)\]/i)?.[1]||'';
+  const forma=obs.match(/\[forma:([a-z_]+)\]/i)?.[1]||'';
+  if(S('inad-prev'))S('inad-prev').value=prev;
+  if(S('inad-forma-prev'))S('inad-forma-prev').value=forma;
+  S('inad-obs').value=obs.replace(/\s*\[prev:[^\]]+\]/ig,'').replace(/\s*\[forma:[^\]]+\]/ig,'').trim();
+  calcSaldoInad();
+  setSafe('inad-modal-title','Editar conta a receber');
+  setSafe('inad-modal-sub','Ajuste disponível apenas para administradores');
+  if(S('inad-save-btn'))S('inad-save-btn').textContent='Salvar edição';
+  S('m-inad').classList.add('on');
+}
 
 function calcSaldoInad(){
   const t=parseFloat(S('inad-total-inp')?.value)||0;
@@ -1253,15 +1516,22 @@ async function salvarInad(){
   const desc=S('inad-desc')?.value.trim();
   const total=parseFloat(S('inad-total-inp')?.value)||0;
   const pago=parseFloat(S('inad-pago-inp')?.value)||0;
-  const obs=S('inad-obs')?.value.trim()||'';
+  const prev=S('inad-prev')?.value||'';
+  const formaPrev=S('inad-forma-prev')?.value||'';
+  const obsBase=S('inad-obs')?.value.trim()||'';
+  const obs=[obsBase,prev?`[prev:${prev}]`:'',formaPrev?`[forma:${formaPrev}]`:'' ].filter(Boolean).join(' ');
   if(!pac){showToast('Informe o paciente','err');return;}
   if(!total){showToast('Informe o valor total','err');return;}
+  const saldo=Math.max(0,total-pago);
   const payload={paciente:pac,descricao:desc,valor_total:total,valor_pago:pago,
-    saldo_devedor:Math.max(0,total-pago),obs,quitado:false,user_id:USER?.id||null};
+    saldo_devedor:saldo,obs,quitado:saldo<0.01,user_id:USER?.id||null};
   try{
-    const{error}=await db.from('fin_inadimplentes').insert(payload);
+    const query=INAD_EDIT_ID
+      ?db.from('fin_inadimplentes').update(payload).eq('id',INAD_EDIT_ID)
+      :db.from('fin_inadimplentes').insert(payload);
+    const{error}=await query;
     if(error)throw error;
-    showToast('Inadimplente registrado!');
+    showToast(INAD_EDIT_ID?'Conta a receber atualizada!':'Conta a receber registrada!');
   }catch(e){showToast('Erro — verifique se a tabela fin_inadimplentes existe','warn');}
   fecharInad();
   await carregar();
@@ -1351,6 +1621,7 @@ function abrirModal(tipo){
   ['m-desc','m-obs'].forEach(id=>{const e=S(id);if(e)e.value='';});
   S('m-valor').value=''; S('m-paciente').value=''; S('m-paciente-des').value='';
   if(S('m-venc')) S('m-venc').value='';
+  if(S('m-bol-venc')) S('m-bol-venc').value='';
   if(S('m-sinal')) S('m-sinal').checked=false;
   if(S('m-recorrente')) S('m-recorrente').checked=false;
   if(S('m-lembrete')) S('m-lembrete').checked=true;
@@ -1389,6 +1660,7 @@ function setPay(p){
   ['pix','cartao','dinheiro','boleto'].forEach(f=>{
     const d=S('det-'+f); if(d) d.style.display=f===p?'':'none';
   });
+  if(p==='cartao')atualizarTaxaCartao();
 }
 
 function calcTroco(){
@@ -1440,6 +1712,7 @@ async function salvar(){
   if(TIPO==='receita'){
     if(PAY==='pix') extras.pix_banco=S('m-pix-banco')?.value||'';
     if(PAY==='cartao'){extras.cartao_bandeira=S('m-cartao-band')?.value;extras.cartao_parcelas=parseInt(S('m-cartao-parc')?.value)||1;extras.cartao_taxa=parseFloat(S('m-cartao-taxa')?.value)||0;}
+    if(PAY==='boleto') extras.vencimento=S('m-bol-venc')?.value||null;
   }
 
   const payload={tipo:TIPO,descricao:desc,categoria_dre:cat,valor,data,obs:obs||null,
@@ -1491,20 +1764,23 @@ document.addEventListener('click',e=>{
   if(!e.target.closest('#m-paciente')&&!e.target.closest('#m-pac-drop')){const d=S('m-pac-drop');if(d)d.style.display='none';}
   if(!e.target.closest('#m-paciente-des')&&!e.target.closest('#m-pac-drop-des')){const d=S('m-pac-drop-des');if(d)d.style.display='none';}
 });
+document.addEventListener('change',e=>{
+  if(e.target?.id==='imp-tipo')setImportCategorias(e.target.value||'despesa');
+});
 
 // ── DETALHE / EDIÇÃO ──────────────────────────────────────────
 function abrirDet(id){
   const l=LANCS.find(x=>String(x.id)===String(id)); if(!l)return;
   DET_ID=id;
   const pos=l.tipo==='receita';
-  const cat=(pos?CATS_REC:CATS_DES).find(c=>l.categoria_dre?.startsWith(c.cod));
+  const cat=labelCategoria(pos?CATS_REC:CATS_DES,l.categoria_dre);
   setSafe('det-title',l.descricao||'Lançamento');
   setSafe('det-sub',(pos?'Receita':'Despesa')+' · '+fmt(l.valor));
   const rows=[
     {k:'Tipo',v:pos?'Receita':'Despesa'},
     {k:'Valor',v:fmt(l.valor),c:pos?'var(--verde)':'var(--red)'},
     {k:'Data',v:fmtData(l.data)},
-    {k:'Categoria DRE',v:cat?.label||l.categoria_dre||'—'},
+    {k:'Categoria DRE',v:cat},
     {k:'Forma de pagamento',v:l.forma_pagamento?.toUpperCase()||'—'},
     {k:'Banco PIX',v:l.pix_banco||null},
     {k:'Paciente',v:l.paciente||null},
