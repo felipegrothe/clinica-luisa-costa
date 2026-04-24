@@ -591,7 +591,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
           <select id="rec-forma"><option>Pix</option><option>Cartão de débito</option><option>Cartão de crédito à vista</option><option>Cartão de crédito parcelado</option><option>Transferência bancária</option><option>Dinheiro</option></select>
         </div>
         <div class="mf"><label>Parcelas</label><select id="rec-parc"><option>1x</option><option>2x</option><option>3x</option><option>4x</option><option>5x</option><option>6x</option><option>7x</option><option>8x</option><option>9x</option><option>10x</option></select></div>
-        <div class="mf"><label>Taxa maquininha (%)</label><input id="rec-taxa" type="number" min="0" max="10" step="0.1" value="0"></div>
+        <div class="mf"><label>Taxa maquininha (%)</label><input id="rec-taxa" type="number" min="0" max="10" step="0.01" value="0"></div>
         <div class="mf"><label>Observação</label><input id="rec-obs" type="text" placeholder="Ex: 50% entrada..."></div>
       </div>
       <div class="modal-foot">
@@ -740,6 +740,7 @@ function goPage(id){
   const nb=document.getElementById('nav-'+id);if(nb)nb.classList.add('on');
   if(id==='ativos')renderAtivos();
   if(id==='dashboard')renderDashboard();
+  if(id==='semanas'){atualizarResumoSemanas();renderSemTable();}
 }
 function goSub(id){
   ['distrib','sessoes','overview'].forEach(s=>{
@@ -816,10 +817,11 @@ function aplicarTaxaCartao(){
 function updSummary(){
   const items=Object.entries(selected);
   const cnt=document.getElementById('sel-count'),nms=document.getElementById('sel-names');
-  if(!items.length){cnt.textContent='Nenhum ativo';nms.textContent='Selecione ativos na lista ao lado';document.getElementById('t-bruto').textContent='R$ 0,00';updTotal();return;}
+  if(!items.length){cnt.textContent='Nenhum ativo';nms.textContent='Selecione ativos na lista ao lado';document.getElementById('t-bruto').textContent='R$ 0,00';atualizarResumoSemanas();updTotal();return;}
   cnt.textContent=items.length+' ativo'+(items.length!==1?'s':'');
   nms.textContent=items.map(([n,{qty}])=>(qty>1?qty+'× ':'')+n).join(' · ');
   document.getElementById('t-bruto').textContent=fmt(getBruto());
+  atualizarResumoSemanas();
   updTotal();
 }
 
@@ -864,13 +866,14 @@ function salvarModelo(){
 function confirmarModelo(){
   const nome=document.getElementById('modelo-nome').value.trim();
   if(!nome){alert('Informe o nome do modelo.');return;}
-  modelos.push({nome,selected:JSON.parse(JSON.stringify(selected)),duracao});
+  modelos.push({nome,selected:JSON.parse(JSON.stringify(selected)),duracao,meses:getMesesAtivos()});
   closeModal();renderModelos();scheduleSave();
 }
 function carregarModelo(i){
   const m=modelos[i];
   selected=JSON.parse(JSON.stringify(m.selected));
   duracao=m.duracao||3;
+  document.getElementById('dur-livre-meses').value=m.meses||3;
   setDur(duracao);initCatPills();renderItems();updSummary();
 }
 function delModelo(i){if(!confirm('Remover modelo "'+modelos[i].nome+'"?'))return;modelos.splice(i,1);renderModelos();scheduleSave();}
@@ -881,7 +884,7 @@ async function salvarProtocoloLocal(){
   const nome=getNome()||'Paciente sem nome';
   const b=getBruto(),disc=getDisc(b),final=Math.max(0,b-disc)+getTaxa(Math.max(0,b-disc));
   const dtI=document.getElementById('dt-inicio').value||new Date().toISOString().slice(0,10);
-  const dur=duracao||3;
+  const dur=getMesesAtivos();
   const dtF=new Date(dtI+'T12:00');dtF.setMonth(dtF.getMonth()+dur);
   const protocolo={
     id:Date.now(),
@@ -939,11 +942,77 @@ async function salvarProtocoloLocal(){
 // ══ PACIENTES (mínimo — para linkar futuramente) ════════════════════════════
 function renderPacSelect(){
   const sel=document.getElementById('sel-pac');
-  const cur=sel.value;
+  const curNome=activePacIdx!==null&&pacientes[activePacIdx]?pacientes[activePacIdx].nome:getNome();
   sel.innerHTML='<option value="">— Selecionar paciente —</option>'+pacientes.map((p,i)=>`<option value="${i}">${p.nome}</option>`).join('');
-  sel.value=cur;
+  const idx=pacientes.findIndex(p=>normalizarNome(p.nome)===normalizarNome(curNome));
+  sel.value=idx>=0?String(idx):'';
+  activePacIdx=idx>=0?idx:null;
 }
-function onPacSel(){const v=document.getElementById('sel-pac').value;activePacIdx=v!==''?parseInt(v):null;if(activePacIdx!==null)document.getElementById('nome-livre').value=pacientes[activePacIdx].nome;}
+function normalizarNome(n){return String(n||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();}
+function resumoPaciente(nome){
+  const key=normalizarNome(nome);
+  const protocolos=historico.filter(p=>normalizarNome(p.paciente)===key);
+  const total=protocolos.reduce((s,p)=>s+(Number(p.total)||0),0);
+  return {qtd:protocolos.length,total,ativos:protocolos.filter(p=>p.status==='andamento').length};
+}
+function renderPacResumo(){
+  const box=document.getElementById('pac-resumo');
+  const nome=getNome();
+  if(!nome){box.style.display='none';return;}
+  const resumo=resumoPaciente(nome);
+  const paciente=activePacIdx!==null?pacientes[activePacIdx]:null;
+  document.getElementById('pac-resumo-nome').textContent=nome;
+  document.getElementById('pac-resumo-linha1').textContent=`${resumo.qtd} protocolo(s) registrado(s) · ${fmt(resumo.total)} investidos em protocolos`;
+  document.getElementById('pac-resumo-linha2').textContent=paciente?.telefone?`Contato: ${paciente.telefone}${paciente.email?' · '+paciente.email:''}`:(paciente?.origem_agenda?'Paciente importado da agenda da clínica.':'Paciente ainda sem dados complementares.');
+  box.style.display='block';
+}
+function onPacSel(){
+  const v=document.getElementById('sel-pac').value;
+  activePacIdx=v!==''?parseInt(v):null;
+  if(activePacIdx!==null)document.getElementById('nome-livre').value=pacientes[activePacIdx].nome;
+  renderPacResumo();
+  scheduleSave();
+}
+function mergePaciente(base,mapa,nome,extra={}){
+  const key=normalizarNome(nome);
+  if(!key)return;
+  if(!mapa.has(key))mapa.set(key,{id:null,nome:nome.trim(),telefone:'',email:'',origem_agenda:false});
+  const cur=mapa.get(key);
+  mapa.set(key,{...cur,...extra,nome:cur.nome||nome.trim(),telefone:cur.telefone||extra.telefone||'',email:cur.email||extra.email||''});
+}
+async function carregarPacientesBase(){
+  const mapa=new Map();
+  if(db){
+    try{
+      const {data,error}=await db.from('pacientes').select('id,nome,telefone,email').order('nome');
+      if(!error&&Array.isArray(data))data.forEach(p=>mergePaciente(p,mapa,p.nome,{id:p.id,telefone:p.telefone||'',email:p.email||''}));
+    }catch(e){console.warn('Pacientes do Supabase indisponíveis:',e);}
+    try{
+      const {data,error}=await db.from('agenda_eventos').select('paciente_id,paciente_nome,telefone').not('paciente_nome','is',null).order('paciente_nome');
+      if(!error&&Array.isArray(data))data.forEach(p=>mergePaciente(p,mapa,p.paciente_nome,{id:p.paciente_id||null,telefone:p.telefone||'',origem_agenda:true}));
+    }catch(e){console.warn('Agenda do Supabase indisponível:',e);}
+    try{
+      const {data,error}=await db.from('protocolos').select('id,paciente_nome,valor_total,duracao,data_inicio,data_fim,status,criado_em,created_at,itens').order('created_at',{ascending:false});
+      if(!error&&Array.isArray(data)&&data.length){
+        protocolosBanco=data.map(p=>({
+          id:p.id,
+          paciente:p.paciente_nome||'Paciente sem nome',
+          ativos:Array.isArray(p.itens)?p.itens:[],
+          total:Number(p.valor_total)||0,
+          duracao:Number(p.duracao)||3,
+          dtInicio:p.data_inicio||'',
+          dtFim:p.data_fim||'',
+          status:p.status||'andamento',
+          criadoEm:p.criado_em||p.created_at||new Date().toISOString()
+        }));
+      }
+    }catch(e){console.warn('Protocolos do Supabase indisponíveis:',e);}
+  }
+  pacientes=Array.from(mapa.values()).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  if(protocolosBanco.length)historico=protocolosBanco;
+  renderPacSelect();
+  renderPacResumo();
+}
 
 // ══ DASHBOARD ════════════════════════════════════════════════════════════════
 function renderDashboard(){
@@ -1011,49 +1080,81 @@ function renovarProtocolo(id){
   // Carrega os ativos do protocolo no precificador
   selected={};
   p.ativos.forEach(a=>{selected[a.name]={qty:a.qty,note:''};});
-  duracao=p.duracao||3;setDur(duracao);
+  duracao=p.duracao||3;document.getElementById('dur-livre-meses').value=p.duracao||3;setDur(duracao);
   document.getElementById('nome-livre').value=p.paciente;
   initCatPills();renderItems();updSummary();
   goPage('precificador');
 }
 
 // ══ SEMANAS — tabela de checkboxes ═══════════════════════════════════════════
+function atualizarResumoSemanas(){
+  const items=Object.keys(selected);
+  const meses=getMesesAtivos();
+  const total=getWeekCount();
+  document.getElementById('sem-info').textContent=` · ${items.length} ativo(s) · ${meses} mês(es) · ${total} semana(s)`;
+}
+function weekUsage(nome,ignoreIdx=null){
+  let usadas=0;
+  for(let i=0;i<getWeekCount();i++){
+    if(i===ignoreIdx)continue;
+    if(semanas[i]?.[nome])usadas++;
+  }
+  return usadas;
+}
+function toggleWeekDate(i,v){
+  weekDates[i]=v;
+  scheduleSave();
+  renderSemTable();
+  if(document.getElementById('sc-sessoes').style.display!=='none')renderSessoes();
+}
+function recalcularDatasSemanas(){
+  weekDates=Array.from({length:getWeekCount()},(_,i)=>defaultWeekDate(i));
+  renderSemTable();
+  if(document.getElementById('sc-sessoes').style.display!=='none')renderSessoes();
+  scheduleSave();
+}
 function renderSemTable(){
   const ativos=getProtAtivos();
-  const thead=document.getElementById('sem-thead');
-  const tbody=document.getElementById('sem-tbody');
+  const wrap=document.getElementById('weeks-grid');
   if(!ativos.length){
-    thead.innerHTML='';
-    tbody.innerHTML='<tr><td colspan="14" style="text-align:center;padding:2rem;color:var(--tl);font-size:12px">Nenhum ativo selecionado no precificador.</td></tr>';
+    wrap.innerHTML='<div class="week-empty">Nenhum ativo selecionado no precificador.</div>';
     return;
   }
-  // Cabeçalho
-  let th='<tr><th class="th-ativo">Ativo</th>';
-  for(let i=0;i<12;i++)th+=`<th>S${i+1}<br><span style="font-size:8px;opacity:.6">${dtLabel(i)}</span></th>`;
-  th+='<th>Doses</th></tr>';
-  thead.innerHTML=th;
-
-  // Linhas
-  tbody.innerHTML=ativos.map(a=>{
-    const totalDoses=a.qty;
-    let usadas=0;
-    for(let i=0;i<12;i++)if(semanas[i][a.name])usadas++;
-    const restam=totalDoses-usadas;
-
-    let tds='';
-    for(let i=0;i<12;i++){
-      const checked=semanas[i][a.name]?'checked':'';
-      // Bloqueia se não há doses disponíveis E o checkbox não está marcado
-      const disabled=(!semanas[i][a.name]&&restam<=0)?'disabled':'';
-      tds+=`<td><input type="checkbox" class="sem-cb" ${checked} ${disabled} onchange="toggleSemCb(${i},'${esc(a.name)}',this.checked)"></td>`;
-    }
-    const cls=restam===0?'dose-done':restam<=2?'dose-warn':'dose-ok';
-    const doseText=restam===0?'Distribuído':''+usadas+'/'+totalDoses;
-    return`<tr>
-      <td class="td-ativo">${a.name}</td>
-      ${tds}
-      <td class="td-counter"><span class="${cls}">${doseText}</span></td>
-    </tr>`;
+  wrap.innerHTML=Array.from({length:getWeekCount()},(_,i)=>{
+    const data=weekDates[i]||defaultWeekDate(i);
+    const ativosSemana=ativos.map(a=>{
+      const checked=!!semanas[i][a.name];
+      const usadasFora=weekUsage(a.name,i);
+      const total=a.qty;
+      const restam=total-usadasFora-(checked?1:0);
+      const disabled=!checked&&usadasFora>=total;
+      const usadasAtual=weekUsage(a.name,null);
+      return `<label class="week-item">
+        <input type="checkbox" ${checked?'checked':''} ${disabled?'disabled':''} onchange="toggleSemCb(${i},'${esc(a.name)}',this.checked)">
+        <div>
+          <div class="week-item-name">${a.name}</div>
+          <div class="week-item-meta">${a.cat} · ${usadasAtual}/${total} dose(s) alocadas</div>
+        </div>
+        <span class="week-item-status">${disabled&&!checked?'Sem dose livre':(restam<=0&&checked?'Completo':'Disponível')}</span>
+      </label>`;
+    }).join('');
+    return `<div class="week-card">
+      <div class="week-head">
+        <div>
+          <div class="week-title">Semana ${i+1}</div>
+          <div class="week-sub">${data?new Date(data+'T12:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'}):'Defina a data da semana'}</div>
+        </div>
+        <div class="week-actions">
+          <button class="btn btn-xs" onclick="replicarSemana(${i})">Replicar</button>
+          <button class="btn btn-xs btn-danger" onclick="limparSemana(${i})">Limpar</button>
+        </div>
+      </div>
+      <div class="mf" style="margin-bottom:10px">
+        <label>Data da semana</label>
+        <input type="date" value="${data||''}" onchange="toggleWeekDate(${i},this.value)">
+      </div>
+      <div class="week-items">${ativosSemana}</div>
+    </div>`;
   }).join('');
 }
 
@@ -1071,17 +1172,29 @@ function replicarS1(){
     const totalDoses=a.qty;
     if(!semanas[0][a.name])return;
     let count=0;
-    for(let i=0;i<12;i++){
+    for(let i=0;i<getWeekCount();i++){
       if(count>=totalDoses)break;
       semanas[i][a.name]=true;count++;
     }
   });
   renderSemTable();scheduleSave();
 }
+function replicarSemana(i){
+  if(i<=0){replicarS1();return;}
+  const ativos=getProtAtivos();
+  ativos.forEach(a=>{
+    semanas[i][a.name]=!!semanas[i-1][a.name]&&weekUsage(a.name,i)<a.qty;
+  });
+  renderSemTable();scheduleSave();
+}
+function limparSemana(i){
+  semanas[i]={};
+  renderSemTable();scheduleSave();
+}
 
 function limparSemanas(){
   if(!confirm('Limpar toda a distribuição?'))return;
-  semanas=Array.from({length:12},()=>({}));
+  semanas=Array.from({length:getWeekCount()},()=>({}));
   renderSemTable();scheduleSave();
 }
 
@@ -1093,7 +1206,7 @@ function getAtivosNaSemana(i){
 
 function renderSessoes(){
   const nav=document.getElementById('ses-nav');if(!nav)return;
-  nav.innerHTML=Array.from({length:12},(_,i)=>{const s=sessoes[i];return`<button class="ses-btn${i===activeSessao?' on':''}${s.realizada?' done':''}" onclick="setSessao(${i})">${i+1}${s.realizada?' ✓':''}</button>`;}).join('');
+  nav.innerHTML=Array.from({length:getWeekCount()},(_,i)=>{const s=sessoes[i];return`<button class="ses-btn${i===activeSessao?' on':''}${s.realizada?' done':''}" onclick="setSessao(${i})">${i+1}${s.realizada?' ✓':''}</button>`;}).join('');
   renderSessaoForm(activeSessao);
 }
 function setSessao(i){activeSessao=i;renderSessoes();}
@@ -1158,8 +1271,8 @@ function clearCv(i){const c=document.getElementById('cv-'+i);if(c){c.getContext(
 function renderOverview(){
   document.getElementById('ov-info').textContent=getNome()||'—';
   const ativos=getProtAtivos();
-  document.getElementById('ov-head').innerHTML='<th>Ativo</th>'+Array.from({length:12},(_,i)=>`<th>S${i+1}</th>`).join('');
-  document.getElementById('ov-body').innerHTML=ativos.map(a=>`<tr><td style="max-width:180px">${a.name}</td>${Array.from({length:12},(_,i)=>{const has=semanas[i][a.name];const done=sessoes[i].realizada&&(sessoes[i].itens[a.name]||{}).aplicado;return`<td style="text-align:center">${has?`<span class="dot ${done?'dot-ok':'dot-p'}"></span>`:'—'}</td>`;}).join('')}</tr>`).join('');
+  document.getElementById('ov-head').innerHTML='<th>Ativo</th>'+Array.from({length:getWeekCount()},(_,i)=>`<th>S${i+1}</th>`).join('');
+  document.getElementById('ov-body').innerHTML=ativos.map(a=>`<tr><td style="max-width:180px">${a.name}</td>${Array.from({length:getWeekCount()},(_,i)=>{const has=semanas[i][a.name];const done=sessoes[i].realizada&&(sessoes[i].itens[a.name]||{}).aplicado;return`<td style="text-align:center">${has?`<span class="dot ${done?'dot-ok':'dot-p'}"></span>`:'—'}</td>`;}).join('')}</tr>`).join('');
 }
 
 // ══ ATIVOS ════════════════════════════════════════════════════════════════════
@@ -1282,7 +1395,7 @@ function gerarRecibo(){
   doc.setFillColor(232,242,238);doc.rect(ML,y,CW,phH,'F');doc.setDrawColor(176,212,200);doc.rect(ML,y,CW,phH);
   doc.setFontSize(8);doc.setTextColor(74,124,107);doc.setFont('helvetica','bold');doc.text('FORMA DE PAGAMENTO',ML+4,y+6);
   doc.setFont('helvetica','normal');doc.setTextColor(44,36,32);doc.text(forma+(forma.toLowerCase().includes('parcel')?'  —  '+parc:''),ML+4,y+13);
-  if(taxa>0){const n2=parseInt(parc)||2;const j=[0,0,0,0,0,0,0.015,0,0,0.02,0,0.025][n2]||0.02;doc.setTextColor(74,124,107);doc.text('Valor por parcela: '+fmt(final*(1+j*n2)/n2),ML+4,y+20);}
+  if(taxa>0){const n2=parseInt(parc)||1;doc.setTextColor(74,124,107);doc.text('Valor por parcela: '+fmt(final/n2),ML+4,y+20);}
   y+=phH+6;
   if(obsR){doc.setFontSize(8);doc.setTextColor(107,90,78);doc.setFont('helvetica','normal');doc.text('Observação: '+obsR,ML,y);y+=6;}
   const asY=Math.max(y+12,260);
@@ -1295,7 +1408,7 @@ function gerarRecibo(){
 }
 
 function pdfSessao(){gerarPDFSessoes([activeSessao]);}
-function pdfProntuario(){gerarPDFSessoes(Array.from({length:12},(_,i)=>i));}
+function pdfProntuario(){gerarPDFSessoes(Array.from({length:getWeekCount()},(_,i)=>i));}
 function gerarPDFSessoes(indices){
   const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:'mm',format:'a4'});
   const W=210,ML=14,MR=14,CW=W-ML-MR,LH=5.5;
@@ -1315,7 +1428,7 @@ function gerarPDFSessoes(indices){
     sf(13,'bold',[255,255,255]);doc.text('PRONTUÁRIO DE SESSÃO',ML,18);
     sf(7,'normal',[255,255,255]);doc.text('Uso interno — Enfermagem e Medicina',ML,25);
     if(pront)doc.text('Prontuário Nº '+pront,W-MR,18,{align:'right'});
-    doc.text('Sessão '+(si+1)+' / 12',W-MR,25,{align:'right'});y=36;
+    doc.text('Sessão '+(si+1)+' / '+getWeekCount(),W-MR,25,{align:'right'});y=36;
     let dtSessao='';
     if(ini){const d=new Date(ini+'T12:00');d.setDate(d.getDate()+si*7);dtSessao=d.toLocaleDateString('pt-BR');}
     const diagLines=diag?doc.splitTextToSize('Objetivo: '+diag,CW/2-4):[];
@@ -1370,7 +1483,7 @@ function gerarPDFSessoes(indices){
     doc.setDrawColor(100,90,80);doc.line(c1,sigY,c1+sw3,sigY);doc.line(c2,sigY,c2+sw3,sigY);doc.line(c3,sigY,c3+sw3,sigY);
     sf(7,'bold',[44,36,32]);doc.text('Assinatura da paciente',c1,sigY+4);doc.text('Enfermeiro(a) responsável',c2,sigY+4);doc.text('Médica responsável',c3,sigY+4);
     sf(6,'normal',[107,90,78]);doc.text('Declaro ter recebido os procedimentos.',c1,sigY+8);if(s.enfermeiro)doc.text(s.enfermeiro,c2,sigY+8);doc.text(medica,c3,sigY+8);
-    sf(6,'normal',[180,170,160]);doc.text('Clínica Luisa Costa  ·  Prontuário '+(pront||'—')+'  ·  Sessão '+(si+1)+' de 12  ·  '+new Date().toLocaleDateString('pt-BR'),W/2,291,{align:'center'});
+    sf(6,'normal',[180,170,160]);doc.text('Clínica Luisa Costa  ·  Prontuário '+(pront||'—')+'  ·  Sessão '+(si+1)+' de '+getWeekCount()+'  ·  '+new Date().toLocaleDateString('pt-BR'),W/2,291,{align:'center'});
     doc.text('Documento sigiloso — uso exclusivo da equipe de saúde',W/2,295,{align:'center'});
   });
   doc.save('Prontuario_CLC_'+nome.replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.pdf');
@@ -1382,6 +1495,10 @@ function openModal(id){
   ['recibo','add-ativo','pront','modelo'].forEach(x=>{
     const el=document.getElementById('m-'+x);if(el)el.style.display=x===id?'':'none';
   });
+  if(id==='recibo'){
+    document.getElementById('rec-parc').value=(parcSel||1)+'x';
+    document.getElementById('rec-taxa').value=(getTaxaPercent()||0).toFixed(2);
+  }
 }
 function closeModal(){document.getElementById('modal-ov').style.display='none';}
 
@@ -1389,10 +1506,11 @@ function closeModal(){document.getElementById('modal-ov').style.display='none';}
 const SAVE_KEY='clc_v5';
 function getState(){
   return {
-    prices,costs,ativoObs,catsMap:CATS_MAP,selected,duracao,pacientes,payMode,parcSel,modelos,historico,
-    semanas,sessoes:sessoes.map(s=>({...s,itens:{...s.itens}})),
+    prices,costs,ativoObs,catsMap:CATS_MAP,selected,duracao,durLivreMeses:getMesesAtivos(),pacientes,payMode,parcSel,modelos,historico,
+    semanas,weekDates,sessoes:sessoes.map(s=>({...s,itens:{...s.itens}})),
     dtInicio:document.getElementById('dt-inicio').value,
-    nomelivre:document.getElementById('nome-livre').value
+    nomelivre:document.getElementById('nome-livre').value,
+    cardBrand:document.getElementById('card-brand')?.value||'visa'
   };
 }
 function applyState(s){
@@ -1403,15 +1521,20 @@ function applyState(s){
   if(s.ativoObs)Object.assign(ativoObs,s.ativoObs);
   if(s.selected)Object.assign(selected,s.selected);
   if(s.duracao!==undefined)duracao=s.duracao;
+  if(s.durLivreMeses)document.getElementById('dur-livre-meses').value=s.durLivreMeses;
   if(s.pacientes)pacientes=s.pacientes;
   if(s.modelos)modelos=s.modelos;
   if(s.historico)historico=s.historico;
   if(s.semanas)semanas=s.semanas;
+  if(s.weekDates)weekDates=s.weekDates;
   if(s.sessoes)sessoes=s.sessoes;
   if(s.dtInicio)document.getElementById('dt-inicio').value=s.dtInicio;
   if(s.nomelivre)document.getElementById('nome-livre').value=s.nomelivre;
-  if(s.payMode){payMode=s.payMode;const btns=document.querySelectorAll('.pay-opt');const modes=['pix','debito','credito','parcelado'];btns.forEach((b,i)=>b.classList.toggle('on',modes[i]===payMode));document.getElementById('taxa-box').style.display=(payMode==='credito'||payMode==='parcelado')?'flex':'none';document.getElementById('parc-sel-box').style.display=payMode==='parcelado'?'':'none';}
+  if(s.cardBrand&&document.getElementById('card-brand'))document.getElementById('card-brand').value=s.cardBrand;
+  if(s.payMode){payMode=s.payMode;const btns=document.querySelectorAll('.pay-opt');const modes=['pix','debito','credito','parcelado'];btns.forEach((b,i)=>b.classList.toggle('on',modes[i]===payMode));document.getElementById('taxa-box').style.display=['debito','credito','parcelado'].includes(payMode)?'flex':'none';document.getElementById('parc-sel-box').style.display=['debito','credito','parcelado'].includes(payMode)?'':'none';}
   if(s.parcSel)setParc(s.parcSel);
+  syncWeekStructures(false);
+  atualizarResumoSemanas();
 }
 async function saveState(){
   const state=getState();
@@ -1443,7 +1566,10 @@ async function loadState(){
 }
 function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>saveState(),900);}
 document.addEventListener('change',e=>{
-  if(['dt-inicio','nome-livre','d-pct','d-val','taxa-val'].includes(e.target.id))scheduleSave();
+  if(['dt-inicio','nome-livre','d-pct','d-val','taxa-val','dur-livre-meses','card-brand','parc-count'].includes(e.target.id))scheduleSave();
+  if(e.target.id==='dt-inicio'){recalcularDatasSemanas();renderSessoes();renderOverview();}
+  if(e.target.id==='nome-livre')renderPacResumo();
+  if(e.target.id==='dur-livre-meses'&&duracao===0){syncWeekStructures(false);atualizarResumoSemanas();renderSemTable();renderSessoes();renderOverview();updSummary();}
 });
 
 // ══ INIT ═════════════════════════════════════════════════════════════════════
@@ -1456,12 +1582,15 @@ async function initPrecificador(){
   }
   document.getElementById('dt-inicio').value=new Date().toISOString().slice(0,10);
   await loadState();
+  await carregarPacientesBase();
   setDur(duracao);
+  aplicarTaxaCartao();
   initCatPills();
   initCatSelects();
   renderItems();
   updSummary();
   renderPacSelect();
+  renderPacResumo();
   renderModelos();
 }
 initPrecificador();
