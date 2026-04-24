@@ -85,7 +85,13 @@ body.iframe-mode #topbar{display:none}
 .quick{display:grid;gap:10px;margin-top:12px}.quick .btn{height:42px;justify-content:center}.quick .outline-green{border-color:#BAD8CF;color:var(--verde);background:#fff}.quick .outline-blue{border-color:#C9D4E7;color:#48638C;background:#fff}.quick .outline-purple{border-color:#D9C8E2;color:#77508B;background:#fff}.quick .outline-terra{border-color:#E9D0B8;color:var(--terra-d);background:#fff}
 #pend-view,#config-view,#ia-view{padding:24px;overflow:auto;background:var(--bg)}.wide{max-width:1120px;margin:0 auto;width:100%}.card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-bottom:14px}
 .table-row{display:grid;grid-template-columns:140px 1fr 180px 140px;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--bg3);font-size:12px}.table-row:last-child{border-bottom:none}
-.ai-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.ai-question{border:1px solid var(--line);background:#fff;border-radius:var(--r);padding:14px;text-align:left;font-weight:800;color:var(--text)}.ai-question:hover{border-color:var(--terra);background:var(--terra-xl)}
+.ai-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.ai-question{border:1px solid var(--line);background:#fff;border-radius:var(--r);padding:14px;text-align:left;font-weight:800;color:var(--text);min-height:74px;display:flex;align-items:center}.ai-question:hover{border-color:var(--terra);background:var(--terra-xl)}
+.ai-free{margin-top:12px;border:1px solid var(--line);background:#FCFAF7;border-radius:var(--r);padding:16px}
+.ai-free-head{font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--muted);font-weight:800;margin-bottom:10px}
+.ai-free-row{display:grid;grid-template-columns:1fr 180px;gap:10px;align-items:start}
+.ai-free textarea{width:100%;min-height:92px;border:1px solid var(--bd2);border-radius:var(--r);background:#fff;padding:12px 13px;outline:none;resize:vertical;color:var(--text)}
+.ai-free textarea:focus{border-color:var(--terra);box-shadow:0 0 0 3px rgba(193,123,62,.1)}
+.ai-free .btn{height:44px;font-size:11px;letter-spacing:1.2px}
 .ai-answer{min-height:170px;border:1px solid var(--line);border-radius:var(--r);padding:18px;background:#FCFAF7;font-size:13px;line-height:1.7;color:#4D443D}.ai-answer strong{font-size:18px;color:var(--text)}
 .config-grid{display:grid;gap:10px}.config-row{display:grid;grid-template-columns:1.2fr 1.4fr 90px 90px 42px;gap:8px;align-items:center;border-bottom:1px solid var(--bg3);padding:10px 0}
 .type-row{grid-template-columns:1.3fr 95px 90px 42px}.config-row input,.config-row select{height:36px;border:1px solid var(--bd2);border-radius:var(--r);padding:7px 9px;background:#fff}.color{padding:3px!important}
@@ -100,7 +106,7 @@ body.iframe-mode #topbar{display:none}
 @media(max-width:1180px){.left{width:238px;flex-basis:238px}.right{width:286px;flex-basis:286px}.panel{padding:14px}.title-block h1{font-size:26px}}
 @media(max-width:940px){.right{display:none}.left{width:230px;flex-basis:230px}}
 @media(max-width:1180px){.week-grid{grid-template-columns:repeat(4,minmax(150px,1fr))}.month-cell{min-height:94px}}
-@media(max-width:680px){#main{overflow:auto}.view.active{display:block}.left,.right{width:100%;border:0}.center{overflow:visible}.toolbar{height:auto;align-items:flex-start;padding:16px}.toolbar-actions{width:100%;grid-template-columns:1fr}.daybar{display:block}.date-nav{margin-top:12px}.grid,.grid3,.config-row,.table-row,.compare-grid,.ai-grid{grid-template-columns:1fr}.slot{grid-template-columns:58px 1fr}.day-timeline{grid-template-columns:58px 1fr}.week-grid{grid-template-columns:1fr}.month-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:680px){#main{overflow:auto}.view.active{display:block}.left,.right{width:100%;border:0}.center{overflow:visible}.toolbar{height:auto;align-items:flex-start;padding:16px}.toolbar-actions{width:100%;grid-template-columns:1fr}.daybar{display:block}.date-nav{margin-top:12px}.grid,.grid3,.config-row,.table-row,.compare-grid,.ai-grid,.ai-free-row{grid-template-columns:1fr}.slot{grid-template-columns:58px 1fr}.day-timeline{grid-template-columns:58px 1fr}.week-grid{grid-template-columns:1fr}.month-grid{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -159,6 +165,13 @@ body.iframe-mode #topbar{display:none}
           <button class="ai-question" onclick="responderIA('ocupacao_semana')">Como está a ocupação desta semana?</button>
           <button class="ai-question" onclick="responderIA('confirmacoes')">Quais consultas precisam de confirmação?</button>
           <button class="ai-question" onclick="responderIA('novos')">Quantos pacientes novos estão agendados?</button>
+        </div>
+        <div class="ai-free">
+          <div class="ai-free-head">Pergunta livre</div>
+          <div class="ai-free-row">
+            <textarea id="ai-free-question" placeholder="Ex: Quantas consultas a Juliana Elias terá amanhã? Quais agendas estão mais cheias nesta semana?"></textarea>
+            <button class="btn btn-terra" type="button" onclick="responderIALivre()">Perguntar à IA</button>
+          </div>
         </div>
       </div>
       <div class="card">
@@ -780,6 +793,51 @@ function responderIA(tipo){
   if(tipo==='ocupacao_semana')el.innerHTML=`<strong>${semanaEventos.length} agendamento(s) na semana</strong><br>A semana selecionada soma ${semanaEventos.length} atendimento(s). As agendas mais movimentadas são ${rankingProfissionais(semanaEventos)}.`;
   if(tipo==='confirmacoes')el.innerHTML=`<strong>${pend.length} confirmação(ões) prioritária(s)</strong><br>Estão listadas apenas consultas a 7 dias ou 1 dia da data. Essa janela evita acionar pacientes cedo demais.`;
   if(tipo==='novos')el.innerHTML=`<strong>${novos.length} paciente(s) novo(s)</strong><br>Há ${novos.length} primeira(s) consulta(s) no mês selecionado. Isso ajuda a equipe a preparar cadastro, foto interna e fluxo de chegada.`;
+}
+function responderIALivre(){
+  const campo=document.getElementById('ai-free-question');
+  const el=document.getElementById('ai-answer');
+  const pergunta=(campo?.value||'').trim();
+  if(!pergunta){toast('Escreva uma pergunta para a IA da agenda.','warn');campo?.focus();return;}
+  const p=pergunta.toLowerCase();
+  const mesEventos=eventosMesAtual();
+  const semana=[0,1,2,3,4,5,6].map(i=>addDays(selectedDate,i));
+  const semanaEventos=eventos.filter(e=>semana.includes(e.data)&&e.status!=='bloqueado');
+  const pend=eventos.filter(e=>e.status==='aguardando_confirmacao').filter(e=>{
+    const diff=Math.round((new Date(e.data+'T12:00')-new Date(today()+'T12:00'))/86400000);
+    return diff===7||diff===1;
+  });
+  const profissionaisAtivos=(CONFIG.profissionais||[]).filter(pf=>pf.ativo!==false);
+  const matchProf=profissionaisAtivos.find(pf=>{
+    const nome=String(pf.nome||'').toLowerCase();
+    const role=String(pf.role||'').toLowerCase();
+    return nome&&p.includes(nome) || (role&&p.includes(role));
+  });
+  if(matchProf&&/(quantas|qtd|n[uú]mero|numero)/.test(p)&&/(m[eê]s|mes)/.test(p)){
+    const lista=mesEventos.filter(e=>e.profissional===matchProf.id);
+    el.innerHTML=`<strong>${lista.length} consulta(s)</strong><br>${matchProf.nome} tem ${lista.length} atendimento(s) no mês selecionado. ${lista.filter(e=>e.status==='confirmado').length} confirmado(s), ${lista.filter(e=>e.status==='aguardando_confirmacao').length} aguardando confirmação e ${lista.filter(e=>e.status==='finalizado').length} finalizado(s).`;
+    return;
+  }
+  if(matchProf&&/(quantas|qtd|n[uú]mero|numero)/.test(p)&&/(amanh[aã]|amanha)/.test(p)){
+    const alvo=addDays(today(),1);
+    const lista=eventos.filter(e=>e.data===alvo&&e.profissional===matchProf.id&&e.status!=='bloqueado');
+    el.innerHTML=`<strong>${lista.length} consulta(s) amanhã</strong><br>${matchProf.nome} tem ${lista.length} atendimento(s) agendado(s) para ${brDate(alvo)}. O primeiro horário é ${lista.sort((a,b)=>(a.hora_inicio||'').localeCompare(b.hora_inicio||''))[0]?.hora_inicio?.slice(0,5)||'não definido'}.`;
+    return;
+  }
+  if(/mais chei|mais ocupad|lotad|movimentad/.test(p)&&/(semana)/.test(p)){
+    el.innerHTML=`<strong>Leitura da semana</strong><br>A semana selecionada soma ${semanaEventos.length} atendimento(s). As agendas mais movimentadas são ${rankingProfissionais(semanaEventos)}.`;
+    return;
+  }
+  if(/confirma[cç][aã]o|confirmar|pend[eê]ncia/.test(p)){
+    el.innerHTML=`<strong>${pend.length} confirmação(ões) prioritária(s)</strong><br>Na janela operacional da secretaria, há ${pend.length} consulta(s) precisando contato dentro da regra de 7 dias ou 1 dia antes da data.`;
+    return;
+  }
+  if(/novo|primeira consulta|primeiro atendimento/.test(p)){
+    const novos=mesEventos.filter(e=>e.primeira_consulta||e.tipo==='Primeira consulta');
+    el.innerHTML=`<strong>${novos.length} paciente(s) novo(s)</strong><br>No mês selecionado há ${novos.length} primeira(s) consulta(s). Isso ajuda a equipe a antecipar cadastro, acolhimento e documentação.`;
+    return;
+  }
+  el.innerHTML=`<strong>Pergunta recebida</strong><br>Consigo responder melhor perguntas sobre volume por profissional, consultas do mês, agenda de amanhã, confirmações pendentes, pacientes novos e ocupação da semana. Reformule com o nome da agenda ou com um período específico para uma leitura mais precisa.`;
 }
 function rankingProfissionais(lista){
   const map={};lista.forEach(e=>{const n=profCfg(e.profissional)?.nome||e.profissional||'Agenda';map[n]=(map[n]||0)+1;});
