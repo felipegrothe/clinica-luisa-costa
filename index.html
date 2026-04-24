@@ -766,6 +766,16 @@ const { createClient } = supabase;
 const db = createClient(SUPA_URL, SUPA_KEY);
 
 let USER = null, PERFIL = null, NIVEL = null, MOD_PERMS = {};
+const BRIEFING_SEEN_KEY = 'clc_briefing_seen';
+const BRIEFING_PENDING_KEY = 'clc_briefing_pending';
+
+function deveAbrirBriefingPosLogin(){
+  return sessionStorage.getItem(BRIEFING_SEEN_KEY) !== '1';
+}
+
+function prepararRedirecionamentoBriefing(){
+  sessionStorage.setItem(BRIEFING_PENDING_KEY, '1');
+}
 
 async function fazerLogin(){
   const email = document.getElementById('login-email').value.trim();
@@ -807,6 +817,12 @@ async function iniciarApp(user){
   NIVEL  = perfil ? perfil.nivel : 'administrador';
   await carregarPermissoesUsuario();
   const nome = (perfil && perfil.nome) ? perfil.nome : user.email;
+
+  if(deveAbrirBriefingPosLogin()){
+    prepararRedirecionamentoBriefing();
+    location.href = 'briefing.html';
+    return;
+  }
 
   document.getElementById('tb-user-nome').textContent = nome;
   document.getElementById('sb-user-inicial').textContent = nome.charAt(0).toUpperCase();

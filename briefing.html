@@ -68,7 +68,7 @@ button{font-family:inherit;cursor:pointer}
     <div class="brand"><small>Clínica</small><strong>Luisa Costa</strong></div>
     <div class="top-actions">
       <button class="ghost" type="button" id="btn-refresh">Atualizar</button>
-      <button class="ghost" type="button" onclick="location.href='index.html'">Dashboard</button>
+      <button class="ghost" type="button" onclick="finalizarBriefing()">Dashboard</button>
     </div>
   </header>
   <section class="stage">
@@ -99,6 +99,8 @@ const SUPA_URL='https://eeianweavbnrikzqquxq.supabase.co';
 const SUPA_KEY='sb_publishable_RWouef1R4SySi3PyBxq0lQ_AEEpGHly';
 const {createClient}=supabase;
 const db=createClient(SUPA_URL,SUPA_KEY);
+const BRIEFING_SEEN_KEY='clc_briefing_seen';
+const BRIEFING_PENDING_KEY='clc_briefing_pending';
 
 let idx=0;
 let steps=[];
@@ -185,7 +187,12 @@ function render(){
   document.getElementById('prev').disabled=idx===0;
   document.getElementById('next').textContent=idx===steps.length-1?'Dashboard':'Avançar';
 }
-function next(){if(idx>=steps.length-1){location.href='index.html';return;}idx++;render();}
+function finalizarBriefing(){
+  sessionStorage.setItem(BRIEFING_SEEN_KEY,'1');
+  sessionStorage.removeItem(BRIEFING_PENDING_KEY);
+  location.href='index.html';
+}
+function next(){if(idx>=steps.length-1){finalizarBriefing();return;}idx++;render();}
 function prev(){if(idx<=0)return;idx--;render();}
 async function refresh(){
   document.getElementById('status').textContent='Atualizando dados.';
@@ -201,7 +208,9 @@ async function refresh(){
 document.getElementById('next').addEventListener('click',next);
 document.getElementById('prev').addEventListener('click',prev);
 document.getElementById('btn-refresh').addEventListener('click',refresh);
-document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='Enter')next();if(e.key==='ArrowLeft')prev();if(e.key==='Escape')location.href='index.html';});
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='Enter')next();if(e.key==='ArrowLeft')prev();if(e.key==='Escape')finalizarBriefing();});
+sessionStorage.setItem(BRIEFING_SEEN_KEY,'1');
+sessionStorage.removeItem(BRIEFING_PENDING_KEY);
 steps=makeSteps(emptyCtx());
 render();
 refresh();
