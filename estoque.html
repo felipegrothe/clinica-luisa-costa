@@ -394,7 +394,9 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
       <div class="ntab" onclick="tab('impl')">Implantes</div>
       <div class="ndiv"></div>
       <div class="ntab" onclick="tab('insumos')">Insumos Clínicos</div>
-      <div class="ntab" onclick="tab('outros')">Outros Insumos</div>
+      <div class="ntab" onclick="tab('limpeza')">Limpeza</div>
+      <div class="ntab" onclick="tab('conforto')">Conforto</div>
+      <div class="ntab" onclick="tab('escritorio')">Escritório</div>
       <div class="ndiv"></div>
       <div class="ntab admin-only" onclick="tab('nfs')">Notas Fiscais</div>
       <div class="ntab" onclick="tab('pedidos')">Pedido de Compras</div>
@@ -500,13 +502,14 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
   <!-- INSUMOS -->
   <div id="pg-insumos" class="pg"><div id="ins-c"></div></div>
 
-  <!-- OUTROS INSUMOS -->
-  <div id="pg-outros" class="pg">
-    <div class="sdiv"><div class="sdiv-t">Outros Insumos</div><div class="sdiv-l"></div></div>
-    <div id="outros-lmp"></div>
-    <div id="outros-cnf"></div>
-    <div id="outros-esc"></div>
-  </div>
+  <!-- LIMPEZA -->
+  <div id="pg-limpeza" class="pg"><div id="outros-lmp"></div></div>
+
+  <!-- CONFORTO -->
+  <div id="pg-conforto" class="pg"><div id="outros-cnf"></div></div>
+
+  <!-- ESCRITÓRIO -->
+  <div id="pg-escritorio" class="pg"><div id="outros-esc"></div></div>
 
   <!-- NOTAS FISCAIS -->
   <div id="pg-nfs" class="pg">
