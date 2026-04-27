@@ -818,6 +818,7 @@ let INAD_EDIT_ID=null;
 let IMPORT_FIN=null;
 let REC_PG=0, DES_PG=0;
 let FIN_MATCH_RUNNING=false;
+let FIN_MATCH_DONE=false;
 const PG_SIZE=15;
 const FIN_MATCH_REVIEW_TAG='[revisao_paciente_financeiro]';
 const CARD_FEE_TABLE={
@@ -995,6 +996,7 @@ async function iniciar(user){
   await carregar();
   renderDash();
   gerarResumo();
+  agendarMatchLancamentos();
 }
 
 async function fazerLogout(){
@@ -1010,7 +1012,24 @@ async function carregar(){
       .select('*').order('data',{ascending:false}).order('created_at',{ascending:false});
     if(!error&&data) LANCS=data;
   }catch(e){}
-  await matchLancamentosPacientes();
+}
+
+function agendarMatchLancamentos(){
+  if(FIN_MATCH_DONE||FIN_MATCH_RUNNING)return;
+  FIN_MATCH_DONE=true;
+  setTimeout(async()=>{
+    try{
+      await matchLancamentosPacientes();
+      if(LANCS.some(l=>l.paciente_id||parseFinMatchReview(l.obs))){
+        const active=document.querySelector('.sn.on')?.getAttribute('onclick')||'';
+        if(active.includes('inadimplentes'))renderInad();
+        else if(active.includes('receitas'))renderReceitas();
+        else if(active.includes('despesas'))renderDespesas();
+        else if(active.includes('contas'))renderContas();
+        else renderDash();
+      }
+    }catch(e){}
+  },50);
 }
 
 async function carregarPacs(){
