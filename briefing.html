@@ -34,7 +34,7 @@ button{font-family:inherit;cursor:pointer}
 .metric-value{font-family:Georgia,serif;font-size:48px;line-height:1;margin:10px 0 4px}
 .metric-sub{font-size:12px;color:var(--muted);line-height:1.45}
 .actions{margin-top:8px;display:grid;gap:8px}
-.action{border:1px solid rgba(193,123,62,.28);background:rgba(193,123,62,.07);border-radius:var(--r);padding:10px 12px;color:rgba(255,255,255,.72);font-size:11px;letter-spacing:.9px;text-transform:uppercase}
+.action{border:1px solid rgba(193,123,62,.28);background:rgba(193,123,62,.07);border-radius:var(--r);padding:10px 12px;color:rgba(255,255,255,.72);font-size:11px;letter-spacing:.9px;text-transform:uppercase;transition:background .15s,border-color .15s}.action:hover{background:rgba(193,123,62,.18);border-color:rgba(193,123,62,.5);color:#fff}
 .action:before{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--terra);margin-right:9px;vertical-align:1px}
 .nav{height:76px;position:absolute;left:34px;right:34px;bottom:0;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:18px}
 .step-name{font-size:10px;letter-spacing:2.4px;text-transform:uppercase;color:rgba(255,255,255,.58);font-weight:900;min-width:175px}
@@ -180,9 +180,14 @@ function render(){
   document.getElementById('title').textContent=s.title;
   document.getElementById('line').textContent=s.line;
   document.getElementById('summary').textContent=s.summary;
-  document.getElementById('step-name').textContent=s.setor;
+  document.getElementById('step-name').textContent=s.setor+' · '+(idx+1)+' / '+steps.length;
   document.getElementById('metrics').innerHTML=s.metrics.map(m=>`<div class="metric"><div class="metric-label">${safe(m[0])}</div><div class="metric-value">${safe(m[1])}</div><div class="metric-sub">${safe(m[2])}</div></div>`).join('');
-  document.getElementById('actions').innerHTML=s.actions.map(a=>`<div class="action">${safe(a)}</div>`).join('');
+  document.getElementById('actions').innerHTML=s.actions.map(a=>{
+  const mapa={'Voltar ao dashboard':'index.html','Abrir financeiro':'index.html#financeiro','Abrir estoque':'index.html#estoque','Revisar cadastros':'index.html#pacientes','Confirmar consultas':'index.html#agenda','Cobrar pendências':'index.html#financeiro','Ver protocolos ativos':'index.html#precificador','Abrir pacientes':'index.html#pacientes'};
+  const href=mapa[a];
+  if(href)return `<a class="action" href="${href}" style="text-decoration:none;display:block;cursor:pointer">${safe(a)}</a>`;
+  return `<div class="action">${safe(a)}</div>`;
+}).join('');
   document.getElementById('progress').innerHTML=steps.map((_,i)=>`<div class="dot${i<=idx?' on':''}"></div>`).join('');
   document.getElementById('prev').disabled=idx===0;
   document.getElementById('next').textContent=idx===steps.length-1?'Dashboard':'Avançar';

@@ -322,7 +322,7 @@ function addMonths(iso,n){const d=new Date(iso+'T12:00');d.setMonth(d.getMonth()
 function fmtD(iso){return new Date(iso+'T12:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});}
 function brDate(iso){return new Date(iso+'T12:00').toLocaleDateString('pt-BR');}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
-function toast(msg,type='ok'){const t=document.getElementById('toast');t.textContent=msg;t.style.background=type==='err'?'#8B2020':type==='warn'?'#8B5520':'#1A1714';t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),type==='err'?7000:3000);}
+function toast(msg,type='ok'){const t=document.getElementById('toast');if(t){t.textContent=msg;t.style.background=type==='err'?'#8B2020':type==='warn'?'#8B5520':'#1A1714';t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),type==='err'?7000:3000);}try{window.parent.postMessage({type:'toast',msg,kind:type==='err'?'err':type==='ok'?'ok':''},'*');}catch(e){}}
 function bloquearAgendaSemSupabase(acao='executar esta ação'){
   if(agendaSupabaseOk)return false;
   toast('NÃO FOI SALVO: Supabase indisponível. Não foi possível '+acao+'. Refaça a ação quando a conexão/permissão voltar.','err');

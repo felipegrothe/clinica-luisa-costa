@@ -136,6 +136,8 @@ button{cursor:pointer}
 
 /* ── PAGES ────────────────────────────────────────────────────────── */
 .page{display:none;height:100%;overflow-y:auto;padding:16px 20px}
+@keyframes pgFade{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+.page.on{animation:pgFade .16s ease}
 .page.on{display:block}
 .page::-webkit-scrollbar{width:4px}
 .page::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
@@ -558,6 +560,17 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
 #fin-det-ov{display:none;position:fixed;inset:0;background:rgba(26,25,21,.6);z-index:9000;align-items:center;justify-content:center}
 #fin-det-ov.on{display:flex}
 
+
+/* ── Toast unificado ─────────────────────────────────────────────── */
+#sys-toast{position:fixed;right:22px;bottom:24px;z-index:9999;
+  background:var(--dk);color:#fff;border-radius:6px;
+  padding:11px 16px;font-size:12px;font-weight:500;
+  opacity:0;transform:translateY(8px);
+  transition:opacity .2s,transform .2s;pointer-events:none;
+  max-width:340px;line-height:1.45;box-shadow:0 4px 16px rgba(0,0,0,.28)}
+#sys-toast.on{opacity:1;transform:translateY(0)}
+#sys-toast.err{background:#8B2020}
+#sys-toast.ok{background:#2a7a48}
 </style>
 </head>
 <body>
@@ -959,7 +972,10 @@ function carregarPrecificador(btn){
     .then(r=>{if(!r.ok)throw new Error('not found');return r.text();})
     .then(html=>{
       iframe.srcdoc=html;
+      iframe.style.opacity='0';
       iframe.style.display='block';
+      iframe.style.transition='opacity .22s ease';
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{iframe.style.opacity='1';}));
       if(loading)loading.style.display='none';
       precificadorLoaded=true;
     })
@@ -976,9 +992,12 @@ function carregarFinanceiro(){
     .then(r => { if(!r.ok) throw new Error('not found'); return r.text(); })
     .then(html => {
       iframe.srcdoc = html;
-      iframe.style.display = 'block';
-      if(loading) loading.style.display = 'none';
-      financeiroLoaded = true;
+      iframe.style.opacity='0';
+      iframe.style.display='block';
+      iframe.style.transition='opacity .22s ease';
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{iframe.style.opacity='1';}));
+      if(loading)loading.style.display='none';
+      financeiroLoaded=true;
     })
     .catch(() => {
       if(loading) loading.innerHTML = '<div style="text-align:center;padding:20px"><div style="font-size:36px;margin-bottom:12px">💰</div><div style="font-size:14px;font-weight:600;margin-bottom:8px">Financeiro disponível no Vercel</div><div style="font-size:12px;color:var(--tl)">Certifique-se que <strong>financeiro.html</strong> está no GitHub.</div></div>';
@@ -995,7 +1014,10 @@ function carregarPacientes(btn){
     .then(r=>{if(!r.ok)throw new Error('not found');return r.text();})
     .then(html=>{
       iframe.srcdoc=html;
+      iframe.style.opacity='0';
       iframe.style.display='block';
+      iframe.style.transition='opacity .22s ease';
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{iframe.style.opacity='1';}));
       if(loading)loading.style.display='none';
       pacientesLoaded=true;
     })
@@ -1013,7 +1035,10 @@ function carregarAgenda(btn){
     .then(r=>{if(!r.ok)throw new Error('not found');return r.text();})
     .then(html=>{
       iframe.srcdoc=html;
+      iframe.style.opacity='0';
       iframe.style.display='block';
+      iframe.style.transition='opacity .22s ease';
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{iframe.style.opacity='1';}));
       if(loading)loading.style.display='none';
       agendaLoaded=true;
     })
@@ -1031,7 +1056,10 @@ function carregarAdministracao(btn){
     .then(r=>{if(!r.ok)throw new Error('not found');return r.text();})
     .then(html=>{
       iframe.srcdoc=html;
+      iframe.style.opacity='0';
       iframe.style.display='block';
+      iframe.style.transition='opacity .22s ease';
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{iframe.style.opacity='1';}));
       if(loading)loading.style.display='none';
       administracaoLoaded=true;
     })
@@ -1054,9 +1082,12 @@ function carregarEstoque(){
     .then(html => {
       // Injeta via srcdoc para funcionar mesmo em file://
       iframe.srcdoc = html;
-      iframe.style.display = 'block';
-      if(loading) loading.style.display = 'none';
-      estoqueLoaded = true;
+      iframe.style.opacity='0';
+      iframe.style.display='block';
+      iframe.style.transition='opacity .22s ease';
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{iframe.style.opacity='1';}));
+      if(loading)loading.style.display='none';
+      estoqueLoaded=true;
     })
     .catch(() => {
       // file:// ou arquivo não encontrado — mostra instrução
@@ -2713,5 +2744,7 @@ function importarDados(){
   </div>
 </div>
 
+
+<div id="sys-toast"></div>
 </body>
 </html>
