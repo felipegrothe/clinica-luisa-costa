@@ -14,7 +14,7 @@
   --tx:#1A1917;--tm:#5C5651;--tl:#9C9690;
   --bd:#DDD8D2;--bd2:#C8C2BB;
   --dk:#1A1917;--dk2:#242220;--dk3:#2E2C29;
-  --terra:#8B5E3C;--terra-l:#C4956A;--terra-xl:#F5EDE5;--terra-d:#5C3D22;
+  --terra:#C17B3E;--terra-l:#d4945a;--terra-xl:#FAF5EE;--terra-d:#8B5520;
   --verde:#2E6B5E;--verde-l:#E8F5F2;
   --red:#8B2020;--red-l:#FCEBEB;
   --gold:#7A6010;--gold-l:#FDF8E8;
@@ -25,6 +25,8 @@
 
 /* ── LAYOUT ────────────────────────────────────────────────── */
 body{min-height:100vh;display:flex;flex-direction:column}
+body.iframe-mode #topbar{display:none!important}
+body.iframe-mode #login-wrap{display:none!important}
 #app{display:none;flex-direction:column;height:100vh;overflow:hidden}
 #app.on{display:flex}
 
@@ -802,6 +804,7 @@ const SUPA_URL = 'https://eeianweavbnrikzqquxq.supabase.co';
 const SUPA_KEY = 'sb_publishable_RWouef1R4SySi3PyBxq0lQ_AEEpGHly';
 const _supa = window.supabase || supabase;
 const db = _supa.createClient(SUPA_URL, SUPA_KEY);
+if(window.self!==window.top)document.body.classList.add('iframe-mode');
 const AI_PROXY = SUPA_URL + '/functions/v1/ai-proxy';
 
 let USER=null, PERFIL=null, NIVEL=null;
@@ -916,6 +919,7 @@ function showToast(msg,tipo='ok'){
   t.textContent=msg;
   S('toast').appendChild(t);
   setTimeout(()=>t.remove(),3500);
+  try{window.parent.postMessage({type:'toast',msg,kind:tipo==='err'?'err':'ok'},'*');}catch(e){}
 }
 
 // ── AUTH ───────────────────────────────────────────────────────
