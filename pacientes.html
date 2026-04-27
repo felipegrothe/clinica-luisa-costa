@@ -38,7 +38,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 #main.list-mode #lista-panel{width:100%;border-right:none}
 #main.list-mode #fw{display:none}
 #main.list-mode #lh{padding:22px 22px 16px;background:#fff;border-bottom:1px solid var(--border)}
-#main.list-mode #lh h3,#main.list-mode #busca,#main.list-mode .list-actions,#main.list-mode #sync-panel{max-width:920px;margin-left:auto;margin-right:auto}
+#main.list-mode #lh h3,#main.list-mode #busca,#main.list-mode .list-actions,#main.list-mode #sync-panel,#main.list-mode .pac-filtros{max-width:920px;margin-left:auto;margin-right:auto}
 #main.list-mode #lh h3{text-align:center;margin-bottom:12px;color:var(--terra);letter-spacing:3px}
 #main.list-mode #busca{display:block;width:100%;height:42px;border-color:var(--terra-l);background:var(--terra-xl);box-shadow:inset 3px 0 0 var(--terra)}
 #main.list-mode #ls{padding:18px 22px;max-width:920px;margin:0 auto;width:100%}
@@ -86,6 +86,63 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .pi-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .pi-dot.d{background:var(--danger)}.pi-dot.w{background:var(--warn)}.pi-dot.o{background:var(--verde)}.pi-dot.n{background:transparent}
 .le{padding:20px 12px;font-size:12px;color:var(--muted);text-align:center}
+.pac-filtros{
+  display:flex;align-items:center;justify-content:center;gap:0;
+  border-bottom:1px solid var(--border);margin:14px 0 0;overflow-x:auto
+}
+.pac-filtros::-webkit-scrollbar{height:0}
+.pac-filtro{
+  font-size:11px;letter-spacing:.5px;color:var(--muted);cursor:pointer;
+  padding:8px 16px;border-bottom:2px solid transparent;margin-bottom:-1px;
+  transition:all .15s;white-space:nowrap
+}
+.pac-filtro:hover{color:var(--text)}
+.pac-filtro.on{color:var(--dk);font-weight:500;border-bottom-color:var(--terra)}
+.pac-filtro.follow.on{color:#3D2A9E;border-bottom-color:#5B4ACA}
+.pac-filtro-num{font-size:10px;color:var(--danger);font-weight:600;margin-left:3px}
+.pac-filtro-num.amarelo{color:#D4A017}
+.pac-sec-head{display:flex;align-items:center;gap:12px;margin:16px 0 8px}
+.pac-sec-titulo{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);font-weight:600;white-space:nowrap}
+.pac-sec-line{flex:1;height:1px;background:var(--border)}
+#main.list-mode .pi{
+  border:1px solid var(--border);border-left:3px solid var(--terra);
+  border-radius:var(--r);margin-bottom:8px;background:var(--bg2);
+  padding:13px 16px;cursor:pointer;transition:box-shadow .15s,background .15s
+}
+#main.list-mode .pi:hover{box-shadow:0 2px 10px rgba(193,123,62,.1)}
+#main.list-mode .pi.ativo{padding:13px 16px}
+#main.list-mode .pi.follow{border-left-color:#5B4ACA}
+#main.list-mode .pi.alerta{border-left-color:var(--danger)}
+#main.list-mode .pi.aniversario{border-left-color:#EF9F27}
+#main.list-mode .pi.neutro{border-left-color:var(--border)}
+#main.list-mode .pi-av{
+  width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:600;color:#fff;
+  flex-shrink:0;overflow:hidden
+}
+.pi-av.terra{background:linear-gradient(135deg,#E8D0B0,#C17B3E)}
+.pi-av.roxo{background:linear-gradient(135deg,#C8BFEF,#5B4ACA)}
+.pi-av.cinza{background:linear-gradient(135deg,#E8E4DF,#B8AFA6)}
+.pi-av.amarelo{background:linear-gradient(135deg,#F5E4B0,#D4A017)}
+.pi-av img{width:100%;height:100%;object-fit:cover}
+#main.list-mode .pi-row{gap:12px;align-items:flex-start}
+#main.list-mode .pi-info{flex:1;min-width:0}
+#main.list-mode .pi-nome{font-size:13px;font-weight:500;color:var(--dk)}
+#main.list-mode .pi-sub{font-size:11px;color:var(--muted);margin-top:3px;white-space:normal;line-height:1.45}
+.pi-badge-wrap{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0}
+.pi-badge{font-size:9px;font-weight:600;padding:2px 8px;border-radius:20px}
+.pi-badge-ativo{background:#EAF2EC;color:#1e4d2e}
+.pi-badge-inativo{background:#F0EBE3;color:#6B5A4E}
+.pi-badge-follow{background:#EEEDFE;color:#3D2A9E}
+.pi-badge-alerta{background:#FCEBEB;color:#8B2020}
+.pi-badge-aniversario{background:#FEF5E4;color:#7A5A08}
+.pi-badge-revisao{background:#FDF5E4;color:#7A4A08}
+.pi-ia-box{margin-top:10px;border-top:1px solid var(--border);padding-top:10px}
+.pi-ia-tag{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--terra);font-weight:700;margin-bottom:5px}
+.pi-ia-texto{font-size:12px;color:var(--text);line-height:1.65;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px}
+.pi-ia-box.loading .pi-ia-texto{color:var(--muted)}
+.pi-open{background:#fffdf9}
 
 /* FICHA */
 #fw{flex:1;display:flex;flex-direction:column;overflow:hidden}
@@ -337,6 +394,14 @@ body.iframe-mode #sb{display:none!important}
         </button>
         <button class="btn-s" onclick="gerarLink()">Link Cadastro</button>
       </div>
+      <div class="pac-filtros">
+        <span class="pac-filtro on" onclick="setFiltro(this,'todos')">Todos</span>
+        <span class="pac-filtro" onclick="setFiltro(this,'ativo')">Ativos</span>
+        <span class="pac-filtro" onclick="setFiltro(this,'inativo')">Inativos</span>
+        <span class="pac-filtro follow" onclick="setFiltro(this,'followup')">Follow-up <span class="pac-filtro-num" id="num-followup">0</span></span>
+        <span class="pac-filtro" onclick="setFiltro(this,'aniversario')">Aniversário <span class="pac-filtro-num amarelo" id="num-aniversario">0</span></span>
+        <span class="pac-filtro" onclick="setFiltro(this,'revisao')">Aguardando revisão <span class="pac-filtro-num" id="num-revisao">0</span></span>
+      </div>
       <div id="sync-panel">
         <div>
           <strong>Pacientes locais pendentes</strong>
@@ -544,6 +609,8 @@ let editandoFicha=false,editandoRel=false;
 let protocolosPorPaciente={};
 let pacientesSupabaseOk=false;
 let pacienteHistoryReady=false;
+let filtroAtual='todos';
+const followupSugestoesPendentes=new Set();
 
 function initCatPills(){}
 
@@ -668,22 +735,286 @@ async function buscaCEP(cep,prefix='f-'){
 // LISTA
 function filtrar(){renderLista(document.getElementById('busca').value.toLowerCase());}
 
+function setFiltro(el,filtro){
+  filtroAtual=filtro;
+  document.querySelectorAll('.pac-filtro').forEach(node=>{
+    node.classList.toggle('on',node===el);
+  });
+  renderLista(document.getElementById('busca').value.toLowerCase());
+}
+
+function parseDateLoose(v){
+  if(!v)return null;
+  const d=new Date(String(v).length<=10?`${String(v).slice(0,10)}T12:00`:v);
+  return Number.isNaN(d.getTime())?null:d;
+}
+
+function diasDesde(data){
+  const d=parseDateLoose(data);
+  if(!d)return null;
+  return Math.floor((Date.now()-d.getTime())/86400000);
+}
+
+function getUltimaAcaoPaciente(p){
+  const fontes=[];
+  (p.consultas||[]).forEach(item=>{if(item?.data)fontes.push(item.data);});
+  (p.agenda_eventos||[]).forEach(item=>{
+    const data=item?.data_inicio||item?.inicio||item?.data||item?.start_at;
+    if(data)fontes.push(data);
+  });
+  const datas=fontes.map(parseDateLoose).filter(Boolean).sort((a,b)=>b-a);
+  return datas[0]?datas[0].toISOString():null;
+}
+
+function calcFollowup(p){
+  const ultimaAcao=getUltimaAcaoPaciente(p);
+  const dias=ultimaAcao===null?null:diasDesde(ultimaAcao);
+  if(dias===null)return null;
+  if(dias>=60)return{status:'urgente',dias,ultimaAcao};
+  if(dias>=45)return{status:'followup',dias,ultimaAcao};
+  return null;
+}
+
+function calcAniversario(p){
+  if(!p?.nascimento)return null;
+  const base=parseDateLoose(p.nascimento);
+  if(!base)return null;
+  const hoje=new Date();
+  hoje.setHours(0,0,0,0);
+  const prox=new Date(hoje.getFullYear(),base.getMonth(),base.getDate(),0,0,0,0);
+  if(prox<hoje)prox.setFullYear(hoje.getFullYear()+1);
+  const dias=Math.ceil((prox-hoje)/86400000);
+  if(dias<0||dias>7)return null;
+  return{dias,data:prox.toISOString()};
+}
+
+function temProtocoloAtivo(p){return getProtocolos(p).some(x=>x.ativo);}
+
+function getCardMeta(p){
+  const follow=calcFollowup(p);
+  const aniversario=calcAniversario(p);
+  const revisao=aguardandoRevisao(p);
+  const ativoProto=temProtocoloAtivo(p);
+  const ultimaAcao=getUltimaAcaoPaciente(p);
+  const diasUltima=ultimaAcao?diasDesde(ultimaAcao):null;
+  let statusClass='inativo';
+  let statusLabel='Inativo';
+  let subtexto=esc(p.telefone||p.email||p.cpf||'—');
+  let dot=dotClass(p);
+
+  if(revisao){
+    statusClass='revisao';
+    statusLabel='Revisão';
+    subtexto='Cadastro recebido por link público aguardando confirmação.';
+    dot='w';
+  }else if(follow){
+    statusClass=follow.status==='urgente'?'alerta':'follow';
+    statusLabel=follow.status==='urgente'?'Urgente':'Follow-up';
+    subtexto=diasUltima!==null
+      ? `Sem ação há ${diasUltima} dias${ultimaAcao?` · última em ${fmtD(ultimaAcao)}`:''}`
+      : 'Paciente sem ação recente registrada.';
+    dot=follow.status==='urgente'?'d':'w';
+  }else if(aniversario){
+    statusClass='aniversario';
+    statusLabel='Aniversário';
+    subtexto=aniversario.dias===0
+      ? 'Faz aniversário hoje.'
+      : `Aniversário em ${aniversario.dias} dia${aniversario.dias>1?'s':''}.`;
+    dot='w';
+  }else if(ativoProto){
+    const ativo=getProtocolos(p).find(x=>x.ativo);
+    statusClass='ativo';
+    statusLabel='Ativo';
+    subtexto=ativo
+      ? `${esc(ativo.nome||'Protocolo ativo')} · semana ${ativo.semanaAtual||1} de ${ativo.totalSemanas||12}`
+      : 'Protocolo ativo em andamento.';
+  }else{
+    statusClass='inativo';
+    statusLabel='Inativo';
+    subtexto=ultimaAcao
+      ? `Sem protocolo ativo · última ação em ${fmtD(ultimaAcao)}`
+      : 'Sem protocolo ativo.';
+  }
+
+  const avClass=statusClass==='follow'?'roxo':statusClass==='aniversario'?'amarelo':statusClass==='neutro'||statusClass==='inativo'?'cinza':'terra';
+  return{follow,aniversario,revisao,ativoProto,ultimaAcao,diasUltima,statusClass,statusLabel,subtexto,avClass,dotClassName:dot};
+}
+
+function atualizarContadoresLista(items){
+  const counts={
+    followup:items.filter(item=>!!item.meta.follow).length,
+    aniversario:items.filter(item=>!!item.meta.aniversario).length,
+    revisao:items.filter(item=>!!item.meta.revisao).length
+  };
+  const f=document.getElementById('num-followup');
+  const a=document.getElementById('num-aniversario');
+  const r=document.getElementById('num-revisao');
+  if(f)f.textContent=counts.followup;
+  if(a)a.textContent=counts.aniversario;
+  if(r)r.textContent=counts.revisao;
+}
+
+function ordenarFollowup(a,b){
+  const pa=a.meta.follow?.status==='urgente'?0:1;
+  const pb=b.meta.follow?.status==='urgente'?0:1;
+  if(pa!==pb)return pa-pb;
+  return (b.meta.follow?.dias||0)-(a.meta.follow?.dias||0);
+}
+
+function ordenarAniversario(a,b){
+  return (a.meta.aniversario?.dias||999)-(b.meta.aniversario?.dias||999);
+}
+
+function renderSecao(titulo,itens){
+  if(!itens.length)return '';
+  return `<div class="pac-sec-head"><span class="pac-sec-titulo">${titulo}</span><div class="pac-sec-line"></div></div>${itens.map(renderPacienteCard).join('')}`;
+}
+
+function renderPacienteCard(item){
+  const p=item.p;
+  const meta=item.meta;
+  const ativo=pAtual?.id===p.id?'ativo':'';
+  const iniciais=(p.nome||'').split(' ').filter(Boolean).slice(0,2).map(n=>n[0]).join('').toUpperCase()||'?';
+  const foto=p.foto_url?`<img src="${p.foto_url}" alt=""/>`:iniciais;
+  const iaTexto=esc(p.followup_sugestao_ia||'');
+  const iaBox=meta.follow?`<div class="pi-ia-box" id="pi-ia-${p.id}" style="display:none">
+  <div class="pi-ia-tag">Sugestão da IA</div>
+  <div class="pi-ia-texto">${iaTexto||'Gerando sugestão personalizada...'}</div>
+</div>`:'';
+  const click=meta.follow?`toggleFollowupCard(event,'${p.id}')`:`sel('${p.id}')`;
+  return `<div class="pi ${ativo} ${meta.statusClass}" data-paciente-id="${p.id}" onclick="${click}">
+  <div class="pi-row">
+    <div class="pi-av ${meta.avClass}">${foto}</div>
+    <div class="pi-info">
+      <div class="pi-nome">${esc(p.nome)}</div>
+      <div class="pi-sub">${meta.subtexto}</div>
+    </div>
+    <div class="pi-badge-wrap">
+      <span class="pi-badge pi-badge-${meta.statusClass}">${meta.statusLabel}</span>
+      <div class="pi-dot ${meta.dotClassName}"></div>
+    </div>
+  </div>
+  ${iaBox}
+</div>`;
+}
+
+function matchesFiltro(item){
+  if(filtroAtual==='followup')return !!item.meta.follow;
+  if(filtroAtual==='aniversario')return !!item.meta.aniversario;
+  if(filtroAtual==='revisao')return !!item.meta.revisao;
+  if(filtroAtual==='ativo')return item.meta.ativoProto;
+  if(filtroAtual==='inativo')return !item.meta.ativoProto;
+  return true;
+}
+
+function renderListaAgrupada(items){
+  const follow=items.filter(item=>item.meta.follow).sort(ordenarFollowup);
+  const usados=new Set(follow.map(item=>item.p.id));
+  const anivers=items.filter(item=>!usados.has(item.p.id)&&item.meta.aniversario).sort(ordenarAniversario);
+  anivers.forEach(item=>usados.add(item.p.id));
+  const revisao=items.filter(item=>!usados.has(item.p.id)&&item.meta.revisao).sort((a,b)=>(a.p.nome||'').localeCompare(b.p.nome||''));
+  revisao.forEach(item=>usados.add(item.p.id));
+  const ativos=items.filter(item=>!usados.has(item.p.id)&&item.meta.ativoProto).sort((a,b)=>(a.p.nome||'').localeCompare(b.p.nome||''));
+  ativos.forEach(item=>usados.add(item.p.id));
+  const inativos=items.filter(item=>!usados.has(item.p.id)).sort((a,b)=>(a.p.nome||'').localeCompare(b.p.nome||''));
+  return [
+    renderSecao('Follow-up pendente',follow),
+    renderSecao('Aniversário esta semana',anivers),
+    renderSecao('Aguardando revisão',revisao),
+    renderSecao('Ativos',ativos),
+    renderSecao('Inativos',inativos)
+  ].join('');
+}
+
 function renderLista(q=''){
   const cont=document.getElementById('ls');
-  const list=pacientes.filter(p=>p.nome.toLowerCase().includes(q)||(p.cpf||'').includes(q)||(p.telefone||'').includes(q));
+  const items=pacientes
+    .filter(p=>(p.nome||'').toLowerCase().includes(q)||(p.cpf||'').includes(q)||(p.telefone||'').includes(q))
+    .map(p=>({p,meta:getCardMeta(p)}));
+  atualizarContadoresLista(items);
+  const list=items.filter(matchesFiltro);
   if(!list.length){cont.innerHTML='<div class="le">Nenhum paciente encontrado.</div>';return;}
-  cont.innerHTML=list.map(p=>{
-    const a=pAtual?.id===p.id?'ativo':'';
-    const bc=dotClass(p);
-    const foto=p.foto_url?`<img src="${p.foto_url}" alt=""/>`:iconUser(18);
-    const sync=isLocalPaciente(p)?'<span class="sync-badge">Local</span>':'';
-    const review=aguardandoRevisao(p)?'<span class="sync-badge">Recebido pelo link</span>':'';
-    return`<div class="pi ${a}" onclick="sel('${p.id}')">
-      <div class="pi-row">
-        <div class="pi-av">${foto}</div>
-        <div class="pi-info"><div class="pi-nome">${esc(p.nome)}${sync}${review}</div><div class="pi-sub">${esc(p.telefone||p.email||p.cpf||'—')}</div></div>
-        <div class="pi-dot ${bc}"></div>
-      </div></div>`;}).join('');
+  const sortList=(arr)=>{
+    if(filtroAtual==='followup')return arr.sort(ordenarFollowup);
+    if(filtroAtual==='aniversario')return arr.sort(ordenarAniversario);
+    return arr.sort((a,b)=>(a.p.nome||'').localeCompare(b.p.nome||''));
+  };
+  cont.innerHTML=filtroAtual==='todos'
+    ? renderListaAgrupada(list)
+    : sortList(list).map(renderPacienteCard).join('');
+}
+
+async function persistPacienteCampos(id,campos){
+  const paciente=pacientes.find(item=>item.id===id);
+  if(!paciente)return false;
+  Object.assign(paciente,campos);
+  if(pAtual?.id===id)Object.assign(pAtual,campos);
+  if(String(id||'').startsWith('local-')||!pacientesSupabaseOk)return false;
+  const payload={...campos,updated_at:new Date().toISOString()};
+  const {error}=await db.from('pacientes').update(payload).eq('id',id);
+  return !error;
+}
+
+async function gerarSugestaoFollowup(p){
+  const follow=calcFollowup(p);
+  const ativo=getProtocolos(p).find(x=>x.ativo);
+  const objetivos=(p.objetivos||[]).join(', ')||p.objetivo_outro||'N/A';
+  const ctx=`Você é assistente da Clínica Luisa Costa. Gere uma sugestão curta e elegante de follow-up para a equipe entrar em contato com um paciente.
+
+Paciente: ${p.nome}
+Objetivos: ${objetivos}
+Protocolo ativo: ${ativo?`${ativo.nome} (semana ${ativo.semanaAtual||1} de ${ativo.totalSemanas||12})`:'Nenhum protocolo ativo'}
+Dias sem ação: ${follow?.dias??'N/A'}
+Última ação: ${follow?.ultimaAcao?fmtD(follow.ultimaAcao):'N/A'}
+
+Responda em português, em até 3 frases, com uma recomendação prática e um tom premium, humano e objetivo.`;
+  const {data:{session}}=await db.auth.getSession();
+  const token=session?session.access_token:SUPA_KEY;
+  const res=await fetch(AI_PROXY,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+    body:JSON.stringify({system:ctx,message:'Crie a melhor sugestão de follow-up para este paciente.',max_tokens:220})});
+  const data=await res.json();
+  if(data.error)throw new Error(data.error.message||JSON.stringify(data.error));
+  return data.content?.[0]?.text?.trim()||'Sem sugestão disponível.';
+}
+
+async function ensureFollowupSuggestion(id,box){
+  const p=pacientes.find(item=>item.id===id);
+  if(!p||!box)return;
+  const texto=box.querySelector('.pi-ia-texto');
+  if(p.followup_sugestao_ia){
+    texto.textContent=p.followup_sugestao_ia;
+    box.classList.remove('loading');
+    return;
+  }
+  if(followupSugestoesPendentes.has(id))return;
+  followupSugestoesPendentes.add(id);
+  box.classList.add('loading');
+  texto.textContent='Gerando sugestão personalizada...';
+  try{
+    const sugestao=await gerarSugestaoFollowup(p);
+    await persistPacienteCampos(id,{followup_sugestao_ia:sugestao});
+    texto.textContent=sugestao;
+  }catch(e){
+    texto.textContent='Não foi possível gerar a sugestão agora.';
+  }finally{
+    box.classList.remove('loading');
+    followupSugestoesPendentes.delete(id);
+  }
+}
+
+function toggleFollowupCard(ev,id){
+  ev?.preventDefault?.();
+  ev?.stopPropagation?.();
+  const card=document.querySelector(`.pi[data-paciente-id="${id}"]`);
+  const box=document.getElementById(`pi-ia-${id}`);
+  if(!card||!box)return;
+  const abrir=box.style.display==='none'||!box.style.display;
+  document.querySelectorAll('.pi-ia-box').forEach(node=>{node.style.display='none';});
+  document.querySelectorAll('#main.list-mode .pi').forEach(node=>{node.classList.remove('pi-open');});
+  if(!abrir)return;
+  box.style.display='block';
+  card.classList.add('pi-open');
+  ensureFollowupSuggestion(id,box);
 }
 
 function currentPacienteState(){
@@ -1216,6 +1547,7 @@ async function regConsulta(){
   if(!pAtual.consultas)pAtual.consultas=[];
   if(idx!==null&&idx!==''&&pAtual.consultas[Number(idx)])pAtual.consultas[Number(idx)]=nova;
   else pAtual.consultas.push(nova);
+  pAtual.followup_sugestao_ia=null;
   const ok=await saveDB();
   if(!ok)return;
   toast(idx!==null&&idx!==''?'Registro atualizado.':'Consulta registrada.');renderTab();
