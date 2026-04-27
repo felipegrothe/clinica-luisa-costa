@@ -885,6 +885,39 @@ let semanas=Array.from({length:12},()=>[]);
 let sessoes=Array.from({length:12},()=>({realizada:false,data:'',hora:'',enfermeiro:'',obs:'',intercorrencias:'',itens:{}}));
 let activeSessao=0,dragItem=null,selSide=new Set(),activeDistCat='';
 let editingAtivo=null,payMode='pix',parcSel=2;
+
+function loadState(){
+  try{
+    const raw=localStorage.getItem('clc_precificador_state');
+    if(!raw)return;
+    const d=JSON.parse(raw);
+    if(d.prices)Object.assign(prices,d.prices);
+    if(d.costs)Object.assign(costs,d.costs);
+    if(d.ativoObs)Object.assign(ativoObs,d.ativoObs);
+    if(Array.isArray(d.pacientes))pacientes=d.pacientes;
+    if(Array.isArray(d.semanas))semanas=d.semanas;
+    if(Array.isArray(d.sessoes))sessoes=d.sessoes;
+    if(d.selected)Object.assign(selected,d.selected);
+    if(d.duracao!==undefined)duracao=d.duracao;
+    if(d.payMode)payMode=d.payMode;
+    if(d.parcSel!==undefined)parcSel=d.parcSel;
+    const nomeLivre=document.getElementById('nome-livre');
+    if(nomeLivre&&d.nomelivre!==undefined)nomeLivre.value=d.nomelivre||'';
+  }catch(e){
+    console.warn('Falha ao carregar estado local',e);
+  }
+}
+
+function saveState(){
+  try{
+    localStorage.setItem('clc_precificador_state',JSON.stringify({
+      prices,costs,ativoObs,pacientes,semanas,sessoes,selected,duracao,payMode,parcSel,
+      nomelivre:document.getElementById('nome-livre')?.value||''
+    }));
+  }catch(e){
+    console.warn('Falha ao salvar estado local',e);
+  }
+}
 const signatures={};
 let saveTimer=null;
 
@@ -1211,21 +1244,17 @@ async function renderDashboard(){
 }
 
 // ── TOAST — feedback discreto sem redirecionar ───────────────────────
-function showToast(msg, type='ok'){
-  let t=document.getElementById('clc-toast');
-  if(!t){
-    t=document.createElement('div');
-    t.id='clc-toast';
-    t.style.cssText='position:fixed;bottom:24px;right:24px;z-index:9999;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:500;box-shadow:0 4px 16px rgba(0,0,0,.18);transition:opacity .3s;pointer-events:none';
-    document.body.appendChild(t);
-  }
+function showToast(msg, type=''){
+  const t=document.getElementById('sys-toast');
+  if(!t)return;
   t.textContent=msg;
-  t.style.background=type==='ok'?'var(--verde)':type==='warn'?'var(--terra)':'#a33';
-  t.style.color='white';
-  t.style.opacity='1';
+  t.className='on'+(type?' '+type:'');
   clearTimeout(t._t);
-  t._t=setTimeout(()=>{t.style.opacity='0';},3500);
+  t._t=setTimeout(()=>{t.className='';},type==='err'?7000:3000);
 }
+window.addEventListener('message',e=>{
+  if(e.data&&e.data.type==='toast')showToast(e.data.msg,e.data.kind||'');
+});
 
 
 // ══ FINANCEIRO ═══════════════════════════════════════════════════════
