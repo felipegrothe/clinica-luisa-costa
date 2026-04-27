@@ -386,35 +386,67 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
 .ms-intercorr-txt{font-size:11px;color:var(--terra-d)}
 
 /* ── DASHBOARD ────────────────────────────────────────────── */
-.dash-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
-@media(max-width:900px){.dash-grid{grid-template-columns:repeat(2,1fr)}}
-.metric-card{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:1rem;border-top:3px solid var(--terra)}
-.metric-card.verde{border-top-color:var(--verde)}
-.metric-label{font-size:9px;letter-spacing:1.5px;font-weight:600;text-transform:uppercase;color:var(--tl);margin-bottom:6px}
-.metric-value{font-size:26px;font-weight:500;color:var(--tx);line-height:1}
-.metric-sub{font-size:10px;color:var(--tl);margin-top:4px}
-.dash-brief-link{background:var(--dk);border-color:var(--dk3);border-top-color:var(--verde);cursor:pointer;transition:transform .12s,box-shadow .12s}
-.dash-brief-link:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(26,23,20,.12)}
-.dash-brief-link .metric-label{color:rgba(232,213,188,.6)}
-.dash-brief-link .metric-value{color:#fff;font-size:19px;line-height:1.15}
-.dash-brief-link .metric-sub{color:rgba(232,213,188,.62)}
-.dash-chart-card{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:1rem 1.125rem;margin-bottom:14px}
-.chart-bars{display:flex;align-items:flex-end;gap:6px;height:72px;margin-top:10px}
-.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
-.bar-fill{width:100%;border-radius:3px 3px 0 0;background:var(--terra);opacity:.7;min-height:3px;transition:opacity .15s}
-.bar-fill.hi{opacity:1}
-.bar-lbl{font-size:9px;color:var(--tl)}
-.dash-recentes{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:1rem 1.125rem}
-.prot-dash-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bg3)}
-.prot-dash-row:last-child{border-bottom:none}
-.prot-dash-av{width:30px;height:30px;border-radius:50%;background:var(--terra-l);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--terra-d);flex-shrink:0}
-.prot-dash-info{flex:1;min-width:0}
-.prot-dash-nome{font-size:12px;font-weight:500;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.prot-dash-meta{font-size:10px;color:var(--tl);margin-top:1px}
-.prot-dash-val{font-size:12px;font-weight:500;color:var(--terra-d);white-space:nowrap}
-.prog-track{height:5px;background:var(--bd2);border-radius:3px;overflow:hidden;margin-top:3px}
-.prog-fill{height:100%;border-radius:3px;background:var(--terra)}
-.prog-fill.done{background:var(--verde)}
+.dash-shell{display:grid;gap:20px}
+.setor{margin-bottom:32px}
+.setor-header{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.setor-titulo{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#9E8E82;font-weight:600;white-space:nowrap}
+.setor-linha{flex:1;height:1px;background:#EAE4DC}
+.dash-briefing{background:#1A1714;border-radius:8px;padding:20px 22px;cursor:pointer;border:none;width:100%;text-align:left;display:block}
+.dash-briefing-tag{font-size:8px;letter-spacing:2.5px;text-transform:uppercase;color:#C17B3E;font-weight:700;margin-bottom:10px}
+.dash-briefing-titulo{font-family:Georgia,serif;font-size:21px;color:#fff;font-weight:400;margin-bottom:5px}
+.dash-briefing-sub{font-size:12px;color:rgba(255,255,255,.5)}
+.dash-bloco{background:#fff;border:1px solid #EAE4DC;border-radius:8px;padding:18px 20px}
+.dash-dois-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.dash-subtitle{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--tl);font-weight:700;margin-bottom:14px}
+.dash-agenda-top{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:16px}
+.dash-mini{border:1px solid var(--bd);border-radius:8px;padding:13px 14px;background:#fff}
+.dash-mini-label{font-size:9px;letter-spacing:1.6px;text-transform:uppercase;color:var(--tl);font-weight:700;margin-bottom:6px}
+.dash-mini-value{font-size:24px;font-weight:500;color:var(--tx);line-height:1}
+.dash-mini-sub{font-size:11px;color:var(--tl);margin-top:5px}
+.dash-prof-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.dash-prof-card{border:1px solid var(--bd);border-radius:8px;padding:14px;background:#FCFAF7}
+.dash-prof-name{font-size:12px;font-weight:700;color:var(--tx);margin-bottom:10px}
+.dash-prof-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.dash-prof-stat strong{display:block;font-size:19px;font-weight:500;color:var(--terra-d)}
+.dash-prof-stat span{display:block;font-size:10px;color:var(--tl);margin-top:2px}
+.dash-kv-list{display:grid;gap:10px}
+.dash-kv-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid var(--bg3)}
+.dash-kv-item:last-child{border-bottom:none;padding-bottom:0}
+.dash-kv-label{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--tl);font-weight:700}
+.dash-kv-main{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dash-kv-value{font-size:26px;font-weight:500;color:var(--tx);line-height:1}
+.dash-kv-note{font-size:11px;color:var(--tl);margin-top:4px}
+.dash-cta-link{display:inline-flex;align-items:center;gap:8px;background:none;border:none;padding:0;color:var(--terra-d);font-size:12px;font-weight:700;cursor:pointer}
+.dash-cta-link:hover{text-decoration:underline}
+.dash-wa{opacity:.5}
+.dash-wa-note{font-size:11px;color:var(--tl);margin-top:14px}
+.dash-alert-list{display:grid;gap:10px}
+.dash-alert-item{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:12px 14px;border:1px solid var(--bd);border-radius:8px;background:#fff}
+.dash-alert-title{font-size:13px;font-weight:700;color:var(--tx)}
+.dash-alert-sub{font-size:11px;color:var(--tl);margin-top:4px;line-height:1.45}
+.dash-empty{font-size:12px;color:var(--tl);border:1px dashed var(--bd2);border-radius:8px;padding:14px;background:#FCFAF7}
+.dash-modal-ov{position:fixed;inset:0;background:rgba(26,23,20,.5);display:none;align-items:center;justify-content:center;z-index:1000;padding:16px}
+.dash-modal-ov.on{display:flex}
+.dash-modal{background:var(--bg2);border-radius:10px;width:100%;max-width:560px;max-height:88vh;overflow-y:auto;border:1px solid var(--bd)}
+.dash-modal-head{padding:18px 20px;border-bottom:1px solid var(--bd);display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.dash-modal-title{font-size:15px;font-weight:600;color:var(--tx)}
+.dash-modal-sub{font-size:11px;color:var(--tl);margin-top:4px}
+.dash-modal-body{padding:16px 20px}
+.dash-modal-list{display:grid;gap:10px}
+.dash-modal-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--bg3)}
+.dash-modal-row:last-child{border-bottom:none;padding-bottom:0}
+.dash-modal-main strong{display:block;font-size:13px;color:var(--tx)}
+.dash-modal-main span{display:block;font-size:11px;color:var(--tl);margin-top:4px}
+.dash-modal-close{width:34px;height:34px;border:1px solid var(--bd);border-radius:8px;background:#fff;color:var(--muted);cursor:pointer}
+/* Comparativas financeiras */
+.pct-up{background:#EAF2EC;color:#1e4d2e;font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px}
+.pct-down{background:#FCEBEB;color:#8B2020;font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px}
+/* Tags de alerta */
+.tag-urgente{background:#FCEBEB;color:#8B2020}
+.tag-atencao{background:#FDF5E4;color:#7A4A08}
+.tag-ok{background:#EAF2EC;color:#1e4d2e}
+@media(max-width:980px){.dash-dois-col,.dash-prof-grid,.dash-agenda-top{grid-template-columns:1fr 1fr}}
+@media(max-width:720px){.dash-dois-col,.dash-prof-grid,.dash-agenda-top{grid-template-columns:1fr}.dash-alert-item,.dash-modal-row,.dash-kv-item{display:grid;gap:8px}}
 
 /* ── PROTOCOLOS POR PACIENTE ──────────────────────────────── */
 .prot-expand{margin-top:12px;padding-top:12px;border-top:1px solid var(--bd)}
@@ -686,28 +718,108 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
 
       <!-- ══ DASHBOARD ══════════════════════════════════════════════ -->
       <div id="pg-dashboard" class="page">
-        <div class="dash-grid" id="dash-metrics">
-          <div class="metric-card"><div class="metric-label">Protocolos ativos</div><div class="metric-value" id="dm-ativos">—</div><div class="metric-sub" id="dm-ativos-sub"></div></div>
-          <div class="metric-card"><div class="metric-label">Faturado em protocolos</div><div class="metric-value" id="dm-faturado">—</div><div class="metric-sub" id="dm-faturado-sub"></div></div>
-          <div class="metric-card verde"><div class="metric-label">Sessões realizadas</div><div class="metric-value" id="dm-sessoes">—</div><div class="metric-sub" id="dm-sessoes-sub"></div></div>
-          <div class="metric-card verde"><div class="metric-label">Concluídos</div><div class="metric-value" id="dm-concluidos">—</div><div class="metric-sub" id="dm-concluidos-sub"></div></div>
-          <div class="metric-card dash-brief-link" onclick="location.href='briefing.html'"><div class="metric-label">Briefing IA</div><div class="metric-value">Abrir leitura do dia</div><div class="metric-sub">Pacientes, financeiro e estoque</div></div>
-        </div>
-        <div class="two">
-          <div>
-            <div class="dash-chart-card">
-              <div class="sec" style="margin:0">Protocolos salvos por mês</div>
-              <div class="chart-bars" id="dash-bars"><div style="color:var(--tl);font-size:11px;padding:1rem 0">Carregando...</div></div>
+        <div class="dash-shell">
+          <button class="dash-briefing" onclick="location.href='briefing.html'">
+            <div class="dash-briefing-tag">IA — Leitura do dia</div>
+            <div class="dash-briefing-titulo">Abrir análise completa da clínica</div>
+            <div class="dash-briefing-sub">Pacientes · financeiro · estoque · agenda</div>
+          </button>
+
+          <section class="setor">
+            <div class="setor-header">
+              <div class="setor-titulo">Agenda</div>
+              <div class="setor-linha"></div>
             </div>
-            <div class="dash-recentes">
-              <div class="sec">Protocolos recentes</div>
-              <div id="dash-recentes-list"><div class="empty">Nenhum protocolo salvo ainda.</div></div>
+            <div class="dash-bloco">
+              <div class="dash-agenda-top" id="dash-agenda-meta">
+                <div class="dash-mini"><div class="dash-mini-label">Hoje</div><div class="dash-mini-value">—</div><div class="dash-mini-sub">consultas previstas</div></div>
+                <div class="dash-mini"><div class="dash-mini-label">Semana</div><div class="dash-mini-value">—</div><div class="dash-mini-sub">comparando com a anterior</div></div>
+                <div class="dash-mini"><div class="dash-mini-label">Pendentes</div><div class="dash-mini-value">—</div><div class="dash-mini-sub">confirmações</div></div>
+                <div class="dash-mini"><div class="dash-mini-label">Salas</div><div class="dash-mini-value">—</div><div class="dash-mini-sub">ocupação do dia</div></div>
+              </div>
+              <div class="dash-subtitle">Por profissional</div>
+              <div class="dash-prof-grid" id="dash-agenda-profissionais">
+                <div class="dash-empty">Carregando agenda do dia.</div>
+              </div>
+            </div>
+          </section>
+
+          <section class="setor">
+            <div class="setor-header">
+              <div class="setor-titulo">Financeiro e Protocolos</div>
+              <div class="setor-linha"></div>
+            </div>
+            <div class="dash-dois-col">
+              <div class="dash-bloco">
+                <div class="dash-subtitle">Financeiro</div>
+                <div class="dash-kv-list" id="dash-financeiro-body">
+                  <div class="dash-empty">Carregando financeiro.</div>
+                </div>
+              </div>
+              <div class="dash-bloco">
+                <div class="dash-subtitle">Protocolos</div>
+                <div class="dash-kv-list" id="dash-protocolos-body">
+                  <div class="dash-empty">Carregando protocolos.</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="setor">
+            <div class="setor-header">
+              <div class="setor-titulo">WhatsApp Business</div>
+              <div class="setor-linha"></div>
+            </div>
+            <div class="dash-bloco dash-wa">
+              <div class="dash-agenda-top">
+                <div class="dash-mini"><div class="dash-mini-label">Novos contatos hoje</div><div class="dash-mini-value">0</div><div class="dash-mini-sub">vs semana anterior</div></div>
+                <div class="dash-mini"><div class="dash-mini-label">Consultas agendadas</div><div class="dash-mini-value">0</div><div class="dash-mini-sub">via WhatsApp</div></div>
+                <div class="dash-mini"><div class="dash-mini-label">Tempo médio</div><div class="dash-mini-value">0 min</div><div class="dash-mini-sub">meta: menos de 5 min</div></div>
+                <div class="dash-mini"><div class="dash-mini-label">Não respondidas</div><div class="dash-mini-value">0</div><div class="dash-mini-sub">mensagens pendentes</div></div>
+              </div>
+              <div class="dash-wa-note">Integração com WhatsApp Business API ainda não configurada.</div>
+            </div>
+          </section>
+
+          <section class="setor">
+            <div class="setor-header">
+              <div class="setor-titulo">Alertas</div>
+              <div class="setor-linha"></div>
+            </div>
+            <div class="dash-bloco">
+              <div class="dash-alert-list" id="dash-alertas-list">
+                <div class="dash-empty">Carregando alertas operacionais.</div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="dash-modal-ov" id="dash-modal-confirmacoes" onclick="if(event.target===this)closeDashModal('confirmacoes')">
+          <div class="dash-modal">
+            <div class="dash-modal-head">
+              <div>
+                <div class="dash-modal-title">Confirmações pendentes</div>
+                <div class="dash-modal-sub">Consultas sem confirmação para hoje, amanhã e esta semana.</div>
+              </div>
+              <button class="dash-modal-close" onclick="closeDashModal('confirmacoes')">×</button>
+            </div>
+            <div class="dash-modal-body">
+              <div class="dash-modal-list" id="dash-modal-confirmacoes-list"></div>
             </div>
           </div>
-          <div>
-            <div class="card">
-              <div class="sec">Status geral</div>
-              <div id="dash-status-list"><div class="empty">Sem dados.</div></div>
+        </div>
+
+        <div class="dash-modal-ov" id="dash-modal-protocolos" onclick="if(event.target===this)closeDashModal('protocolos')">
+          <div class="dash-modal">
+            <div class="dash-modal-head">
+              <div>
+                <div class="dash-modal-title">Protocolos renovando</div>
+                <div class="dash-modal-sub">Pacientes com protocolo vencendo em até 14 dias.</div>
+              </div>
+              <button class="dash-modal-close" onclick="closeDashModal('protocolos')">×</button>
+            </div>
+            <div class="dash-modal-body">
+              <div class="dash-modal-list" id="dash-modal-protocolos-list"></div>
             </div>
           </div>
         </div>
@@ -1158,93 +1270,359 @@ function syncSbBtns(activeId){
 
 
 // ── DASHBOARD ────────────────────────────────────────────────────────
+let dashPendingConfirmations=[];
+let dashRenewingProtocols=[];
+
+function dashEscHtml(v){
+  return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function dashIso(d){
+  return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+}
+function dashAddDays(iso,days){
+  const d=new Date(iso+'T12:00:00');
+  d.setDate(d.getDate()+days);
+  return dashIso(d);
+}
+function dashStartOfWeek(ref=new Date()){
+  const d=new Date(ref.getFullYear(),ref.getMonth(),ref.getDate(),12,0,0);
+  const day=(d.getDay()+6)%7;
+  d.setDate(d.getDate()-day);
+  return dashIso(d);
+}
+function dashEndOfMonth(ref=new Date()){
+  return dashIso(new Date(ref.getFullYear(),ref.getMonth()+1,0,12,0,0));
+}
+function dashMonthStart(ref=new Date()){
+  return dashIso(new Date(ref.getFullYear(),ref.getMonth(),1,12,0,0));
+}
+function dashPrevMonthStart(ref=new Date()){
+  return dashIso(new Date(ref.getFullYear(),ref.getMonth()-1,1,12,0,0));
+}
+function dashPrevMonthEnd(ref=new Date()){
+  return dashIso(new Date(ref.getFullYear(),ref.getMonth(),0,12,0,0));
+}
+function dashPct(curr,prev){
+  if(!prev && !curr)return 0;
+  if(!prev)return 100;
+  return Math.round(((curr-prev)/Math.abs(prev))*100);
+}
+function dashPctChip(curr,prev){
+  const pct=dashPct(curr,prev);
+  const cls=pct>=0?'pct-up':'pct-down';
+  const sig=pct>=0?'+':'';
+  return `<span class="${cls}">${sig}${pct}%</span>`;
+}
+function dashDateField(row,fields){
+  for(const key of fields){
+    const val=row?.[key];
+    if(typeof val==='string'&&val.length>=10&&/^\d{4}-\d{2}-\d{2}/.test(val))return val.slice(0,10);
+  }
+  return '';
+}
+function dashNum(v){return Number(v||0);}
+function dashProfLabel(v){
+  const raw=String(v||'Sem profissional').replace(/_/g,' ').trim();
+  return raw.replace(/\b\w/g,m=>m.toUpperCase());
+}
+function dashDaysUntil(isoDate,baseIso){
+  if(!isoDate)return null;
+  const a=new Date(baseIso+'T12:00:00');
+  const b=new Date(isoDate+'T12:00:00');
+  return Math.round((b-a)/86400000);
+}
+function dashPrazoTag(days){
+  if(days===null)return '';
+  if(days<=1)return '<span class="tag tag-urgente">24h</span>';
+  if(days<=7)return '<span class="tag tag-atencao">7 dias</span>';
+  return '';
+}
+function openDashModal(kind){
+  const id=kind==='protocolos'?'dash-modal-protocolos':'dash-modal-confirmacoes';
+  document.getElementById(id)?.classList.add('on');
+}
+function closeDashModal(kind){
+  const id=kind==='protocolos'?'dash-modal-protocolos':'dash-modal-confirmacoes';
+  document.getElementById(id)?.classList.remove('on');
+}
+
 async function renderDashboard(){
-  // Zera métricas antes de buscar — evita dados fantasma
-  ['dm-ativos','dm-faturado','dm-sessoes','dm-concluidos'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el)el.textContent='...';
-  });
-  const recentEl=document.getElementById('dash-recentes-list');
-  if(recentEl)recentEl.innerHTML='<div class="empty">Carregando...</div>';
+  const agendaMetaEl=document.getElementById('dash-agenda-meta');
+  const agendaProfEl=document.getElementById('dash-agenda-profissionais');
+  const financeiroEl=document.getElementById('dash-financeiro-body');
+  const protocolosEl=document.getElementById('dash-protocolos-body');
+  const alertasEl=document.getElementById('dash-alertas-list');
+  const modalConfirmacoesEl=document.getElementById('dash-modal-confirmacoes-list');
+  const modalProtocolosEl=document.getElementById('dash-modal-protocolos-list');
+
+  if(agendaMetaEl)agendaMetaEl.innerHTML='<div class="dash-mini"><div class="dash-mini-label">Hoje</div><div class="dash-mini-value">…</div><div class="dash-mini-sub">consultas previstas</div></div><div class="dash-mini"><div class="dash-mini-label">Semana</div><div class="dash-mini-value">…</div><div class="dash-mini-sub">comparando com a anterior</div></div><div class="dash-mini"><div class="dash-mini-label">Pendentes</div><div class="dash-mini-value">…</div><div class="dash-mini-sub">confirmações</div></div><div class="dash-mini"><div class="dash-mini-label">Salas</div><div class="dash-mini-value">…</div><div class="dash-mini-sub">ocupação do dia</div></div>';
+  if(agendaProfEl)agendaProfEl.innerHTML='<div class="dash-empty">Carregando agenda do dia.</div>';
+  if(financeiroEl)financeiroEl.innerHTML='<div class="dash-empty">Carregando financeiro.</div>';
+  if(protocolosEl)protocolosEl.innerHTML='<div class="dash-empty">Carregando protocolos.</div>';
+  if(alertasEl)alertasEl.innerHTML='<div class="dash-empty">Carregando alertas operacionais.</div>';
+
   try{
-    // Sempre busca direto do Supabase — nunca usa cache
-    const{data:prots,error:dashErr}=await db.from('protocolos').select('*').order('created_at',{ascending:false});
-    if(dashErr)throw dashErr;
-    const all=prots||[];
-    const ativos=all.filter(p=>p.status==='andamento');
-    const concluidos=all.filter(p=>p.status==='concluido');
-    const totalFat=all.reduce((s,p)=>s+(parseFloat(p.valor_total)||0),0);
-    const totalSess=all.reduce((s,p)=>s+(p.sessoes_realizadas||0),0);
-    const totalPrevSess=all.length*12;
+    const now=new Date();
+    const today=dashIso(now);
+    const weekStart=dashStartOfWeek(now);
+    const weekEnd=dashAddDays(weekStart,6);
+    const prevWeekStart=dashAddDays(weekStart,-7);
+    const prevWeekEnd=dashAddDays(weekStart,-1);
+    const monthStart=dashMonthStart(now);
+    const monthEnd=dashEndOfMonth(now);
+    const prevMonthStart=dashPrevMonthStart(now);
+    const prevMonthEnd=dashPrevMonthEnd(now);
 
-    document.getElementById('dm-ativos').textContent=ativos.length;
-    document.getElementById('dm-ativos-sub').textContent=all.length+' total';
-    const fatStr=all.length===0?'R$ 0':totalFat>=1000?'R$ '+Math.round(totalFat/1000)+'k':fmt(totalFat);
-    document.getElementById('dm-faturado').textContent=fatStr;
-    document.getElementById('dm-faturado-sub').textContent=all.length+' protocolo'+(all.length!==1?'s':'');
-    document.getElementById('dm-sessoes').textContent=totalSess;
-    document.getElementById('dm-sessoes-sub').textContent='de '+totalPrevSess+' previstas';
-    document.getElementById('dm-concluidos').textContent=concluidos.length;
-    document.getElementById('dm-concluidos-sub').textContent=ativos.length+' em andamento';
+    const [
+      agendaResp,
+      finResp,
+      inadResp,
+      protResp,
+      pacientesResp,
+      estoqueResp
+    ]=await Promise.all([
+      db.from('agenda_eventos').select('*').gte('data',prevWeekStart).lte('data',weekEnd).order('data').order('hora_inicio'),
+      db.from('fin_lancamentos').select('*').gte('data',prevMonthStart).lte('data',monthEnd).order('data',{ascending:false}),
+      db.from('fin_inadimplentes').select('*').limit(500).order('created_at',{ascending:false}),
+      db.from('protocolos').select('*').order('created_at',{ascending:false}).limit(500),
+      db.from('pacientes').select('nome,status,created_at,updated_at').eq('status','aguardando_revisao').limit(100),
+      db.from('estoque_atual').select('nome,disponivel,estoque_min,status_estoque,status_validade,proxima_validade').eq('ativo',true).limit(500)
+    ]);
 
-    // Gráfico de barras por mês (últimos 6 meses)
-    const meses={};
-    const agora=new Date();
-    for(let i=5;i>=0;i--){
-      const d=new Date(agora.getFullYear(),agora.getMonth()-i,1);
-      const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-      meses[k]=0;
-    }
-    all.forEach(p=>{if(p.created_at){const k=p.created_at.slice(0,7);if(meses[k]!==undefined)meses[k]++;}});
-    const maxBar=Math.max(...Object.values(meses),1);
-    const nomMes=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-    const barsEl=document.getElementById('dash-bars');
-    barsEl.innerHTML=Object.entries(meses).map(([k,v])=>{
-      const mes=nomMes[parseInt(k.split('-')[1])-1];
-      const h=Math.round((v/maxBar)*100);
-      const isLast=k===Object.keys(meses).slice(-1)[0];
-      return`<div class="bar-col"><div class="bar-fill${isLast?' hi':''}" style="height:${Math.max(h,4)}%"></div><div class="bar-lbl">${mes}</div></div>`;
-    }).join('');
+    if(agendaResp.error)throw agendaResp.error;
+    if(finResp.error)throw finResp.error;
+    if(inadResp.error)throw inadResp.error;
+    if(protResp.error)throw protResp.error;
+    if(pacientesResp.error)throw pacientesResp.error;
+    if(estoqueResp.error)throw estoqueResp.error;
 
-    // Recentes
-    const recentEl=document.getElementById('dash-recentes-list');
-    if(!all.length){recentEl.innerHTML='<div class="empty">Nenhum protocolo salvo ainda.</div>';
-    }else{
-      recentEl.innerHTML=all.slice(0,6).map(p=>{
-        const av=p.paciente_nome.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
-        const pct=Math.round(((p.sessoes_realizadas||0)/12)*100);
-        const concluido=p.status==='concluido';
-        return`<div class="prot-dash-row">
-          <div class="prot-dash-av">${av}</div>
-          <div class="prot-dash-info">
-            <div class="prot-dash-nome">${p.paciente_nome} — ${p.duracao?p.duracao+'m':'livre'}</div>
-            <div class="prog-track" style="margin-top:4px"><div class="prog-fill${concluido?' done':''}" style="width:${pct}%"></div></div>
-            <div class="prot-dash-meta">${p.sessoes_realizadas||0}/12 sessões · ${concluido?'Concluído':'Em andamento'}</div>
-          </div>
-          <div class="prot-dash-val">${fmt(parseFloat(p.valor_total)||0)}</div>
+    const agenda=(agendaResp.data||[]).filter(e=>e.status!=='bloqueado');
+    const fin=(finResp.data||[]);
+    const inad=(inadResp.data||[]);
+    const protocolos=(protResp.data||[]);
+    const pacientesRev=(pacientesResp.data||[]);
+    const estoque=(estoqueResp.data||[]);
+
+    const agendaHoje=agenda.filter(e=>e.data===today);
+    const agendaSemana=agenda.filter(e=>e.data>=weekStart&&e.data<=weekEnd);
+    const agendaSemanaAnterior=agenda.filter(e=>e.data>=prevWeekStart&&e.data<=prevWeekEnd);
+    const salasHoje=[...new Set(agendaHoje.map(e=>e.sala).filter(Boolean))];
+
+    dashPendingConfirmations=agenda.filter(e=>(e.status||'')==='aguardando_confirmacao'&&e.data>=today&&e.data<=weekEnd)
+      .sort((a,b)=>(`${a.data||''}${a.hora_inicio||''}`).localeCompare(`${b.data||''}${b.hora_inicio||''}`));
+
+    const agendaPorProf=Object.values(agendaHoje.reduce((acc,e)=>{
+      const key=e.profissional||'sem_profissional';
+      if(!acc[key])acc[key]={nome:dashProfLabel(key),total:0,confirmadas:0,aguardando:0};
+      acc[key].total++;
+      if((e.status||'')==='confirmado')acc[key].confirmadas++;
+      if((e.status||'')==='aguardando_confirmacao')acc[key].aguardando++;
+      return acc;
+    },{})).sort((a,b)=>b.total-a.total||a.nome.localeCompare(b.nome));
+
+    if(agendaMetaEl){
+      agendaMetaEl.innerHTML=`
+        <div class="dash-mini">
+          <div class="dash-mini-label">Hoje</div>
+          <div class="dash-mini-value">${agendaHoje.length}</div>
+          <div class="dash-mini-sub">consultas previstas</div>
+        </div>
+        <div class="dash-mini">
+          <div class="dash-mini-label">Semana atual</div>
+          <div class="dash-mini-value">${agendaSemana.length}</div>
+          <div class="dash-mini-sub">${dashPctChip(agendaSemana.length,agendaSemanaAnterior.length)} vs semana anterior</div>
+        </div>
+        <div class="dash-mini">
+          <div class="dash-mini-label">Confirmações pendentes</div>
+          <div class="dash-mini-value">${dashPendingConfirmations.length}</div>
+          <div class="dash-mini-sub"><button class="dash-cta-link" type="button" onclick="openDashModal('confirmacoes')">ver lista</button></div>
+        </div>
+        <div class="dash-mini">
+          <div class="dash-mini-label">Salas ativas hoje</div>
+          <div class="dash-mini-value">${salasHoje.length}</div>
+          <div class="dash-mini-sub">${salasHoje.length?dashEscHtml(salasHoje.join(' · ')):'sem sala definida'}</div>
         </div>`;
-      }).join('')}
+    }
 
-    // Status lateral
-    const statusEl=document.getElementById('dash-status-list');
-    statusEl.innerHTML=`
-      <div style="display:flex;flex-direction:column;gap:6px">
-        <div class="prot-dash-row" style="background:var(--terra-xl);border-radius:var(--r);padding:8px 10px">
-          <div style="flex:1;font-size:12px;color:var(--terra-d)">Em andamento</div>
-          <div style="font-size:18px;font-weight:500;color:var(--terra-d)">${ativos.length}</div>
+    if(agendaProfEl){
+      agendaProfEl.innerHTML=agendaPorProf.length?agendaPorProf.map(p=>`
+        <div class="dash-prof-card">
+          <div class="dash-prof-name">${dashEscHtml(p.nome)}</div>
+          <div class="dash-prof-stats">
+            <div class="dash-prof-stat"><strong>${p.total}</strong><span>Total</span></div>
+            <div class="dash-prof-stat"><strong>${p.confirmadas}</strong><span>Confirmadas</span></div>
+            <div class="dash-prof-stat"><strong>${p.aguardando}</strong><span>Aguardando</span></div>
+          </div>
+        </div>`).join(''):'<div class="dash-empty">Nenhuma consulta agendada para hoje.</div>';
+    }
+
+    const finAtual=fin.filter(l=>l.data>=monthStart&&l.data<=monthEnd);
+    const finAnterior=fin.filter(l=>l.data>=prevMonthStart&&l.data<=prevMonthEnd);
+    const receitaAtual=finAtual.filter(l=>l.tipo==='receita').reduce((s,l)=>s+dashNum(l.valor),0);
+    const receitaAnterior=finAnterior.filter(l=>l.tipo==='receita').reduce((s,l)=>s+dashNum(l.valor),0);
+    const despesaAtual=finAtual.filter(l=>l.tipo==='despesa').reduce((s,l)=>s+dashNum(l.valor),0);
+    const despesaAnterior=finAnterior.filter(l=>l.tipo==='despesa').reduce((s,l)=>s+dashNum(l.valor),0);
+    const saldoAtual=receitaAtual-despesaAtual;
+    const saldoAnterior=receitaAnterior-despesaAnterior;
+
+    const inadAbertoAtual=inad.filter(i=>{
+      const status=(i.status||'').toLowerCase();
+      const saldo=Math.max(0,dashNum(i.saldo_devedor||dashNum(i.valor_total)-dashNum(i.valor_pago)));
+      const dt=dashDateField(i,['created_at','updated_at','data','vencimento']);
+      return status!=='quitado'&&saldo>0&&dt>=monthStart&&dt<=monthEnd;
+    }).reduce((s,i)=>s+Math.max(0,dashNum(i.saldo_devedor||dashNum(i.valor_total)-dashNum(i.valor_pago))),0);
+
+    const inadAbertoAnterior=inad.filter(i=>{
+      const status=(i.status||'').toLowerCase();
+      const saldo=Math.max(0,dashNum(i.saldo_devedor||dashNum(i.valor_total)-dashNum(i.valor_pago)));
+      const dt=dashDateField(i,['created_at','updated_at','data','vencimento']);
+      return status!=='quitado'&&saldo>0&&dt>=prevMonthStart&&dt<=prevMonthEnd;
+    }).reduce((s,i)=>s+Math.max(0,dashNum(i.saldo_devedor||dashNum(i.valor_total)-dashNum(i.valor_pago))),0);
+
+    if(financeiroEl){
+      financeiroEl.innerHTML=`
+        <div class="dash-kv-item">
+          <div><div class="dash-kv-label">Receitas</div><div class="dash-kv-note">mês atual</div></div>
+          <div class="dash-kv-main"><div class="dash-kv-value">${fmt(receitaAtual)}</div>${dashPctChip(receitaAtual,receitaAnterior)}</div>
         </div>
-        <div class="prot-dash-row" style="background:var(--verde-l);border-radius:var(--r);padding:8px 10px">
-          <div style="flex:1;font-size:12px;color:var(--verde)">Concluídos</div>
-          <div style="font-size:18px;font-weight:500;color:var(--verde)">${concluidos.length}</div>
+        <div class="dash-kv-item">
+          <div><div class="dash-kv-label">Despesas</div><div class="dash-kv-note">mês atual</div></div>
+          <div class="dash-kv-main"><div class="dash-kv-value">${fmt(despesaAtual)}</div>${dashPctChip(despesaAtual,despesaAnterior)}</div>
         </div>
-        <div class="divr"></div>
-        ${all.length?`<div style="font-size:11px;color:var(--tl)">Ticket médio</div>
-        <div style="font-size:18px;font-weight:500;color:var(--tx)">${fmt(Math.round(totalFat/(all.length||1)))}</div>
-        <div class="divr"></div>
-        <div style="font-size:11px;color:var(--tl)">Última paciente</div>
-        <div style="font-size:12px;font-weight:500;color:var(--tx);margin-top:2px">${all[0]?.paciente_nome||'—'}</div>`:''}
-      </div>`;
-  }catch(e){console.warn('Erro no dashboard:',e);}
+        <div class="dash-kv-item">
+          <div><div class="dash-kv-label">Inadimplência em aberto</div><div class="dash-kv-note">registrada no mês</div></div>
+          <div class="dash-kv-main"><div class="dash-kv-value">${fmt(inadAbertoAtual)}</div>${dashPctChip(inadAbertoAtual,inadAbertoAnterior)}</div>
+        </div>
+        <div class="dash-kv-item">
+          <div><div class="dash-kv-label">Saldo do mês</div><div class="dash-kv-note">receitas menos despesas</div></div>
+          <div class="dash-kv-main"><div class="dash-kv-value">${fmt(saldoAtual)}</div>${dashPctChip(saldoAtual,saldoAnterior)}</div>
+        </div>`;
+    }
+
+    const protocolosAtivos=protocolos.filter(p=>(p.status||'')==='andamento');
+    const protocolosConcluidosMes=protocolos.filter(p=>(p.status||'')==='concluido'&&(()=>{
+      const dt=dashDateField(p,['updated_at','data_fim','created_at']);
+      return dt>=monthStart&&dt<=monthEnd;
+    })());
+    dashRenewingProtocols=protocolos.map(p=>{
+      const venc=dashDateField(p,['data_fim','data_validade','data_renovacao']);
+      const dias=dashDaysUntil(venc,today);
+      return {...p,_venc:venc,_dias:dias};
+    }).filter(p=>(p.status||'')!=='concluido'&&p._dias!==null&&p._dias>=0&&p._dias<=14)
+      .sort((a,b)=>a._dias-b._dias);
+    const ticketMedio=protocolos.length?protocolos.reduce((s,p)=>s+dashNum(p.valor_total),0)/protocolos.length:0;
+
+    if(protocolosEl){
+      protocolosEl.innerHTML=`
+        <div class="dash-kv-item">
+          <div><div class="dash-kv-label">Em andamento</div><div class="dash-kv-note">protocolos ativos</div></div>
+          <div class="dash-kv-main"><div class="dash-kv-value">${protocolosAtivos.length}</div></div>
+        </div>
+        <div class="dash-kv-item">
+          <div><div class="dash-kv-label">Renovando em 14 dias</div><div class="dash-kv-note">acompanhar pacientes</div></div>
+          <div class="dash-kv-main"><div class="dash-kv-value">${dashRenewingProtocols.length}</div></div>
+        </div>
+        <div style="margin:-2px 0 6px"><button class="dash-cta-link" type="button" onclick="openDashModal('protocolos')">abrir lista de renovação</button></div>
+        <div class="dash-kv-item">
+          <div><div class="dash-kv-label">Concluídos este mês</div><div class="dash-kv-note">fechamentos recentes</div></div>
+          <div class="dash-kv-main"><div class="dash-kv-value">${protocolosConcluidosMes.length}</div></div>
+        </div>
+        <div class="dash-kv-item">
+          <div><div class="dash-kv-label">Ticket médio</div><div class="dash-kv-note">por protocolo</div></div>
+          <div class="dash-kv-main"><div class="dash-kv-value">${fmt(ticketMedio)}</div></div>
+        </div>`;
+    }
+
+    if(modalConfirmacoesEl){
+      modalConfirmacoesEl.innerHTML=dashPendingConfirmations.length?dashPendingConfirmations.map(e=>{
+        const dias=dashDaysUntil(e.data,today);
+        return `<div class="dash-modal-row">
+          <div class="dash-modal-main">
+            <strong>${dashEscHtml(e.paciente_nome||'Paciente')}</strong>
+            <span>${dashEscHtml((e.hora_inicio||'').slice(0,5)||'--:--')} · ${dashEscHtml(e.sala||'Sem sala')} · ${dashEscHtml(dashProfLabel(e.profissional||''))}</span>
+          </div>
+          ${dashPrazoTag(dias)}
+        </div>`;
+      }).join(''):'<div class="dash-empty">Nenhuma confirmação pendente nesta janela.</div>';
+    }
+
+    if(modalProtocolosEl){
+      modalProtocolosEl.innerHTML=dashRenewingProtocols.length?dashRenewingProtocols.map(p=>`
+        <div class="dash-modal-row">
+          <div class="dash-modal-main">
+            <strong>${dashEscHtml(p.paciente_nome||'Paciente')}</strong>
+            <span>${dashEscHtml(p.titulo||'Protocolo')} · ${p._dias} dia(s) restante(s)</span>
+          </div>
+          <span class="tag ${p._dias<=3?'tag-urgente':'tag-atencao'}">${p._dias<=3?'Urgente':p._dias+' dias'}</span>
+        </div>`).join(''):'<div class="dash-empty">Nenhum protocolo com vencimento mapeado em até 14 dias.</div>';
+    }
+
+    const alertas=[];
+    if(pacientesRev.length){
+      alertas.push({
+        titulo:`${pacientesRev.length} cadastro(s) aguardando revisão`,
+        sub:'Pacientes com status aguardando_revisao pedem validação cadastral.',
+        tag:'Revisar',
+        cls:'tag-atencao'
+      });
+    }
+    const vencendo30=estoque.filter(i=>{
+      const dias=dashDaysUntil(dashDateField(i,['proxima_validade']),today);
+      return dias!==null&&dias>=0&&dias<=30;
+    });
+    if(vencendo30.length){
+      alertas.push({
+        titulo:`${vencendo30.length} item(ns) vencendo em 30 dias`,
+        sub:'Validade próxima no estoque atual.',
+        tag:'Urgente',
+        cls:'tag-urgente'
+      });
+    }
+    const abaixoMin=estoque.filter(i=>(i.status_estoque||'')==='critico'||dashNum(i.disponivel)<=dashNum(i.estoque_min));
+    if(abaixoMin.length){
+      alertas.push({
+        titulo:`${abaixoMin.length} item(ns) abaixo do estoque mínimo`,
+        sub:'Reposição recomendada para manter a operação fluindo.',
+        tag:'Comprar',
+        cls:'tag-atencao'
+      });
+    }
+    const vencHoje=fin.filter(l=>String(l.pago).toLowerCase()!=='true'&&dashDateField(l,['vencimento','data'])===today);
+    if(vencHoje.length){
+      alertas.push({
+        titulo:`${vencHoje.length} vencimento(s) financeiro(s) hoje`,
+        sub:'Títulos do dia precisam de atenção imediata.',
+        tag:'Hoje',
+        cls:'tag-urgente'
+      });
+    }
+    const margem=receitaAtual>0?(saldoAtual/receitaAtual):0;
+    if(margem>.4){
+      alertas.push({
+        titulo:'Financeiro dentro do esperado',
+        sub:`Margem operacional do mês em ${Math.round(margem*100)}%.`,
+        tag:'OK',
+        cls:'tag-ok'
+      });
+    }
+
+    if(alertasEl){
+      alertasEl.innerHTML=alertas.length?alertas.map(a=>`
+        <div class="dash-alert-item">
+          <div>
+            <div class="dash-alert-title">${dashEscHtml(a.titulo)}</div>
+            <div class="dash-alert-sub">${dashEscHtml(a.sub)}</div>
+          </div>
+          <span class="tag ${a.cls}">${dashEscHtml(a.tag)}</span>
+        </div>`).join(''):'<div class="dash-empty">Nenhum alerta crítico no momento.</div>';
+    }
+  }catch(e){
+    console.warn('Erro no dashboard:',e);
+    if(agendaProfEl)agendaProfEl.innerHTML='<div class="dash-empty">Não foi possível carregar o dashboard agora.</div>';
+    if(financeiroEl)financeiroEl.innerHTML='<div class="dash-empty">Financeiro indisponível no momento.</div>';
+    if(protocolosEl)protocolosEl.innerHTML='<div class="dash-empty">Protocolos indisponíveis no momento.</div>';
+    if(alertasEl)alertasEl.innerHTML='<div class="dash-empty">Falha ao montar alertas operacionais.</div>';
+  }
 }
 
 // ── TOAST — feedback discreto sem redirecionar ───────────────────────
