@@ -1685,8 +1685,9 @@ async function confirmarQuit(){
   if(!valor||valor<=0){showToast('Informe o valor','err');return;}
 
   // 1. Criar lançamento de receita
+  const quitacaoPaga=forma!=='boleto';
   const lancPayload={tipo:'receita',descricao:'Quitação — '+pac,categoria_dre:'1.4',
-    valor,data,forma_pagamento:forma,paciente:pac,paciente_id:resolvePacienteIdByNome(pac),obs:obs+' | Ref: '+desc,user_id:USER?.id||null};
+    valor,data,forma_pagamento:forma,paciente:pac,paciente_id:resolvePacienteIdByNome(pac),obs:obs+' | Ref: '+desc,pago:quitacaoPaga,user_id:USER?.id||null};
   try{
     const{data:row,error}=await db.from('fin_lancamentos').insert(lancPayload).select().single();
     if(error)throw error;
@@ -1819,11 +1820,12 @@ async function salvar(){
     if(PAY==='cartao'){extras.cartao_bandeira=S('m-cartao-band')?.value;extras.cartao_parcelas=parseInt(S('m-cartao-parc')?.value)||1;extras.cartao_taxa=parseFloat(S('m-cartao-taxa')?.value)||0;}
     if(PAY==='boleto') extras.vencimento=S('m-bol-venc')?.value||null;
   }
+  const pagoInicial=TIPO==='receita'?PAY!=='boleto':false;
 
   const payload={tipo:TIPO,descricao:desc,categoria_dre:cat,valor,data,obs:obs||null,
     paciente:pac||null,forma_pagamento:TIPO==='receita'?PAY:null,
     paciente_id:resolvePacienteIdByNome(pac),
-    vencimento:venc||null,recorrente:recorrente||false,lembrete:lembrete||false,pago:false,
+    vencimento:venc||null,recorrente:recorrente||false,lembrete:lembrete||false,pago:pagoInicial,
     eh_sinal:ehSinal||false,user_id:USER?.id||null,...extras};
 
   const btn=S('btn-salvar');
