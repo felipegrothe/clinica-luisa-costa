@@ -93,6 +93,13 @@ body.iframe-mode #topbar{display:none}
 .ai-free textarea:focus{border-color:var(--terra);box-shadow:0 0 0 3px rgba(193,123,62,.1)}
 .ai-free .btn{height:44px;font-size:11px;letter-spacing:1.2px}
 .ai-answer{min-height:170px;border:1px solid var(--line);border-radius:var(--r);padding:18px;background:#FCFAF7;font-size:13px;line-height:1.7;color:#4D443D}.ai-answer strong{font-size:18px;color:var(--text)}
+.match-review-list{display:grid;gap:10px}
+.match-review-item{border:1px solid var(--line);border-radius:var(--r);padding:14px;background:#FCFAF7}
+.match-review-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.match-review-name{font-size:14px;font-weight:800;color:var(--text)}
+.match-review-meta{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5}
+.match-review-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.tag.match-review{background:#F8EAEA;color:var(--danger)}
 .config-grid{display:grid;gap:10px}.config-row{display:grid;grid-template-columns:1.2fr 1.4fr 90px 90px 42px;gap:8px;align-items:center;border-bottom:1px solid var(--bg3);padding:10px 0}
 .type-row{grid-template-columns:1.3fr 95px 90px 42px}.config-row input,.config-row select{height:36px;border:1px solid var(--bd2);border-radius:var(--r);padding:7px 9px;background:#fff}.color{padding:3px!important}
 .modal{display:none;position:fixed;inset:0;background:rgba(26,23,20,.52);z-index:90;align-items:center;justify-content:center;padding:20px}.modal.on{display:flex}
@@ -177,6 +184,10 @@ body.iframe-mode #topbar{display:none}
       <div class="card">
         <div class="sec">Resumo gerado</div>
         <div class="ai-answer" id="ai-answer">Escolha uma pergunta para gerar uma leitura rápida da agenda.</div>
+      </div>
+      <div class="card">
+        <div class="sec">Pacientes não identificados</div>
+        <div id="match-review-list" class="empty">Nenhum agendamento pendente de revisão manual.</div>
       </div>
     </div>
   </section>
@@ -265,6 +276,7 @@ body.iframe-mode #topbar{display:none}
 <script>
 const SUPA_URL='https://eeianweavbnrikzqquxq.supabase.co';
 const SUPA_KEY='sb_publishable_RWouef1R4SySi3PyBxq0lQ_AEEpGHly';
+const AI_PROXY=SUPA_URL+'/functions/v1/ai-proxy';
 const {createClient}=supabase;
 const db=createClient(SUPA_URL,SUPA_KEY);
 if(window.self!==window.top)document.body.classList.add('iframe-mode');
@@ -296,7 +308,9 @@ const STATUS=[
   ['cancelado','Cancelado'],
   ['bloqueado','Agenda fechada']
 ];
+const MATCH_REVIEW_TAG='[revisao_paciente_pendente]';
 let CONFIG=clone(DEFAULT_CONFIG),pacientes=[],eventos=[],selectedDate=today(),monthRef=new Date(),profFiltro='todos',selectedId=null,agendaSupabaseOk=false,pacientesSupabaseOk=false,agendaView='dia';
+let agendaMatchRunning=false;
 function clone(v){return JSON.parse(JSON.stringify(v));}
 function profs(activeOnly=false){return (CONFIG.profissionais||[]).filter(p=>!activeOnly||p.ativo!==false);}
 function tipoCfg(nome){return (CONFIG.tipos||[]).find(t=>t.nome===nome)||CONFIG.tipos[0]||{nome:'Consulta',duracao:60,cor:'#C17B3E'};}
@@ -339,6 +353,7 @@ async function init(){
   renderStatic();
   fillSelects();
   await Promise.all([carregarPacientes(),carregarEventos()]);
+  await matchAgendamentosPacientes();
   renderAll();
 }
 async function carregarConfig(){
@@ -435,7 +450,39 @@ async function carregarEventos(){
     toast('Agenda não carregou do Supabase. Novos agendamentos e alterações foram bloqueados para evitar perda de dados.','err');
   }
 }
-function renderAll(){renderCalendar();renderTitle();renderSlots();renderDetail();renderPendencias();updateCounts();}
+function renderAll(){renderCalendar();renderTitle();renderSlots();renderDetail();renderPendencias();renderMatchReviews();updateCounts();}
+function renderMatchReviews(){
+  const el=document.getElementById('match-review-list');
+  if(!el)return;
+  const pendentes=eventos
+    .filter(e=>!e.paciente_id&&parseMatchReview(e.observacoes))
+    .sort((a,b)=>(a.data||'').localeCompare(b.data||'')||(a.hora_inicio||'').localeCompare(b.hora_inicio||''));
+  if(!pendentes.length){
+    el.className='empty';
+    el.textContent='Nenhum agendamento pendente de revisão manual.';
+    return;
+  }
+  el.className='match-review-list';
+  el.innerHTML=pendentes.map(e=>{
+    const review=parseMatchReview(e.observacoes)||{};
+    const confiancaPct=Math.round(Number(review.confianca||0)*100);
+    return `<div class="match-review-item">
+      <div class="match-review-top">
+        <div>
+          <div class="match-review-name">${esc(e.paciente_nome||'Paciente sem nome')}</div>
+          <div class="match-review-meta">${esc(brDate(e.data||today()))} · ${esc((e.hora_inicio||'').slice(0,5))} · ${esc(profCfg(e.profissional)?.nome||e.profissional||'Agenda')}</div>
+        </div>
+        <span class="tag match-review">Revisão manual</span>
+      </div>
+      <div class="match-review-meta" style="margin-top:10px">Sugestão IA: <strong>${esc(review.sugestao_nome||'Sem sugestão segura')}</strong>${review.confianca!=null?` · confiança ${confiancaPct}%`:''}</div>
+      <div class="match-review-meta">${esc(review.motivo||'A IA não encontrou correspondência com confiança suficiente.')}</div>
+      <div class="match-review-actions">
+        ${review.sugestao_id?`<button class="btn btn-verde" onclick="confirmarMatchPaciente('${e.id}','${review.sugestao_id}')">Confirmar</button>`:''}
+        <button class="btn" onclick="buscarOutroPacienteAgenda('${e.id}')">Buscar outro</button>
+      </div>
+    </div>`;
+  }).join('');
+}
 function renderCalendar(){
   const d=new Date(monthRef.getFullYear(),monthRef.getMonth(),1);
   document.getElementById('month-title').textContent=d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
@@ -587,11 +634,12 @@ function renderDetail(){
   const pac=pacientes.find(p=>p.id===e.paciente_id)||{};
   const initials=(e.paciente_nome||'P').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
   const objetivos=Array.isArray(pac.objetivos)?pac.objetivos.join(', '):'';
+  const obsLimpa=stripMatchReview(e.observacoes||'');
   el.innerHTML=`
     <div class="detail-head"><h2>${esc(e.tipo||'Consulta')}</h2><span class="tag ${e.status||''}">${esc(STATUS.find(s=>s[0]===e.status)?.[1]||e.status||'Agendado')}</span></div>
     <div class="patient-card"><div class="avatar">${pac.foto_url?`<img src="${pac.foto_url}" alt="">`:initials}</div><div><div class="p-name">${esc(e.paciente_nome)}</div><div class="p-sub">${esc(e.telefone||pac.telefone||'Sem telefone')}</div></div></div>
     <div class="sec">Objetivo da consulta</div>
-    <div style="font-size:12px;line-height:1.55;color:#5E5147;margin-bottom:14px">${esc(e.observacoes||objetivos||'Sem objetivo registrado para este agendamento.')}</div>
+    <div style="font-size:12px;line-height:1.55;color:#5E5147;margin-bottom:14px">${esc(obsLimpa||objetivos||'Sem objetivo registrado para este agendamento.')}</div>
     <div class="sec">Detalhes do agendamento</div>
     <div class="kv">
       <div><label>Data</label><span>${brDate(e.data)} · ${fmtD(e.data).split(',')[0]}</span></div>
@@ -640,6 +688,126 @@ function selectEvent(id){selectedId=id;renderSlots();renderDetail();}
 function abrirEdicaoEvento(id){selectedId=id;renderDetail();editarConsulta(id);}
 function setAgendaView(mode,btn){agendaView=mode;document.querySelectorAll('.view-tabs button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');selectedId=null;renderAll();}
 function tab(id,btn){document.querySelectorAll('#navtabs button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id+'-view').classList.add('active');if(id==='pend')renderPendencias();if(id==='config')renderConfig();}
+function normalizePacienteNome(nome){
+  return String(nome||'')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase()
+    .replace(/\([^)]*\)/g,' ')
+    .replace(/\b(dra|dr|sr|sra)\.?\b/g,' ')
+    .replace(/[^a-z0-9\s]/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+function parseMatchReview(obs){
+  const txt=String(obs||'');
+  const marker=`${MATCH_REVIEW_TAG}{`;
+  const start=txt.indexOf(marker);
+  if(start===-1)return null;
+  const end=txt.indexOf('}',start+marker.length);
+  if(end===-1)return null;
+  try{return JSON.parse(txt.slice(start+MATCH_REVIEW_TAG.length,end+1));}catch(_){return null;}
+}
+function stripMatchReview(obs){
+  return String(obs||'').replace(/\s*\[revisao_paciente_pendente\]\{.*?\}/g,'').trim();
+}
+function buildMatchReviewNote(review,baseObs=''){
+  const limpo=stripMatchReview(baseObs);
+  const payload=`${MATCH_REVIEW_TAG}${JSON.stringify(review)}`;
+  return [limpo,payload].filter(Boolean).join(' ').trim();
+}
+function shouldSkipAgendaMatch(e){
+  return !!e.paciente_id||e.status==='bloqueado'||!String(e.paciente_nome||'').trim()||!!parseMatchReview(e.observacoes);
+}
+async function pedirMatchAgendamentosIA(agendamentos,pacientesAtivos){
+  const prompt=`Você receberá uma lista de nomes de agendamentos e uma lista de pacientes cadastrados.
+Para cada agendamento, identifique o paciente mais provável considerando abreviações, erros de digitação, informações extras entre parênteses e nomes parciais.
+
+Regras:
+- Se confiança >= 0.90, preencha "paciente_id".
+- Se confiança < 0.90, deixe "paciente_id" como null.
+- Mesmo quando "paciente_id" for null, tente preencher "paciente_sugerido_id" e "paciente_sugerido_nome" se houver um candidato provável.
+- Responda APENAS em JSON.
+
+Agendamentos:
+${agendamentos.map((a,i)=>`${i+1}. "${a.paciente_nome}" (id: ${a.id}) | nome normalizado: "${normalizePacienteNome(a.paciente_nome)}"`).join('\n')}
+
+Pacientes cadastrados:
+${pacientesAtivos.map(p=>`- "${p.nome}" (id: ${p.id}) | nome normalizado: "${normalizePacienteNome(p.nome)}"`).join('\n')}
+
+Formato obrigatório:
+[
+  {
+    "agendamento_id":"uuid",
+    "paciente_id":"uuid ou null",
+    "paciente_sugerido_id":"uuid ou null",
+    "paciente_sugerido_nome":"string ou null",
+    "confianca":0.0,
+    "motivo":"breve explicação"
+  }
+]`;
+  const {data:{session}}=await db.auth.getSession();
+  const token=session?session.access_token:SUPA_KEY;
+  const res=await fetch(AI_PROXY,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+    body:JSON.stringify({system:'Você faz reconciliação de nomes de pacientes para uma clínica. Responda somente JSON válido.',message:prompt,max_tokens:1800})});
+  const data=await res.json();
+  if(data.error)throw new Error(data.error.message||JSON.stringify(data.error));
+  const texto=data.content?.[0]?.text||'[]';
+  return JSON.parse(texto.replace(/```json|```/g,'').trim());
+}
+async function matchAgendamentosPacientes(){
+  if(agendaMatchRunning||!agendaSupabaseOk||!pacientesSupabaseOk)return;
+  const pendentes=eventos.filter(e=>!shouldSkipAgendaMatch(e));
+  const pacientesAtivos=pacientes.filter(p=>p.status==='ativo');
+  if(!pendentes.length||!pacientesAtivos.length)return;
+  agendaMatchRunning=true;
+  try{
+    for(let i=0;i<pendentes.length;i+=10){
+      const lote=pendentes.slice(i,i+10);
+      const resultados=await pedirMatchAgendamentosIA(lote,pacientesAtivos);
+      for(const r of resultados){
+        const evt=eventos.find(e=>e.id===r.agendamento_id);
+        if(!evt)continue;
+        if(r.paciente_id&&Number(r.confianca)>=0.9){
+          const {error}=await db.from('agenda_eventos').update({paciente_id:r.paciente_id,updated_at:new Date().toISOString()}).eq('id',r.agendamento_id);
+          if(!error)evt.paciente_id=r.paciente_id;
+        }else{
+          const review={
+            sugestao_id:r.paciente_sugerido_id||null,
+            sugestao_nome:r.paciente_sugerido_nome||null,
+            confianca:Number(r.confianca||0),
+            motivo:r.motivo||'Revisão manual necessária.'
+          };
+          const observacoes=buildMatchReviewNote(review,evt.observacoes||'');
+          const {error}=await db.from('agenda_eventos').update({observacoes,updated_at:new Date().toISOString()}).eq('id',r.agendamento_id);
+          if(!error)evt.observacoes=observacoes;
+        }
+      }
+    }
+  }catch(e){
+    console.warn('Matching IA da agenda falhou',e);
+  }finally{
+    agendaMatchRunning=false;
+  }
+}
+async function confirmarMatchPaciente(eventoId,pacienteId){
+  const evt=eventos.find(e=>e.id===eventoId);
+  const pac=pacientes.find(p=>p.id===pacienteId);
+  if(!evt||!pac)return;
+  const observacoes=stripMatchReview(evt.observacoes||'')||null;
+  const {error}=await db.from('agenda_eventos').update({paciente_id:pacienteId,observacoes,updated_at:new Date().toISOString()}).eq('id',eventoId);
+  if(error){toast('Não foi possível confirmar o vínculo do paciente.','err');return;}
+  evt.paciente_id=pacienteId;
+  evt.observacoes=observacoes;
+  renderAll();
+  toast('Paciente vinculado ao agendamento.');
+}
+function buscarOutroPacienteAgenda(eventoId){
+  const evt=eventos.find(e=>e.id===eventoId);
+  if(!evt)return;
+  editarConsulta(eventoId);
+  document.getElementById('c-paciente-busca').focus();
+  toast('Selecione o paciente correto e salve o agendamento.','warn');
+}
 function abrirConsulta(){
   document.querySelector('#modal-consulta .box-title').textContent='Nova consulta';
   document.getElementById('modal-consulta').dataset.edit='';
@@ -676,7 +844,7 @@ function editarConsulta(id){
   document.getElementById('c-cor').value=e.cor||tipoCfg(e.tipo).cor||'#C17B3E';
   document.getElementById('c-sala').value=e.sala||CONFIG.salas[0]||'Sala 1';
   document.getElementById('c-status').value=e.status==='bloqueado'?'aguardando_confirmacao':(e.status||'aguardando_confirmacao');
-  document.getElementById('c-obs').value=e.observacoes||'';
+  document.getElementById('c-obs').value=stripMatchReview(e.observacoes||'');
   document.getElementById('c-primeira').checked=!!e.primeira_consulta;
   document.getElementById('c-recorrencia').value='nao';
   document.getElementById('c-repeticoes').value='1';
@@ -714,7 +882,12 @@ async function salvarConsulta(){
   const data=document.getElementById('c-data').value,hora=document.getElementById('c-hora').value,horaFimManual=document.getElementById('c-hora-fim').value;
   if(!data||!hora){toast('Informe data e hora.','warn');return;}
   const dur=horaFimManual?minutosEntre(hora,horaFimManual):(Number(document.getElementById('c-duracao').value)||60);
-  const base={paciente_id:pac?.id||null,paciente_nome:pac?.nome||'Agenda fechada',telefone:pac?.telefone||null,data,hora_inicio:hora,hora_fim:horaFimManual||horaFim(hora,dur),duracao_min:dur,profissional:document.getElementById('c-profissional').value,tipo:document.getElementById('c-tipo').value,status:editingBlock?'bloqueado':document.getElementById('c-status').value,sala:document.getElementById('c-sala').value,observacoes:document.getElementById('c-obs').value.trim()||null,primeira_consulta:document.getElementById('c-primeira').checked,cor:document.getElementById('c-cor').value,updated_at:new Date().toISOString()};
+  const atual=editId?eventos.find(e=>e.id===editId):null;
+  const obsManual=document.getElementById('c-obs').value.trim()||null;
+  const reviewAtual=parseMatchReview(atual?.observacoes||'');
+  const observacoes=editingBlock?obsManual:(pac?.id?stripMatchReview(obsManual):reviewAtual?buildMatchReviewNote(reviewAtual,obsManual):obsManual);
+  const pacienteNome=editId?(atual?.paciente_nome||pac?.nome||'Agenda fechada'):(pac?.nome||'Agenda fechada');
+  const base={paciente_id:pac?.id||null,paciente_nome:pacienteNome,telefone:pac?.telefone||null,data,hora_inicio:hora,hora_fim:horaFimManual||horaFim(hora,dur),duracao_min:dur,profissional:document.getElementById('c-profissional').value,tipo:document.getElementById('c-tipo').value,status:editingBlock?'bloqueado':document.getElementById('c-status').value,sala:document.getElementById('c-sala').value,observacoes,primeira_consulta:document.getElementById('c-primeira').checked,cor:document.getElementById('c-cor').value,updated_at:new Date().toISOString()};
   const regra=document.getElementById('c-recorrencia').value,reps=document.getElementById('c-repeticoes').value;
   const payloads=(editId?[data]:datasRecorrentes(data,regra,reps)).map(d=>({...base,data:d,recorrencia:regra==='nao'?null:{tipo:regra,repeticoes:Number(reps)||1}}));
   await salvarPayloads(payloads,editId,'Consulta salva.');
