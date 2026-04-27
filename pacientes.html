@@ -611,6 +611,9 @@ let pacientesSupabaseOk=false;
 let pacienteHistoryReady=false;
 let filtroAtual='todos';
 const followupSugestoesPendentes=new Set();
+let financeiroPacienteCache={};
+let financeiroMatchRunning=false;
+const FIN_MATCH_REVIEW_TAG='[revisao_paciente_financeiro]';
 
 function initCatPills(){}
 
@@ -642,6 +645,10 @@ async function carregar(){
   atualizarSyncPanel();
   badgeAlertas();
   renderGlobalTab();
+  matchLancamentosPacientes().then(()=>{
+    financeiroPacienteCache={};
+    if(pAtual)renderPatientTab();
+  }).catch(()=>{});
 }
 
 function bloquearPacientesSemSupabase(acao='executar esta ação'){
@@ -718,6 +725,112 @@ function calcularSemana(dataInicio,total){
 
 function getProtocolos(p){
   return [...(p.protocolos||[]),...(protocolosPorPaciente[nomeKey(p.nome)]||[])];
+}
+
+function normalizePacienteNome(nome){
+  return String(nome||'')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase()
+    .replace(/\([^)]*\)/g,' ')
+    .replace(/\b(dra|dr|sr|sra)\.?\b/g,' ')
+    .replace(/[^a-z0-9\s]/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+
+function parseFinMatchReview(obs){
+  const txt=String(obs||'');
+  const marker=`${FIN_MATCH_REVIEW_TAG}{`;
+  const start=txt.indexOf(marker);
+  if(start===-1)return null;
+  const end=txt.indexOf('}',start+marker.length);
+  if(end===-1)return null;
+  try{return JSON.parse(txt.slice(start+FIN_MATCH_REVIEW_TAG.length,end+1));}catch(_){return null;}
+}
+
+function buildFinMatchReview(review,baseObs=''){
+  const limpo=String(baseObs||'').replace(/\s*\[revisao_paciente_financeiro\]\{.*?\}/g,'').trim();
+  const payload=`${FIN_MATCH_REVIEW_TAG}${JSON.stringify(review)}`;
+  return [limpo,payload].filter(Boolean).join(' ').trim();
+}
+
+function shouldSkipFinMatch(l){
+  return !!l.paciente_id||!String(l.paciente||'').trim()||!!parseFinMatchReview(l.obs);
+}
+
+async function pedirMatchLancamentosIA(lancamentos,pacientesAtivos){
+  const prompt=`Você receberá lançamentos financeiros com nome de paciente em texto livre
+e uma lista de pacientes cadastrados. Faça a correspondência considerando abreviações, nomes parciais, erros de digitação, nomes com informações extras e nomes compostos abreviados.
+
+Lançamentos:
+${lancamentos.map((l,i)=>`${i+1}. "${l.paciente}" | ${l.tipo} | descricao: "${l.descricao||''}" (id: ${l.id}) | nome normalizado: "${normalizePacienteNome(l.paciente)}"`).join('\n')}
+
+Pacientes cadastrados:
+${pacientesAtivos.map(p=>`- "${p.nome}" (id: ${p.id}) | nome normalizado: "${normalizePacienteNome(p.nome)}"`).join('\n')}
+
+Responda APENAS em JSON sem texto adicional:
+[
+  {
+    "lancamento_id":"uuid",
+    "paciente_id":"uuid ou null",
+    "confianca":0.0,
+    "motivo":"breve explicação"
+  }
+]`;
+  const {data:{session}}=await db.auth.getSession();
+  const token=session?session.access_token:SUPA_KEY;
+  const response=await fetch(AI_PROXY,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+    body:JSON.stringify({system:'Você faz reconciliação de nomes de pacientes em lançamentos financeiros. Responda apenas JSON válido.',message:prompt,max_tokens:1800})});
+  const data=await response.json();
+  if(data.error)throw new Error(data.error.message||JSON.stringify(data.error));
+  const texto=data.content?.[0]?.text||'[]';
+  return JSON.parse(texto.replace(/```json|```/g,'').trim());
+}
+
+async function matchLancamentosPacientes(){
+  if(financeiroMatchRunning||!pacientes.length)return;
+  financeiroMatchRunning=true;
+  try{
+    const {data:lancamentos,error}=await db.from('fin_lancamentos')
+      .select('id,descricao,paciente,tipo,paciente_id,obs')
+      .is('paciente_id',null)
+      .not('paciente','is',null)
+      .neq('paciente','');
+    if(error||!lancamentos?.length)return;
+    const pacientesAtivos=pacientes.filter(p=>p.status==='ativo').map(p=>({id:p.id,nome:p.nome}));
+    for(let i=0;i<lancamentos.length;i+=15){
+      const lote=lancamentos.slice(i,i+15).filter(l=>!shouldSkipFinMatch(l));
+      if(!lote.length)continue;
+      const resultados=await pedirMatchLancamentosIA(lote,pacientesAtivos);
+      for(const r of resultados){
+        if(r.paciente_id&&Number(r.confianca)>=0.9){
+          await db.from('fin_lancamentos').update({paciente_id:r.paciente_id}).eq('id',r.lancamento_id);
+        }else{
+          const atual=lancamentos.find(l=>String(l.id)===String(r.lancamento_id));
+          const obs=buildFinMatchReview({confianca:Number(r.confianca||0),motivo:r.motivo||'Revisão manual necessária.'},atual?.obs||'');
+          await db.from('fin_lancamentos').update({obs}).eq('id',r.lancamento_id);
+        }
+      }
+    }
+  }catch(e){
+  }finally{
+    financeiroMatchRunning=false;
+  }
+}
+
+async function ensureFinanceiroPaciente(id){
+  if(!id||financeiroPacienteCache[id])return;
+  financeiroPacienteCache[id]={loading:true,itens:[]};
+  try{
+    const {data}=await db.from('fin_lancamentos')
+      .select('descricao,valor,tipo,data,forma_pagamento,pago')
+      .eq('paciente_id',id)
+      .order('data',{ascending:false});
+    financeiroPacienteCache[id]={loading:false,itens:data||[]};
+  }catch(e){
+    financeiroPacienteCache[id]={loading:false,itens:[]};
+  }
+  if(pAtual?.id===id&&tabAtual==='ficha')renderPatientTab();
 }
 
 // MÁSCARAS
@@ -1149,6 +1262,33 @@ function renderPatientTab(){
   else rHist(c);
 }
 
+function financeiroSectionHTML(p){
+  ensureFinanceiroPaciente(p.id);
+  const state=financeiroPacienteCache[p.id];
+  if(!state||state.loading){
+    return `<section class="record-section">
+      <div class="record-section-title">Financeiro</div>
+      <div style="padding:16px 0 16px 0;font-size:12px;color:var(--muted)">Carregando histórico financeiro…</div>
+    </section>`;
+  }
+  const itens=state.itens||[];
+  const totalPago=itens.filter(i=>i.tipo==='receita'&&i.pago!==false).reduce((s,i)=>s+Number(i.valor||0),0);
+  const saldoDevedor=itens.filter(i=>i.tipo==='receita'&&i.pago===false).reduce((s,i)=>s+Number(i.valor||0),0);
+  const linhas=itens.length?itens.slice(0,8).map(i=>`
+    <tr>
+      <th>${fmtD(i.data)}</th>
+      <td>${esc(i.descricao||'Lançamento')} · ${esc((i.forma_pagamento||'sem forma').toUpperCase())} · ${esc(i.tipo||'receita')} · R$ ${Number(i.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+    </tr>`).join(''):`<tr><th>Histórico</th><td class="record-empty">Nenhum lançamento financeiro vinculado.</td></tr>`;
+  return `<section class="record-section">
+    <div class="record-section-title">Financeiro</div>
+    <table class="record-table"><tbody>
+      ${recordRow('Total pago','R$ '+totalPago.toLocaleString('pt-BR',{minimumFractionDigits:2}))}
+      ${recordRow('Saldo devedor',saldoDevedor?'R$ '+saldoDevedor.toLocaleString('pt-BR',{minimumFractionDigits:2}):'Sem pendências')}
+      ${linhas}
+    </tbody></table>
+  </section>`;
+}
+
 // ── FICHA ─────────────────────────────────────────────────
 function rFicha(c){
   if(editandoFicha){rFichaEdit(c);return;}
@@ -1194,6 +1334,7 @@ function rFicha(c){
         ['Medicamentos em uso',p.medicamentos],
         ['Restrição alimentar',r.restricao_alimentar]
       ])}
+      ${financeiroSectionHTML(p)}
       <div class="danger-zone">
         <div>
           <strong>Administração do cadastro</strong>

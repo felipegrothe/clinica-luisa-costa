@@ -809,6 +809,7 @@ const AI_PROXY = SUPA_URL + '/functions/v1/ai-proxy';
 
 let USER=null, PERFIL=null, NIVEL=null;
 let LANCS=[], INAD_MANUAIS=[], PACS_CACHE=[], FAVS=[];
+let PACIENTES_DB=[];
 let TIPO='receita', PAY='pix';
 let DET_ID=null, QUIT_ID=null, QUIT_ORIGEM=null, QUIT_SALDO=0;
 let INAD_FILTRO='todos', DASH_FILTRO='', DASH_MES='';
@@ -816,7 +817,9 @@ let INAD_LISTA=[];
 let INAD_EDIT_ID=null;
 let IMPORT_FIN=null;
 let REC_PG=0, DES_PG=0;
+let FIN_MATCH_RUNNING=false;
 const PG_SIZE=15;
+const FIN_MATCH_REVIEW_TAG='[revisao_paciente_financeiro]';
 const CARD_FEE_TABLE={
   amex:{credito:3.11,p2a6:3.96,p7a10:4.26},
   cabal:{debito:1.73,credito:2.94,p2a6:3.5,p7a10:3.7},
@@ -912,6 +915,41 @@ const isAdmin=()=>NIVEL==='admin'||NIVEL==='administrador'||NIVEL==='Administrad
 const S=(id)=>document.getElementById(id);
 const setSafe=(id,v)=>{const e=S(id);if(e)e.textContent=v;};
 const esc=(s)=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function normalizePacienteNome(nome){
+  return String(nome||'')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase()
+    .replace(/\([^)]*\)/g,' ')
+    .replace(/\b(dra|dr|sr|sra)\.?\b/g,' ')
+    .replace(/[^a-z0-9\s]/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+function resolvePacienteIdByNome(nome){
+  const alvo=normalizePacienteNome(nome);
+  if(!alvo)return null;
+  return PACIENTES_DB.find(p=>normalizePacienteNome(p.nome)===alvo)?.id||null;
+}
+function parseFinMatchReview(obs){
+  const txt=String(obs||'');
+  const marker=`${FIN_MATCH_REVIEW_TAG}{`;
+  const start=txt.indexOf(marker);
+  if(start===-1)return null;
+  const end=txt.indexOf('}',start+marker.length);
+  if(end===-1)return null;
+  try{return JSON.parse(txt.slice(start+FIN_MATCH_REVIEW_TAG.length,end+1));}catch(_){return null;}
+}
+function stripFinMatchReview(obs){
+  return String(obs||'').replace(/\s*\[revisao_paciente_financeiro\]\{.*?\}/g,'').trim();
+}
+function buildFinMatchReview(review,baseObs=''){
+  const limpo=stripFinMatchReview(baseObs);
+  const payload=`${FIN_MATCH_REVIEW_TAG}${JSON.stringify(review)}`;
+  return [limpo,payload].filter(Boolean).join(' ').trim();
+}
+function shouldSkipFinMatch(l){
+  return !!l.paciente_id||!String(l.paciente||'').trim()||!!parseFinMatchReview(l.obs);
+}
 
 function showToast(msg,tipo='ok'){
   const t=document.createElement('div');
@@ -972,6 +1010,7 @@ async function carregar(){
       .select('*').order('data',{ascending:false}).order('created_at',{ascending:false});
     if(!error&&data) LANCS=data;
   }catch(e){}
+  await matchLancamentosPacientes();
 }
 
 async function carregarPacs(){
@@ -985,11 +1024,73 @@ async function carregarPacs(){
   try{
     const{data,error}=await db.from('pacientes').select('id,nome').order('nome');
     if(!error&&data){
+      PACIENTES_DB=data;
       const exist=new Set(PACS_CACHE.map(p=>p.nome.toLowerCase()));
       data.filter(p=>p.nome&&!exist.has(p.nome.toLowerCase())).forEach(p=>PACS_CACHE.push(p));
       PACS_CACHE.sort((a,b)=>a.nome.localeCompare(b.nome));
     }
   }catch(e){}
+}
+
+async function pedirMatchLancamentosIA(lancamentos,pacientesAtivos){
+  const prompt=`Você receberá lançamentos financeiros com nome de paciente em texto livre
+e uma lista de pacientes cadastrados. Faça a correspondência considerando abreviações, nomes parciais, erros de digitação, nomes com informações extras e nomes compostos abreviados.
+
+Lançamentos:
+${lancamentos.map((l,i)=>`${i+1}. "${l.paciente}" | ${l.tipo} | descricao: "${l.descricao||''}" (id: ${l.id}) | nome normalizado: "${normalizePacienteNome(l.paciente)}"`).join('\n')}
+
+Pacientes cadastrados:
+${pacientesAtivos.map(p=>`- "${p.nome}" (id: ${p.id}) | nome normalizado: "${normalizePacienteNome(p.nome)}"`).join('\n')}
+
+Responda APENAS em JSON sem texto adicional:
+[
+  {
+    "lancamento_id":"uuid",
+    "paciente_id":"uuid ou null",
+    "confianca":0.0,
+    "motivo":"breve explicação"
+  }
+]
+
+Se não encontrar correspondência com confiança >= 0.9, retorne paciente_id como null.`;
+  const {data:{session}}=await db.auth.getSession();
+  const token=session?session.access_token:SUPA_KEY;
+  const response=await fetch(AI_PROXY,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+    body:JSON.stringify({system:'Você faz reconciliação de nomes de pacientes em lançamentos financeiros. Responda apenas JSON válido.',message:prompt,max_tokens:1800})});
+  const data=await response.json();
+  if(data.error)throw new Error(data.error.message||JSON.stringify(data.error));
+  const texto=data.content?.[0]?.text||'[]';
+  return JSON.parse(texto.replace(/```json|```/g,'').trim());
+}
+
+async function matchLancamentosPacientes(){
+  if(FIN_MATCH_RUNNING||!PACIENTES_DB.length)return;
+  const pendentes=LANCS.filter(l=>!shouldSkipFinMatch(l));
+  const pacientesAtivos=PACIENTES_DB.filter(p=>p.nome);
+  if(!pendentes.length||!pacientesAtivos.length)return;
+  FIN_MATCH_RUNNING=true;
+  try{
+    for(let i=0;i<pendentes.length;i+=15){
+      const lote=pendentes.slice(i,i+15);
+      const resultados=await pedirMatchLancamentosIA(lote,pacientesAtivos);
+      for(const r of resultados){
+        const item=LANCS.find(l=>String(l.id)===String(r.lancamento_id));
+        if(!item)continue;
+        if(r.paciente_id&&Number(r.confianca)>=0.9){
+          const {error}=await db.from('fin_lancamentos').update({paciente_id:r.paciente_id}).eq('id',r.lancamento_id);
+          if(!error)item.paciente_id=r.paciente_id;
+        }else{
+          const obs=buildFinMatchReview({confianca:Number(r.confianca||0),motivo:r.motivo||'Revisão manual necessária.'},item.obs||'');
+          const {error}=await db.from('fin_lancamentos').update({obs}).eq('id',r.lancamento_id);
+          if(!error)item.obs=obs;
+        }
+      }
+    }
+  }catch(e){
+    console.warn('Matching financeiro falhou',e);
+  }finally{
+    FIN_MATCH_RUNNING=false;
+  }
 }
 
 function carregarFavs(){
@@ -1467,7 +1568,7 @@ async function salvarImportacaoFinanceira(){
   if(!valor){showToast('Informe o valor antes de salvar','err');return;}
   try{
     if(tipo==='despesa'){
-      const payload={tipo:'despesa',descricao,categoria_dre:categoria,valor,data:hoje(),vencimento:venc,paciente:entidade||null,obs:`Importado de PDF${obs?` | ${obs}`:''}`,pago:false,user_id:USER?.id||null};
+      const payload={tipo:'despesa',descricao,categoria_dre:categoria,valor,data:hoje(),vencimento:venc,paciente:entidade||null,paciente_id:resolvePacienteIdByNome(entidade),obs:`Importado de PDF${obs?` | ${obs}`:''}`,pago:false,user_id:USER?.id||null};
       const{data:row,error}=await db.from('fin_lancamentos').insert(payload).select().single();
       if(error)throw error;
       LANCS.unshift(row);
@@ -1585,7 +1686,7 @@ async function confirmarQuit(){
 
   // 1. Criar lançamento de receita
   const lancPayload={tipo:'receita',descricao:'Quitação — '+pac,categoria_dre:'1.4',
-    valor,data,forma_pagamento:forma,paciente:pac,obs:obs+' | Ref: '+desc,user_id:USER?.id||null};
+    valor,data,forma_pagamento:forma,paciente:pac,paciente_id:resolvePacienteIdByNome(pac),obs:obs+' | Ref: '+desc,user_id:USER?.id||null};
   try{
     const{data:row,error}=await db.from('fin_lancamentos').insert(lancPayload).select().single();
     if(error)throw error;
@@ -1721,6 +1822,7 @@ async function salvar(){
 
   const payload={tipo:TIPO,descricao:desc,categoria_dre:cat,valor,data,obs:obs||null,
     paciente:pac||null,forma_pagamento:TIPO==='receita'?PAY:null,
+    paciente_id:resolvePacienteIdByNome(pac),
     vencimento:venc||null,recorrente:recorrente||false,lembrete:lembrete||false,pago:false,
     eh_sinal:ehSinal||false,user_id:USER?.id||null,...extras};
 
@@ -1778,6 +1880,7 @@ function abrirDet(id){
   DET_ID=id;
   const pos=l.tipo==='receita';
   const cat=labelCategoria(pos?CATS_REC:CATS_DES,l.categoria_dre);
+  const obsLimpa=stripFinMatchReview(l.obs||null)||null;
   setSafe('det-title',l.descricao||'Lançamento');
   setSafe('det-sub',(pos?'Receita':'Despesa')+' · '+fmt(l.valor));
   const rows=[
@@ -1790,7 +1893,7 @@ function abrirDet(id){
     {k:'Paciente',v:l.paciente||null},
     {k:'Sinal de consulta',v:l.eh_sinal?'Sim':null},
     {k:'Vencimento',v:l.vencimento?fmtData(l.vencimento):null},
-    {k:'Observação',v:l.obs||null},
+    {k:'Observação',v:obsLimpa},
   ].filter(r=>r.v&&r.v!=='—');
   S('det-body').innerHTML=`<div style="display:flex;flex-direction:column">`+
     rows.map(r=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--bg3)">
@@ -1823,14 +1926,20 @@ async function salvarEdicao(){
   if(!motivo){showToast('Informe o motivo da edição','err');return;}
   const l=LANCS.find(x=>String(x.id)===String(DET_ID));
   if(!l){showToast('Lançamento não encontrado','err');return;}
+  const review=parseFinMatchReview(l.obs||'');
+  const baseObsLimpa=stripFinMatchReview(l.obs||'');
+  const pacienteEditado=S('ed-pac')?.value.trim()||l.paciente||null;
+  const pacienteIdEditado=resolvePacienteIdByNome(pacienteEditado);
+  const obsEditada=[baseObsLimpa,'[EDITADO '+new Date().toLocaleDateString('pt-BR')+' por '+(PERFIL?.nome||'admin')+']: '+motivo].filter(Boolean).join(' | ');
 
   const novoPayload={
     descricao:S('ed-desc')?.value.trim()||l.descricao,
     valor:parseFloat(S('ed-valor')?.value)||l.valor,
     data:S('ed-data')?.value||l.data,
     categoria_dre:S('ed-cat')?.value||l.categoria_dre,
-    paciente:S('ed-pac')?.value.trim()||l.paciente||null,
-    obs:(l.obs?l.obs+' | ':'')+('[EDITADO '+new Date().toLocaleDateString('pt-BR')+' por '+(PERFIL?.nome||'admin')+']: '+motivo),
+    paciente:pacienteEditado,
+    paciente_id:pacienteIdEditado,
+    obs:pacienteIdEditado?obsEditada:(review?buildFinMatchReview(review,obsEditada):obsEditada),
   };
 
   // Lançamento local
