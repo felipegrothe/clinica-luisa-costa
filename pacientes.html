@@ -269,6 +269,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .tl-item::before{content:'';position:absolute;left:-17px;top:4px;width:9px;height:9px;border-radius:50%;background:var(--bg2);border:2px solid var(--terra)}
 .tl-item.consulta::before{border-color:var(--terra)}
 .tl-item.protocolo::before{border-color:var(--verde)}
+.tl-item.financeiro::before{border-color:#48638C}
 .tl-item.sistema::before{border-color:var(--muted)}
 .tl-body{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px}
 .tl-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
@@ -1590,11 +1591,16 @@ function rRelEdit(c){
 // ── HISTÓRICO ─────────────────────────────────────────────
 function rHist(c){
   const p=pAtual;
+  ensureFinanceiroPaciente(p.id);
+  const finState=financeiroPacienteCache[p.id];
+  const fins=finState?.loading?[]:(finState?.itens||[]);
   const cs=p.consultas||[];
   const ps=getProtocolos(p);
   const totalConsultas=cs.reduce((s,x)=>s+(parseFloat(x.valor)||0),0);
   const totalProtocolos=ps.reduce((s,x)=>s+(parseFloat(x.valor)||0),0);
-  const total=totalConsultas+totalProtocolos;
+  const totalFinanceiroPago=fins.filter(x=>x.tipo==='receita'&&x.pago!==false).reduce((s,x)=>s+(parseFloat(x.valor)||0),0);
+  const saldoFinanceiro=fins.filter(x=>x.tipo==='receita'&&x.pago===false).reduce((s,x)=>s+(parseFloat(x.valor)||0),0);
+  const total=totalConsultas+totalProtocolos+totalFinanceiroPago;
   const ativo=ps.find(x=>x.ativo);
   const ultReg=cs.length?[...cs].sort((a,b)=>new Date(b.data||0)-new Date(a.data||0))[0]:null;
   const protHTML=ps.length?ps.map(x=>`
@@ -1623,6 +1629,14 @@ function rHist(c){
       tipo:'Protocolo',
       desc:x.nome||'Protocolo vinculado',
       status:x.ativo?`Em andamento · semana ${x.semanaAtual} de ${x.totalSemanas}`:'Concluído',
+      valor:parseFloat(x.valor)||0
+    })),
+    ...fins.map(x=>({
+      kind:'financeiro',
+      data:x.data||'',
+      tipo:x.tipo==='despesa'?'Despesa':'Pagamento',
+      desc:x.descricao||'Lançamento financeiro',
+      status:`${(x.forma_pagamento||'sem forma').toUpperCase()}${x.pago===false?' · Em aberto':' · Registrado'}`,
       valor:parseFloat(x.valor)||0
     }))
   ].sort((a,b)=>new Date(b.data||0)-new Date(a.data||0));
@@ -1653,7 +1667,9 @@ function rHist(c){
         ['Protocolo ativo',ativo?ativo.nome:'Nenhum'],
         ['Semana atual',ativo?`${ativo.semanaAtual} de ${ativo.totalSemanas}`:'Não se aplica'],
         ['Registros manuais',cs.length],
-        ['Último registro',ultReg?`${fmtD(ultReg.data)} · ${ultReg.tipo||'Consulta'}`:'Não informado']
+        ['Último registro',ultReg?`${fmtD(ultReg.data)} · ${ultReg.tipo||'Consulta'}`:'Não informado'],
+        ['Total pago no financeiro','R$ '+totalFinanceiroPago.toLocaleString('pt-BR',{minimumFractionDigits:2})],
+        ['Saldo devedor',saldoFinanceiro?'R$ '+saldoFinanceiro.toLocaleString('pt-BR',{minimumFractionDigits:2}):'Sem pendências']
       ])}
       ${recordSection('Indicadores do paciente',[
         ['Origem',p.origem],
@@ -1665,8 +1681,9 @@ function rHist(c){
     </div>
   </div>
   <div class="card"><div class="ch"><h2>Protocolos do Precificador</h2><span>vínculo automático por nome</span></div><div class="cb">${protHTML}</div></div>
-  <div class="card"><div class="ch"><h2>Linha do Tempo</h2><span>protocolos e registros manuais</span></div><div class="cb">
+  <div class="card"><div class="ch"><h2>Linha do Tempo</h2><span>protocolos, registros manuais e financeiro</span></div><div class="cb">
     <div class="timeline">${timeline}</div>
+    ${finState?.loading?'<div class="le" style="padding:12px 0 2px">Carregando lançamentos financeiros…</div>':''}
     <div class="hist-form col-gap">
       <div class="g3">
         <input type="hidden" id="hc-idx" value=""/>
