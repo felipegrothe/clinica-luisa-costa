@@ -759,6 +759,13 @@ function shouldSkipFinMatch(l){
   return !!l.paciente_id||!String(l.paciente||'').trim()||!!parseFinMatchReview(l.obs);
 }
 
+function lancamentoFinanceiroEmAberto(item){
+  if(item?.tipo!=='receita')return false;
+  const forma=String(item?.forma_pagamento||'').toLowerCase();
+  if(forma&&forma!=='boleto')return false;
+  return item?.pago===false;
+}
+
 async function pedirMatchLancamentosIA(lancamentos,pacientesAtivos){
   const prompt=`Você receberá lançamentos financeiros com nome de paciente em texto livre
 e uma lista de pacientes cadastrados. Faça a correspondência considerando abreviações, nomes parciais, erros de digitação, nomes com informações extras e nomes compostos abreviados.
@@ -1273,8 +1280,8 @@ function financeiroSectionHTML(p){
     </section>`;
   }
   const itens=state.itens||[];
-  const totalPago=itens.filter(i=>i.tipo==='receita'&&i.pago!==false).reduce((s,i)=>s+Number(i.valor||0),0);
-  const saldoDevedor=itens.filter(i=>i.tipo==='receita'&&i.pago===false).reduce((s,i)=>s+Number(i.valor||0),0);
+  const totalPago=itens.filter(i=>i.tipo==='receita'&&!lancamentoFinanceiroEmAberto(i)).reduce((s,i)=>s+Number(i.valor||0),0);
+  const saldoDevedor=itens.filter(i=>lancamentoFinanceiroEmAberto(i)).reduce((s,i)=>s+Number(i.valor||0),0);
   const linhas=itens.length?itens.slice(0,8).map(i=>`
     <tr>
       <th>${fmtD(i.data)}</th>
@@ -1598,8 +1605,8 @@ function rHist(c){
   const ps=getProtocolos(p);
   const totalConsultas=cs.reduce((s,x)=>s+(parseFloat(x.valor)||0),0);
   const totalProtocolos=ps.reduce((s,x)=>s+(parseFloat(x.valor)||0),0);
-  const totalFinanceiroPago=fins.filter(x=>x.tipo==='receita'&&x.pago!==false).reduce((s,x)=>s+(parseFloat(x.valor)||0),0);
-  const saldoFinanceiro=fins.filter(x=>x.tipo==='receita'&&x.pago===false).reduce((s,x)=>s+(parseFloat(x.valor)||0),0);
+  const totalFinanceiroPago=fins.filter(x=>x.tipo==='receita'&&!lancamentoFinanceiroEmAberto(x)).reduce((s,x)=>s+(parseFloat(x.valor)||0),0);
+  const saldoFinanceiro=fins.filter(x=>lancamentoFinanceiroEmAberto(x)).reduce((s,x)=>s+(parseFloat(x.valor)||0),0);
   const total=totalConsultas+totalProtocolos+totalFinanceiroPago;
   const ativo=ps.find(x=>x.ativo);
   const ultReg=cs.length?[...cs].sort((a,b)=>new Date(b.data||0)-new Date(a.data||0))[0]:null;
@@ -1636,7 +1643,7 @@ function rHist(c){
       data:x.data||'',
       tipo:x.tipo==='despesa'?'Despesa':'Pagamento',
       desc:x.descricao||'Lançamento financeiro',
-      status:`${(x.forma_pagamento||'sem forma').toUpperCase()}${x.pago===false?' · Em aberto':' · Registrado'}`,
+      status:`${(x.forma_pagamento||'sem forma').toUpperCase()}${lancamentoFinanceiroEmAberto(x)?' · Em aberto':' · Registrado'}`,
       valor:parseFloat(x.valor)||0
     }))
   ].sort((a,b)=>new Date(b.data||0)-new Date(a.data||0));
