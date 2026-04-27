@@ -918,6 +918,10 @@ function saveState(){
     console.warn('Falha ao salvar estado local',e);
   }
 }
+function setDur(v){
+  duracao=Number(v)||3;
+  saveState();
+}
 const signatures={};
 let saveTimer=null;
 

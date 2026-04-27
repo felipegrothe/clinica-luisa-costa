@@ -1763,34 +1763,34 @@ async function criarUsuario(){
 function gerarPdfRet(ret,qty,obs,data,user,ts){
   var tstr=new Date(ts).toLocaleString('pt-BR');
   var w=window.open('','_blank','width=700,height=650');if(!w)return;
-  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Retirada</title>'
-  +'<style>*{box-sizing:border-box;margin:0;padding:0}
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Retirada</title>
+  <style>*{box-sizing:border-box;margin:0;padding:0}
 body.iframe-mode .hdr{display:none!important}
 body.iframe-mode{padding-top:0}
-body{font-family:Georgia,serif;color:#2c2824;padding:50px;font-size:13px}'
-  +'.hdr{border-bottom:3px solid #a8843e;padding-bottom:18px;margin-bottom:26px}.cn{font-size:24px;letter-spacing:5px;text-transform:uppercase;font-weight:normal}'
-  +'.cs{font-size:9px;letter-spacing:4px;text-transform:uppercase;color:#9a8f84;margin-top:4px}'
-  +'.stamp{display:inline-block;border:2px solid #a8843e;padding:7px 16px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#a8843e;margin-bottom:18px;border-radius:3px}'
-  +'.dt{font-size:17px;letter-spacing:3px;text-transform:uppercase;margin-bottom:22px;padding:12px 0;border-bottom:1px solid #e4ddd6}'
-  +'.fl{display:flex;gap:14px;margin-bottom:15px}.flb{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#9a8f84;min-width:140px}'
-  +'.flv{font-size:14px;font-weight:bold;border-bottom:1px solid #e4ddd6;flex:1;padding-bottom:4px}'
-  +'.ob{border:1px solid #e4ddd6;border-radius:4px;padding:12px;min-height:70px;margin-top:4px}'
-  +'.sig{margin-top:50px;display:grid;grid-template-columns:1fr 1fr;gap:40px}'
-  +'.sl{border-top:1px solid #2c2824;margin-top:38px;padding-top:7px;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#9a8f84;text-align:center}'
-  +'.ft{margin-top:44px;padding-top:14px;border-top:1px solid #e4ddd6;font-size:9px;color:#9a8f84;text-align:center}</style></head><body>'
-  +'<div class="hdr"><div class="cn">Luisa Costa</div><div class="cs">Clínica Médica — Gestão de Estoque</div></div>'
-  +'<div class="stamp">Termo de Retirada de Material</div>'
-  +'<div class="dt">Comprovante de Retirada</div>'
-  +'<div class="fl"><div class="flb">Medicamento / Item</div><div class="flv">'+ret.nome+'</div></div>'
-  +'<div class="fl"><div class="flb">Quantidade retirada</div><div class="flv">'+qty+' '+ret.unid+'</div></div>'
-  +'<div class="fl"><div class="flb">Data da retirada</div><div class="flv">'+fbr(data)+'</div></div>'
-  +'<div class="fl"><div class="flb">Hora do registro</div><div class="flv">'+tstr+'</div></div>'
-  +'<div class="fl"><div class="flb">Responsável</div><div class="flv">'+user.nome+'</div></div>'
-  +'<div style="margin-top:18px"><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#9a8f84;margin-bottom:7px">Motivo / Observação</div>'
-  +'<div class="ob">'+(obs||'—')+'</div></div>'
-  +'<div class="sig"><div><div class="sl">Assinatura do Responsável</div></div><div><div class="sl">Assinatura da Gestão</div></div></div>'
-  +'<div class="ft">Gerado em '+tstr+' · Clínica Luisa Costa</div>'
-  +'\x3cscript\x3ewindow.onload=function(){window.print();}\x3c/script\x3e</body></html>');
+body{font-family:Georgia,serif;color:#2c2824;padding:50px;font-size:13px}
+.hdr{border-bottom:3px solid #C17B3E;padding-bottom:18px;margin-bottom:26px}.cn{font-size:24px;letter-spacing:5px;text-transform:uppercase;font-weight:normal}
+.cs{font-size:9px;letter-spacing:4px;text-transform:uppercase;color:#9a8f84;margin-top:4px}
+.stamp{display:inline-block;border:2px solid #C17B3E;padding:7px 16px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#C17B3E;margin-bottom:18px;border-radius:3px}
+.dt{font-size:17px;letter-spacing:3px;text-transform:uppercase;margin-bottom:22px;padding:12px 0;border-bottom:1px solid #e4ddd6}
+.fl{display:flex;gap:14px;margin-bottom:15px}.flb{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#9a8f84;min-width:140px}
+.flv{font-size:14px;font-weight:bold;border-bottom:1px solid #e4ddd6;flex:1;padding-bottom:4px}
+.ob{border:1px solid #e4ddd6;border-radius:4px;padding:12px;min-height:70px;margin-top:4px}
+.sig{margin-top:50px;display:grid;grid-template-columns:1fr 1fr;gap:40px}
+.sl{border-top:1px solid #2c2824;margin-top:38px;padding-top:7px;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#9a8f84;text-align:center}
+.ft{margin-top:44px;padding-top:14px;border-top:1px solid #e4ddd6;font-size:9px;color:#9a8f84;text-align:center}</style></head><body>
+  <div class="hdr"><div class="cn">Luisa Costa</div><div class="cs">Clínica Médica — Gestão de Estoque</div></div>
+  <div class="stamp">Termo de Retirada de Material</div>
+  <div class="dt">Comprovante de Retirada</div>
+  <div class="fl"><div class="flb">Medicamento / Item</div><div class="flv">${ret.nome}</div></div>
+  <div class="fl"><div class="flb">Quantidade retirada</div><div class="flv">${qty} ${ret.unid}</div></div>
+  <div class="fl"><div class="flb">Data da retirada</div><div class="flv">${fbr(data)}</div></div>
+  <div class="fl"><div class="flb">Hora do registro</div><div class="flv">${tstr}</div></div>
+  <div class="fl"><div class="flb">Responsável</div><div class="flv">${user.nome}</div></div>
+  <div style="margin-top:18px"><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#9a8f84;margin-bottom:7px">Motivo / Observação</div>
+  <div class="ob">${obs||'—'}</div></div>
+  <div class="sig"><div><div class="sl">Assinatura do Responsável</div></div><div><div class="sl">Assinatura da Gestão</div></div></div>
+  <div class="ft">Gerado em ${tstr} · Clínica Luisa Costa</div>
+  \x3cscript\x3ewindow.onload=function(){window.print();}\x3c/script\x3e</body></html>`);
   w.document.close();
 }
 
@@ -2122,17 +2122,17 @@ function pdfPedido(){
   var tstr=new Date().toLocaleString('pt-BR');
   var w=window.open('','_blank','width=800,height=700');if(!w)return;
   var rows=itens.map(function(it){return'<tr><td><strong>'+it.nome+'</strong>'+(it.urg?'<span style="background:#fdf0f0;color:#7a2e2e;border:1px solid #e0b4b4;border-radius:20px;font-size:8px;padding:2px 7px;margin-left:6px">Urgente</span>':'')+(it.obs?'<div style="font-size:11px;color:#6e6560;font-style:italic;margin-top:3px">Obs: '+it.obs+'</div>':'')+'</td><td style="text-align:center">'+it.disp+'</td><td style="text-align:center">'+it.min+'</td><td style="text-align:center">'+it.ideal+'</td><td style="text-align:center;font-weight:700">'+it.qtd+'</td><td>'+(it.custo>0?fBRL(it.custo):'—')+'</td></tr>';}).join('');
-  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Pedido de Orçamento</title><style>*{box-sizing:border-box;margin:0;padding:0}
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Pedido de Orçamento</title><style>*{box-sizing:border-box;margin:0;padding:0}
 body.iframe-mode .hdr{display:none!important}
 body.iframe-mode{padding-top:0}
-body{font-family:Georgia,serif;color:#2c2824;padding:50px;font-size:13px}.hdr{border-bottom:3px solid #a8843e;padding-bottom:18px;margin-bottom:26px;display:flex;justify-content:space-between;align-items:flex-end}.cn{font-size:22px;letter-spacing:5px;text-transform:uppercase;font-weight:normal}table{width:100%;border-collapse:collapse;margin-top:14px}th{background:#2c2824;color:#faf8f5;padding:9px 12px;font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:normal;text-align:left}td{padding:10px 12px;border-bottom:1px solid #e4ddd6;font-size:12px;vertical-align:top}.tr td{background:#f8f5f1;font-weight:bold;border-top:2px solid #a8843e}.sig{margin-top:32px;display:grid;grid-template-columns:1fr 1fr;gap:40px}.sl{border-top:1px solid #2c2824;margin-top:32px;padding-top:6px;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#9a8f84;text-align:center}.ft{margin-top:24px;padding-top:10px;border-top:1px solid #e4ddd6;font-size:9px;color:#9a8f84;text-align:center}</style></head><body>'
-    +'<div class="hdr"><div><div class="cn">Luisa Costa</div><div style="font-size:9px;letter-spacing:4px;text-transform:uppercase;color:#9a8f84;margin-top:4px">Clínica Médica — Solicitação de Orçamento</div></div><div style="text-align:right"><div style="font-size:15px;letter-spacing:3px;text-transform:uppercase;margin-bottom:3px">Pedido de Orçamento</div><div style="font-size:10px;color:#9a8f84">Emitido em '+tstr+'</div></div></div>'
-    +'<table><thead><tr><th>Item</th><th style="text-align:center">Disponível</th><th style="text-align:center">Mínimo</th><th style="text-align:center">Ideal</th><th style="text-align:center">Qtd. Solicitada</th><th>Custo Est.</th></tr></thead>'
-    +'<tbody>'+rows+'<tr class="tr"><td colspan="5" style="text-align:right">Custo Total Estimado</td><td>'+fBRL(tot)+'</td></tr></tbody></table>'
-    +'<div style="margin-top:14px;padding:10px 14px;border:1px dashed #c8bdb2;border-radius:4px;font-size:11px;color:#6e6560">Farmácia: _________________________ &nbsp;&nbsp;&nbsp; Data da Cotação: _________________ &nbsp;&nbsp;&nbsp; Validade da Proposta: _____________</div>'
-    +'<div class="sig"><div><div class="sl">Responsável — Clínica Luisa Costa</div></div><div><div class="sl">Farmácia / Fornecedor</div></div></div>'
-    +'<div class="ft">Clínica Luisa Costa · Gestão de Estoque · '+tstr+'</div>'
-    +'\x3cscript\x3ewindow.onload=function(){window.print();}\x3c/script\x3e</body></html>');
+body{font-family:Georgia,serif;color:#2c2824;padding:50px;font-size:13px}.hdr{border-bottom:3px solid #C17B3E;padding-bottom:18px;margin-bottom:26px;display:flex;justify-content:space-between;align-items:flex-end}.cn{font-size:22px;letter-spacing:5px;text-transform:uppercase;font-weight:normal}table{width:100%;border-collapse:collapse;margin-top:14px}th{background:#2c2824;color:#faf8f5;padding:9px 12px;font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:normal;text-align:left}td{padding:10px 12px;border-bottom:1px solid #e4ddd6;font-size:12px;vertical-align:top}.tr td{background:#f8f5f1;font-weight:bold;border-top:2px solid #C17B3E}.sig{margin-top:32px;display:grid;grid-template-columns:1fr 1fr;gap:40px}.sl{border-top:1px solid #2c2824;margin-top:32px;padding-top:6px;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#9a8f84;text-align:center}.ft{margin-top:24px;padding-top:10px;border-top:1px solid #e4ddd6;font-size:9px;color:#9a8f84;text-align:center}</style></head><body>
+    <div class="hdr"><div><div class="cn">Luisa Costa</div><div style="font-size:9px;letter-spacing:4px;text-transform:uppercase;color:#9a8f84;margin-top:4px">Clínica Médica — Solicitação de Orçamento</div></div><div style="text-align:right"><div style="font-size:15px;letter-spacing:3px;text-transform:uppercase;margin-bottom:3px">Pedido de Orçamento</div><div style="font-size:10px;color:#9a8f84">Emitido em ${tstr}</div></div></div>
+    <table><thead><tr><th>Item</th><th style="text-align:center">Disponível</th><th style="text-align:center">Mínimo</th><th style="text-align:center">Ideal</th><th style="text-align:center">Qtd. Solicitada</th><th>Custo Est.</th></tr></thead>
+    <tbody>${rows}<tr class="tr"><td colspan="5" style="text-align:right">Custo Total Estimado</td><td>${fBRL(tot)}</td></tr></tbody></table>
+    <div style="margin-top:14px;padding:10px 14px;border:1px dashed #c8bdb2;border-radius:4px;font-size:11px;color:#6e6560">Farmácia: _________________________ &nbsp;&nbsp;&nbsp; Data da Cotação: _________________ &nbsp;&nbsp;&nbsp; Validade da Proposta: _____________</div>
+    <div class="sig"><div><div class="sl">Responsável — Clínica Luisa Costa</div></div><div><div class="sl">Farmácia / Fornecedor</div></div></div>
+    <div class="ft">Clínica Luisa Costa · Gestão de Estoque · ${tstr}</div>
+    \x3cscript\x3ewindow.onload=function(){window.print();}\x3c/script\x3e</body></html>`);
   w.document.close();
 }
 
