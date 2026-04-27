@@ -545,6 +545,8 @@ let protocolosPorPaciente={};
 let pacientesSupabaseOk=false;
 let pacienteHistoryReady=false;
 
+function initCatPills(){}
+
 function iconUser(size=22){
   return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6"/><path d="M4.5 21c1.4-4.1 4-6.2 7.5-6.2s6.1 2.1 7.5 6.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`;
 }
@@ -693,16 +695,15 @@ function currentPacienteState(){
 function syncPacienteHistory(mode='replace'){
   if(!pacienteHistoryReady)return;
   const state=currentPacienteState();
-  const url=state.view==='detail'?'#paciente':'#pacientes';
-  if(mode==='push')history.pushState(state,'',url);
-  else history.replaceState(state,'',url);
+  if(mode==='push')history.pushState(state,'');
+  else history.replaceState(state,'');
 }
 
 function setupPacienteHistory(){
   if(pacienteHistoryReady)return;
   pacienteHistoryReady=true;
   if(!history.state||!history.state.view){
-    history.replaceState(currentPacienteState(),'','#pacientes');
+    history.replaceState(currentPacienteState(),'');
   }
   window.addEventListener('popstate',ev=>{
     const state=ev.state;
