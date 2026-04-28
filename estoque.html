@@ -29,7 +29,24 @@
   --rad:6px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body.iframe-mode .hdr{display:none!important}
+body.iframe-mode .hdr{
+  display:block!important;
+  background:transparent;
+  position:static;
+  top:auto;
+  box-shadow:none;
+}
+body.iframe-mode .hdr-top{display:none!important}
+body.iframe-mode .nav{
+  border-top:none;
+  border-bottom:1px solid var(--c6);
+  padding:0 0 12px;
+  margin:0 28px 8px;
+}
+body.iframe-mode .ntab{color:var(--c4)}
+body.iframe-mode .ntab:hover{color:var(--c2)}
+body.iframe-mode .ntab.on{color:var(--gold);border-bottom-color:var(--gold)}
+body.iframe-mode .ndiv{background:var(--c6)}
 body.iframe-mode .login-wrap{display:none!important}
 body.iframe-mode #login-wrap{display:none!important}
 body.iframe-mode{padding-top:0}
