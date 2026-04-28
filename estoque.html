@@ -31,22 +31,25 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body.iframe-mode .hdr{
   display:block!important;
-  background:transparent;
-  position:static;
+  background:var(--dk2);
+  position:sticky;
   top:auto;
-  box-shadow:none;
+  z-index:180;
+  box-shadow:0 1px 0 rgba(255,255,255,.05) inset;
 }
 body.iframe-mode .hdr-top{display:none!important}
 body.iframe-mode .nav{
   border-top:none;
-  border-bottom:1px solid var(--c6);
-  padding:0 0 12px;
-  margin:0 28px 8px;
+  border-bottom:none;
+  padding:0 28px;
+  margin:0;
+  min-height:58px;
+  align-items:center;
 }
-body.iframe-mode .ntab{color:var(--c4)}
-body.iframe-mode .ntab:hover{color:var(--c2)}
-body.iframe-mode .ntab.on{color:var(--gold);border-bottom-color:var(--gold)}
-body.iframe-mode .ndiv{background:var(--c6)}
+body.iframe-mode .ntab{color:rgba(181,168,152,.72)}
+body.iframe-mode .ntab:hover{color:#f1e7da}
+body.iframe-mode .ntab.on{color:var(--gold2);border-bottom-color:var(--gold)}
+body.iframe-mode .ndiv{background:rgba(255,255,255,.09)}
 body.iframe-mode .login-wrap{display:none!important}
 body.iframe-mode #login-wrap{display:none!important}
 body.iframe-mode{padding-top:0}
@@ -108,14 +111,14 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
 .dash-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;border-radius:0 0 var(--rad) var(--rad)}
 .dc-gold::after{background:var(--gold)}.dc-red::after{background:var(--Rm)}.dc-warn::after{background:var(--Wm)}.dc-green::after{background:var(--Gm)}.dc-teal::after{background:var(--Tm)}
 .dc-label{font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--c3);margin-bottom:9px}
-.dc-val{font-family:Georgia,serif;font-size:28px;font-weight:500;line-height:1}
+.dc-val{font-family:system-ui,-apple-system,sans-serif;font-size:28px;font-weight:700;line-height:1;letter-spacing:-.02em}
 .dc-val.gold{color:var(--gold)}.dc-val.red{color:var(--Rm)}.dc-val.warn{color:var(--Wm)}.dc-val.green{color:var(--Gm)}.dc-val.teal{color:var(--Tm)}
 .dc-cur{font-size:13px;font-weight:600;color:var(--gold);margin-right:2px;vertical-align:baseline}
 .dc-valrow{display:flex;align-items:baseline;gap:3px;line-height:1}
 .dc-hint{font-size:9px;color:var(--c4);margin-top:5px}
 .ia-resumo-box{background:#fff;border:1px solid var(--c6);border-left:3px solid var(--gold);border-radius:var(--rad);padding:18px 20px;margin-bottom:22px;box-shadow:var(--sh1)}
 .ia-tag{display:inline-flex;align-items:center;gap:6px;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);background:var(--gold3);padding:4px 12px;border-radius:20px;border:1px solid var(--gold2);margin-bottom:12px}
-.ia-txt{font-family:Georgia,serif;font-size:16px;font-weight:400;color:var(--c2);line-height:1.7;font-style:italic}
+.ia-txt{font-family:system-ui,-apple-system,sans-serif;font-size:14px;font-weight:500;color:var(--c2);line-height:1.7;font-style:normal}
 
 /* ALERT BANNER */
 .alrt{display:none;margin-bottom:18px;background:#fff;border:1px solid var(--Rbr);border-left:4px solid var(--Rm);border-radius:var(--rad);padding:11px 18px;align-items:center;gap:16px;flex-wrap:wrap}
@@ -132,7 +135,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
 .sc.on{border-color:var(--gold);box-shadow:0 0 0 2.5px rgba(168,132,62,.18),var(--sh2)}
 .sc.tot::after{background:var(--gold)}.sc.venc::after{background:var(--Rm)}.sc.atc::after{background:var(--Wm)}.sc.low::after{background:var(--Rm)}.sc.oks::after{background:var(--Gm)}
 .sl{font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--c3);margin-bottom:9px}
-.sv{font-family:Georgia,serif;font-size:32px;font-weight:500;line-height:1}
+.sv{font-family:system-ui,-apple-system,sans-serif;font-size:32px;font-weight:700;line-height:1;letter-spacing:-.03em}
 .sv.g{color:var(--gold)}.sv.r{color:var(--Rm)}.sv.w{color:var(--Wm)}.sv.k{color:var(--Gm)}
 .sh{font-size:9px;color:var(--c4);margin-top:5px}
 
@@ -222,8 +225,8 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
 .dr{background:var(--Rm)}.dw{background:var(--Wm)}.dk{background:var(--Gm)}.di{background:var(--Im)}.dt{background:var(--Tm)}
 
 /* TYPOGRAPHY */
-.nb{font-family:Georgia,serif;font-size:20px;font-weight:500;line-height:1}
-.nm{font-family:Georgia,serif;font-size:17px;font-weight:400;line-height:1.2}
+.nb{font-family:system-ui,-apple-system,sans-serif;font-size:20px;font-weight:700;line-height:1;letter-spacing:-.02em}
+.nm{font-family:system-ui,-apple-system,sans-serif;font-size:17px;font-weight:700;line-height:1.2;letter-spacing:-.01em}
 .lt{font-size:9px;color:var(--c4);margin-top:3px;letter-spacing:.4px}
 
 /* FORMS */
@@ -255,7 +258,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
 .hn{font-size:14px;font-weight:700;color:var(--c);margin-bottom:3px}
 .hd{font-size:11px;color:var(--c3);line-height:1.5}
 .hr{text-align:right}
-.ha{font-family:Georgia,serif;font-size:18px;font-weight:400}
+.ha{font-family:system-ui,-apple-system,sans-serif;font-size:18px;font-weight:700;letter-spacing:-.01em}
 .hu{font-size:9px;color:var(--c4);margin-top:4px;font-weight:700}
 .tag{font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:2px 8px;border-radius:20px;border:1px solid var(--c6);background:var(--c7);color:var(--c3);display:inline-block;margin-top:4px;margin-right:3px}
 
@@ -276,7 +279,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
 .qc{display:flex;align-items:center;gap:6px;justify-content:center}
 .qb{width:26px;height:26px;border:1.5px solid var(--c5);border-radius:5px;background:#fff;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:.15s;line-height:1}
 .qb:hover{border-color:var(--gold);color:var(--gold)}
-.qv{font-family:Georgia,serif;font-size:19px;font-weight:500;min-width:28px;text-align:center}
+.qv{font-family:system-ui,-apple-system,sans-serif;font-size:19px;font-weight:700;min-width:28px;text-align:center;letter-spacing:-.02em}
 .sgrid{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
 .spill2{padding:5px 13px;border:1.5px dashed var(--c5);border-radius:20px;font-size:11px;font-weight:600;color:var(--c3);cursor:pointer;background:#fff;transition:.18s}
 .spill2:hover{border-color:var(--gold);color:var(--gold);background:var(--gold3)}
@@ -288,17 +291,17 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
 .tgrid{display:grid;grid-template-columns:85px minmax(140px,1.6fr) 120px 110px 140px auto;align-items:stretch}
 .tc{padding:14px 16px;border-right:1px solid var(--c7);display:flex;flex-direction:column;justify-content:center;min-width:0}
 .tc:last-child{border-right:none}
-.mgp{display:inline-flex;align-items:center;justify-content:center;background:var(--Tbg);color:var(--T);border:2px solid var(--Tbr);border-radius:var(--rad);font-family:Georgia,serif;font-size:19px;font-weight:500;padding:5px 10px;min-width:65px}
+.mgp{display:inline-flex;align-items:center;justify-content:center;background:var(--Tbg);color:var(--T);border:2px solid var(--Tbr);border-radius:var(--rad);font-family:system-ui,-apple-system,sans-serif;font-size:19px;font-weight:700;padding:5px 10px;min-width:65px;letter-spacing:-.02em}
 .dc{display:flex;align-items:center;gap:6px}
 .db{width:27px;height:27px;border:1.5px solid var(--c5);border-radius:5px;background:#fff;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:.15s;line-height:1}
 .db:hover{border-color:var(--T);color:var(--T)}
-.dv{font-family:Georgia,serif;font-size:20px;font-weight:500;min-width:30px;text-align:center}
+.dv{font-family:system-ui,-apple-system,sans-serif;font-size:20px;font-weight:700;min-width:30px;text-align:center;letter-spacing:-.02em}
 
 /* FINANCEIRO */
 .fgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin-bottom:22px}
 .fc{background:#fff;border:1px solid var(--c6);border-radius:var(--rad);padding:18px 20px;box-shadow:var(--sh1)}
 .fl{font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--c3);margin-bottom:9px}
-.fv{font-family:Georgia,serif;font-size:26px;font-weight:500;color:var(--c);line-height:1}
+.fv{font-family:system-ui,-apple-system,sans-serif;font-size:26px;font-weight:700;color:var(--c);line-height:1;letter-spacing:-.03em}
 .fs{font-size:9.5px;color:var(--c4);margin-top:5px}
 .ftbl{width:100%;border-collapse:collapse}
 .ftbl th{text-align:left;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--c3);padding:9px 13px;border-bottom:1.5px solid var(--c6);background:var(--c8)}
@@ -404,24 +407,21 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
       </div>
     </div>
     <div class="nav" id="nav">
-      <div class="ntab on"  onclick="tab('dash')">Dashboard</div>
-      <div class="ntab" onclick="tab('meds')">Medicamentos</div>
+      <div class="ntab on" data-tab="dash" onclick="tab('dash')">Dashboard</div>
+      <div class="ntab" data-tab="meds" onclick="tab('meds')">Medicamentos</div>
       <div class="ndiv"></div>
-      <div class="ntab" onclick="tab('tirz')">Tirzepatida</div>
-      <div class="ntab" onclick="tab('impl')">Implantes</div>
+      <div class="ntab" data-tab="tirz" onclick="tab('tirz')">Tirzepatida</div>
+      <div class="ntab" data-tab="impl" onclick="tab('impl')">Implantes</div>
       <div class="ndiv"></div>
-      <div class="ntab" onclick="tab('insumos')">Insumos Clínicos</div>
-      <div class="ntab" onclick="tab('limpeza')">Limpeza</div>
-      <div class="ntab" onclick="tab('conforto')">Conforto</div>
-      <div class="ntab" onclick="tab('escritorio')">Escritório</div>
+      <div class="ntab" data-tab="insumos" onclick="tab('insumos')">Insumos Clínicos</div>
+      <div class="ntab" data-tab="apoio" onclick="tab('apoio')">Apoio</div>
       <div class="ndiv"></div>
-      <div class="ntab admin-only" onclick="tab('nfs')">Notas Fiscais</div>
-      <div class="ntab" onclick="tab('pedidos')">Pedido de Compras</div>
-      <div class="ntab admin-only" onclick="tab('fin')">Financeiro</div>
+      <div class="ntab" data-tab="ia" onclick="tab('ia')">Assistente IA</div>
+      <div class="ntab admin-only" data-tab="nfs" onclick="tab('nfs')">Notas Fiscais</div>
+      <div class="ntab" data-tab="pedidos" onclick="tab('pedidos')">Pedido de Compras</div>
+      <div class="ntab admin-only" data-tab="fin" onclick="tab('fin')">Financeiro</div>
       <div class="ndiv"></div>
-      <div class="ntab" onclick="tab('ia')">Assistente IA</div>
-      <div class="ndiv"></div>
-      <div class="ntab" onclick="tab('hist')">Histórico</div>
+      <div class="ntab" data-tab="hist" onclick="tab('hist')">Histórico</div>
     </div>
   </div>
 
@@ -519,14 +519,15 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
   <!-- INSUMOS -->
   <div id="pg-insumos" class="pg"><div id="ins-c"></div></div>
 
-  <!-- LIMPEZA -->
-  <div id="pg-limpeza" class="pg"><div id="outros-lmp"></div></div>
-
-  <!-- CONFORTO -->
-  <div id="pg-conforto" class="pg"><div id="outros-cnf"></div></div>
-
-  <!-- ESCRITÓRIO -->
-  <div id="pg-escritorio" class="pg"><div id="outros-esc"></div></div>
+  <!-- APOIO -->
+  <div id="pg-apoio" class="pg">
+    <div class="sdiv"><div class="sdiv-t">Apoio da Clínica</div><div class="sdiv-l"></div></div>
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div id="apoio-lmp"></div>
+      <div id="apoio-cnf"></div>
+      <div id="apoio-esc"></div>
+    </div>
+  </div>
 
   <!-- NOTAS FISCAIS -->
   <div id="pg-nfs" class="pg">
@@ -557,7 +558,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
     <div id="ped-footer" style="display:none;background:var(--c8);border:1px solid var(--c6);border-radius:var(--rad);padding:14px 18px;margin-top:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
       <div>
         <div style="font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--c4);margin-bottom:4px" id="ped-count"></div>
-        <div style="font-family:Georgia,serif;font-size:20px;font-weight:500;color:var(--c)" id="ptot"></div>
+        <div style="font-family:system-ui,-apple-system,sans-serif;font-size:20px;font-weight:700;letter-spacing:-.02em;color:var(--c)" id="ptot"></div>
       </div>
       <button class="btn btn-gd" onclick="pdfPedido()">↓ Gerar PDF do Pedido</button>
     </div>
@@ -682,7 +683,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
     <div class="frow"><label>Total do lote</label>
       <div style="display:flex;align-items:baseline;gap:4px;padding:8px 0">
         <span style="font-size:12px;font-weight:600;color:var(--gold)">R$</span>
-        <span id="avalor-calc" style="font-family:Georgia,serif;font-size:22px;font-weight:500;color:var(--gold)">0,00</span>
+        <span id="avalor-calc" style="font-family:system-ui,-apple-system,sans-serif;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--gold)">0,00</span>
       </div>
     </div>
   </div>
@@ -798,7 +799,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
     <div class="fg3">
       <div class="frow"><label>Valor por ampola (R$)</label><input type="number" id="tvalamp" min="0" step="0.01" placeholder="0,00" oninput="calcTirzTotal()"></div>
       <div class="frow"><label>Valor total (R$)</label><input type="number" id="tvalor" min="0" step="0.01" placeholder="0,00" oninput="calcTirzAmp()"></div>
-      <div class="frow"><label>Preço/amp calculado</label><div id="tvalamp-calc" style="font-family:Georgia,serif;font-size:18px;font-weight:500;color:var(--gold);padding:8px 0">—</div></div>
+      <div class="frow"><label>Preço/amp calculado</label><div id="tvalamp-calc" style="font-family:system-ui,-apple-system,sans-serif;font-size:18px;font-weight:700;letter-spacing:-.02em;color:var(--gold);padding:8px 0">—</div></div>
     </div>
   </div>
   <div class="frow"><label>Observação</label><input type="text" id="tobs" placeholder="Paciente, protocolo..."></div>
@@ -919,7 +920,12 @@ function bdg(v){
 function fd(v){ if(!v)return'—'; var p=v.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
 function fbr(v){ try{return new Date(v+'T00:00:00').toLocaleDateString('pt-BR');}catch(e){return v;} }
 function fdt(v){ try{return new Date(v).toLocaleString('pt-BR');}catch(e){return v;} }
-function fBRL(v){ return 'R$ '+parseFloat(v||0).toFixed(2); }
+function n(v){ var x=Number(v); return Number.isFinite(x)?x:0; }
+function fNum(v,casas){
+  casas=casas==null?0:casas;
+  return n(v).toLocaleString('pt-BR',{minimumFractionDigits:casas,maximumFractionDigits:casas});
+}
+function fBRL(v){ return 'R$ '+fNum(v,2); }
 function abrir(id){ document.getElementById(id).classList.add('on'); }
 function fechar(id){ document.getElementById(id).classList.remove('on'); }
 function today(){ return new Date().toISOString().slice(0,10); }
@@ -974,6 +980,7 @@ async function iniciarApp(user){
   await renderDash();
   await carregarSetores();
   await renderMeds();
+  ensureIAIntro();
 }
 
 async function fazerLogout(){
@@ -988,10 +995,9 @@ async function fazerLogout(){
 })();
 
 // ── TABS ─────────────────────────────────────────────────────────────
-var TABS=['dash','meds','tirz','impl','insumos','outros','nfs','pedidos','fin','ia','hist'];
 function tab(t){
   document.querySelectorAll('.pg').forEach(function(el){el.classList.remove('on');});
-  document.querySelectorAll('.ntab').forEach(function(el,i){el.classList.toggle('on',TABS[i]===t);});
+  document.querySelectorAll('.ntab').forEach(function(el){el.classList.toggle('on',el.dataset.tab===t);});
   var pg=document.getElementById('pg-'+t);
   if(pg) pg.classList.add('on');
   if(t==='meds')    renderMeds();
@@ -1002,9 +1008,9 @@ function tab(t){
   if(t==='pedidos') renderPedidos();
   if(t==='dash')    renderDash();
   if(t==='nfs')     renderNFs();
-  if(t==='ia')      gerarResumo();
+  if(t==='ia'){     gerarResumo(); ensureIAIntro(); }
   if(t==='insumos') renderSetor('insumos','ins-c');
-  if(t==='outros')  renderOutros();
+  if(t==='apoio')   renderApoio();
 }
 
 // ── DASHBOARD ────────────────────────────────────────────────────────
@@ -1017,26 +1023,25 @@ async function renderDash(){
   var {data:implDash}=await db.from('tirzepatida_frascos').select('ampolas_disp,preco_pago').eq('status','ativo').eq('mg',0);
   // Métricas
     // Calcular valor total real
-  var totalMedsD=(dash&&dash.valor_total_estoque)?dash.valor_total_estoque:0;
-  var totalTirzD=(tirzDash||[]).reduce(function(s,t){return s+t.preco_pago;},0);
-  var totalImplD=(implDash||[]).reduce(function(s,i){return s+i.preco_pago;},0);
+  var totalMedsD=n(dash&&dash.valor_total_estoque);
+  var totalTirzD=(tirzDash||[]).reduce(function(s,t){return s+n(t.preco_pago);},0);
+  var totalImplD=(implDash||[]).reduce(function(s,i){return s+n(i.preco_pago);},0);
   var totalGeralD=totalMedsD+totalTirzD+totalImplD;
-  var totalFmt=totalGeralD.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   var dcEl=document.getElementById('dash-cards');
   dcEl.innerHTML='';
   function mkDC(cls,lbl,val,hint,isVal,cor){
     var d=document.createElement('div');d.className='sc '+cls;
     var valHtml=isVal
-      ?'<div style="display:flex;align-items:baseline;gap:4px;margin:6px 0 4px"><span style="font-size:13px;font-weight:700;color:'+(cor||'var(--c)')+'">R$</span><span style="font-family:Georgia,serif;font-size:28px;font-weight:500;line-height:1;color:'+(cor||'var(--c)')+'">'+val+'</span></div>'
-      :'<div style="font-family:Georgia,serif;font-size:28px;font-weight:500;line-height:1;margin:6px 0 4px;color:'+(cor||'var(--c)')+'">'+val+'</div>';
+      ?'<div style="display:flex;align-items:baseline;gap:4px;margin:6px 0 4px"><span style="font-size:13px;font-weight:700;color:'+(cor||'var(--c)')+'">R$</span><span style="font-family:system-ui,-apple-system,sans-serif;font-size:28px;font-weight:700;letter-spacing:-.03em;line-height:1;color:'+(cor||'var(--c)')+'">'+val+'</span></div>'
+      :'<div style="font-family:system-ui,-apple-system,sans-serif;font-size:28px;font-weight:700;letter-spacing:-.03em;line-height:1;margin:6px 0 4px;color:'+(cor||'var(--c)')+'">'+val+'</div>';
     d.innerHTML='<div class="sl">'+lbl+'</div>'+valHtml+'<div class="sh">'+hint+'</div>';
     return d;
   }
-  if(isAdmin()){dcEl.appendChild(mkDC('tot','Valor total em estoque',Math.round(totalGeralD).toLocaleString('pt-BR'),'meds · tirz · implantes',true,'var(--gold)'));}
-  dcEl.appendChild(mkDC('venc','Vencidos',dash.itens_vencidos,'retirar imediatamente',false,'var(--Rm)'));
-  dcEl.appendChild(mkDC('atc','Vencendo',dash.itens_vencendo,'próximos 30 dias',false,'var(--Wm)'));
-  dcEl.appendChild(mkDC('low','Est. mínimo',dash.itens_estoque_minimo,'itens abaixo',false,'var(--Rm)'));
-  var nc=mkDC('','NFs pendentes',dash.nfs_pendentes_aprovacao,'aprovação',false,'var(--Wm)');
+  if(isAdmin()){dcEl.appendChild(mkDC('tot','Valor total em estoque',fNum(totalGeralD,2),'meds · tirz · implantes',true,'var(--gold)'));}
+  dcEl.appendChild(mkDC('venc','Vencidos',fNum(dash.itens_vencidos),'retirar imediatamente',false,'var(--Rm)'));
+  dcEl.appendChild(mkDC('atc','Vencendo',fNum(dash.itens_vencendo),'próximos 30 dias',false,'var(--Wm)'));
+  dcEl.appendChild(mkDC('low','Est. mínimo',fNum(dash.itens_estoque_minimo),'itens abaixo',false,'var(--Rm)'));
+  var nc=mkDC('','NFs pendentes',fNum(dash.nfs_pendentes_aprovacao),'aprovação',false,'var(--Wm)');
   nc.style.cursor='pointer';nc.onclick=function(){tab('nfs');};dcEl.appendChild(nc);
 
   // Barras de estoque por medicamento
@@ -1046,11 +1051,11 @@ async function renderDash(){
       barsEl.innerHTML='<div style="font-size:11px;color:var(--c4);padding:10px 0">Sem dados de estoque</div>';
     } else {
       barsEl.innerHTML=meds.map(function(m){
-        var pct=maxDisp>0?Math.round((m.disponivel/maxDisp)*100):0;
+        var pct=maxDisp>0?Math.round((n(m.disponivel)/maxDisp)*100):0;
         var cor=m.status_estoque==='critico'?'var(--Rm)':m.status_validade==='critico'||m.status_validade==='atencao'?'var(--Wm)':'var(--gold)';
         return'<div class="bar-row"><div class="bar-lbl">'+m.nome+'</div>'
           +'<div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:'+cor+'"></div></div>'
-          +'<div class="bar-val">'+m.disponivel+'</div></div>';
+          +'<div class="bar-val">'+fNum(m.disponivel)+'</div></div>';
       }).join('');
     }
   }
@@ -1065,10 +1070,10 @@ async function renderDash(){
   }
 
   // Tirzepatida & Implantes
-  var tAmp=(tirzDash||[]).reduce(function(s,t){return s+t.ampolas_disp;},0);
-  var tVal=(tirzDash||[]).reduce(function(s,t){return s+t.preco_pago;},0);
-  var iAmp=(implDash||[]).reduce(function(s,i){return s+i.ampolas_disp;},0);
-  var iVal=(implDash||[]).reduce(function(s,i){return s+i.preco_pago;},0);
+  var tAmp=(tirzDash||[]).reduce(function(s,t){return s+n(t.ampolas_disp);},0);
+  var tVal=(tirzDash||[]).reduce(function(s,t){return s+n(t.preco_pago);},0);
+  var iAmp=(implDash||[]).reduce(function(s,i){return s+n(i.ampolas_disp);},0);
+  var iVal=(implDash||[]).reduce(function(s,i){return s+n(i.preco_pago);},0);
   var tEl=document.getElementById('dash-tirz');
   if(tEl){
     tEl.innerHTML=
@@ -1076,14 +1081,14 @@ async function renderDash(){
         +'<div><div style="font-size:13px;font-weight:600;color:var(--c)">Tirzepatida</div>'
         +'<div style="font-size:11px;color:var(--c4);margin-top:2px">'+(tirzDash?tirzDash.length:0)+' frasco(s)</div></div>'
         +'<div style="text-align:right">'
-          +'<div style="font-family:Georgia,serif;font-size:20px;font-weight:500;color:var(--Tm)">'+tAmp+' amp</div>'
+          +'<div style="font-family:system-ui,-apple-system,sans-serif;font-size:20px;font-weight:700;letter-spacing:-.02em;color:var(--Tm)">'+fNum(tAmp)+' amp</div>'
           +(isAdmin()?'<div style="font-size:11px;color:var(--c4)">'+fBRL(tVal)+' investido</div>':'')
         +'</div></div>'
       +'<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">'
         +'<div><div style="font-size:13px;font-weight:600;color:var(--c)">Implantes</div>'
         +'<div style="font-size:11px;color:var(--c4);margin-top:2px">'+(implDash?implDash.length:0)+' lote(s)</div></div>'
         +'<div style="text-align:right">'
-          +'<div style="font-family:Georgia,serif;font-size:20px;font-weight:500;color:var(--Pm)">'+iAmp+' un</div>'
+          +'<div style="font-family:system-ui,-apple-system,sans-serif;font-size:20px;font-weight:700;letter-spacing:-.02em;color:var(--Pm)">'+fNum(iAmp)+' un</div>'
           +(isAdmin()?'<div style="font-size:11px;color:var(--c4)">'+fBRL(iVal)+' investido</div>':'')
         +'</div></div>';
   }
@@ -1148,8 +1153,8 @@ async function renderMeds(){
         +'<div class="mc"><div class="col-lbl">Medicamento</div><div style="font-size:14px;font-weight:700;color:var(--c)">'+m.nome+'</div><div class="lt">'+m.setor+'</div></div>'
         +'<div class="mc"><div class="col-lbl">Validade</div><div style="font-size:12px">'+fd(m.proxima_validade)+'</div></div>'
         +'<div class="mc"><div class="col-lbl">Status</div>'+bdg(m.proxima_validade||'2099-01-01')+'</div>'
-        +'<div class="mc ctr"><div class="col-lbl">Caixas</div><div class="nb">'+Math.round(m.disponivel/(m.amp_por_caixa||1))+'</div></div>'
-        +'<div class="mc ctr"><div class="col-lbl">Amp/Cx</div><div style="font-size:14px;font-weight:600">'+m.amp_por_caixa+'</div></div>'
+        +'<div class="mc ctr"><div class="col-lbl">Caixas</div><div class="nb">'+fNum(Math.round(n(m.disponivel)/(n(m.amp_por_caixa)||1)))+'</div></div>'
+        +'<div class="mc ctr"><div class="col-lbl">Amp/Cx</div><div style="font-size:14px;font-weight:600">'+fNum(m.amp_por_caixa)+'</div></div>'
         +'<div class="mc" style="gap:5px;flex-direction:column;justify-content:center;padding:10px 12px">'
           +'<button class="btn btn-gd btn-sm" onclick="abrirLote(\''+m.id+'\',\''+nomeEsc+'\','+m.amp_por_caixa+')">+ Entrada</button>'
           +'<button class="btn btn-rd btn-sm" onclick="abrirRet(\'med\',\''+m.id+'\',\''+nomeEsc+'\','+m.disponivel+',\'amp\')">− Retirar</button>'
@@ -1162,7 +1167,7 @@ async function renderMeds(){
       +'<div class="mrow bot">'
         +'<div class="mc"><div class="col-lbl">Ampolas Disponíveis</div>'
           +'<div style="display:flex;align-items:center;gap:8px;margin-top:4px">'
-            +'<span class="nb" style="'+(b?'color:var(--Rm)':'')+'">'+m.disponivel+'</span>'
+            +'<span class="nb" style="'+(b?'color:var(--Rm)':'')+'">'+fNum(m.disponivel)+'</span>'
             +'<span style="font-size:11px;color:var(--c4)">amp</span>'
             +(b?'<span class="badge bd" style="font-size:7px">Mínimo</span>':'')
           +'</div>'
@@ -1170,7 +1175,7 @@ async function renderMeds(){
             +'<div style="flex:1;height:5px;background:var(--c7);border-radius:3px;overflow:hidden"><div style="height:100%;border-radius:3px;background:'+pctColor+';width:'+pct+'%"></div></div>'
             +'<span style="font-size:9px;font-weight:700;color:var(--c4)">'+pct+'%</span>'
           +'</div>'
-          +'<div class="lt">Mín: '+(m.estoque_min||0)+' · Ideal: '+(m.estoque_ideal||'—')+'</div>'
+          +'<div class="lt">Mín: '+fNum(m.estoque_min||0)+' · Ideal: '+(m.estoque_ideal!=null?fNum(m.estoque_ideal):'—')+'</div>'
         +'</div>'
         +(isAdmin()?'<div class="mc"><div class="col-lbl">Último Preço/Cx</div><div class="nm" style="margin-top:4px">'+(m.ultimo_preco_cx>0?fBRL(m.ultimo_preco_cx):'<span style="color:var(--c4)">—</span>')+'</div></div>':'')
         +(isAdmin()?'<div class="mc"><div class="col-lbl">Preço Médio/Cx</div><div class="nm" style="margin-top:4px">'+(m.preco_medio_cx>0?fBRL(m.preco_medio_cx):'<span style="color:var(--c4)">—</span>')+'</div></div>':'')
@@ -1364,18 +1369,18 @@ async function renderTirz(){
   tirz=tirz||[];
   var a60=0,a90=0,tvlr=0,venc=0,abaixoMin=0;
   tirz.forEach(function(t){
-    if(t.mg==60)a60+=t.ampolas_disp;
-    if(t.mg==90)a90+=t.ampolas_disp;
-    tvlr+=t.preco_pago;
+    if(t.mg==60)a60+=n(t.ampolas_disp);
+    if(t.mg==90)a90+=n(t.ampolas_disp);
+    tvlr+=n(t.preco_pago);
     if(st(t.validade)==='venc'||st(t.validade)==='crit')venc++;
     if((t.estoque_min_ampolas||0)>0&&t.ampolas_disp<=(t.estoque_min_ampolas||0))abaixoMin++;
   });
   var ts=document.getElementById('tstats');
   if(ts) ts.innerHTML=
-    '<div class="fc"><div class="fl">Ampolas 60mg</div><div class="fv" style="color:var(--Tm)">'+a60+'</div><div class="fs">'+tirz.filter(function(t){return t.mg==60;}).length+' frasco(s)</div></div>'
-    +'<div class="fc"><div class="fl">Ampolas 90mg</div><div class="fv" style="color:var(--Tm)">'+a90+'</div><div class="fs">'+tirz.filter(function(t){return t.mg==90;}).length+' frasco(s)</div></div>'
+    '<div class="fc"><div class="fl">Ampolas 60mg</div><div class="fv" style="color:var(--Tm)">'+fNum(a60)+'</div><div class="fs">'+fNum(tirz.filter(function(t){return t.mg==60;}).length)+' frasco(s)</div></div>'
+    +'<div class="fc"><div class="fl">Ampolas 90mg</div><div class="fv" style="color:var(--Tm)">'+fNum(a90)+'</div><div class="fs">'+fNum(tirz.filter(function(t){return t.mg==90;}).length)+' frasco(s)</div></div>'
     +'<div class="fc"><div class="fl">Total Investido</div><div class="fv">'+fBRL(tvlr)+'</div><div class="fs">'+tirz.length+' frasco(s)</div></div>'
-    +'<div class="fc"><div class="fl">Abaixo do Mínimo</div><div class="fv" style="color:'+(abaixoMin>0?'var(--Rm)':'var(--Gm)')+'">'+abaixoMin+'</div><div class="fs">'+(venc>0?venc+' vencendo':'validades OK')+'</div></div>';
+    +'<div class="fc"><div class="fl">Abaixo do Mínimo</div><div class="fv" style="color:'+(abaixoMin>0?'var(--Rm)':'var(--Gm)')+'">'+fNum(abaixoMin)+'</div><div class="fs">'+(venc>0?fNum(venc)+' vencendo':'validades OK')+'</div></div>';
   var el=document.getElementById('tlist');
   if(!el) return;
   document.getElementById('etrz').style.display=tirz.length?'none':'block';
@@ -1388,7 +1393,7 @@ async function renderTirz(){
       +'<div class="tc"><div style="font-size:14px;font-weight:700">'+t.fornecedores.nome+'</div><div style="font-size:11px;color:var(--c4);margin-top:2px">'+(t.numero_lote?'Lote: '+t.numero_lote:'—')+'</div>'+(t.observacoes?'<div style="font-size:11px;color:var(--c3);margin-top:2px">'+t.observacoes+'</div>':'')+'</div>'
       +'<div class="tc">'+bdg(t.validade)+'<div style="font-size:11px;color:var(--c3);margin-top:5px">'+fd(t.validade)+'</div></div>'
       +(isAdmin()?'<div class="tc"><div class="nm">'+(t.preco_pago>0?fBRL(t.preco_pago):'—')+'</div>'+(t.preco_pago>0&&t.ampolas_total>0?'<div class="lt">'+fBRL(t.preco_por_amp)+'/amp</div>':'')+'</div>':'<div class="tc"></div>')
-      +'<div class="tc"><div class="dc"><button class="db" onclick="adjTirz(\''+t.id+'\','+t.ampolas_usadas+',-1)">−</button><span class="dv" style="'+(t.ampolas_disp<=0?'color:var(--Rm)':'')+'">'+t.ampolas_disp+'</span><button class="db" onclick="adjTirz(\''+t.id+'\','+t.ampolas_usadas+',1)">+</button></div><div class="lt" style="margin-top:4px">ampolas disponíveis</div><button class="btn btn-xs btn-rd" style="margin-top:6px" onclick="abrirRet(\'tirz\',\''+t.id+'\',\'Tirzepatida '+t.mg+'mg\','+t.ampolas_disp+',\'amp\')">− Retirar c/ PDF</button></div>'
+      +'<div class="tc"><div class="dc"><button class="db" onclick="adjTirz(\''+t.id+'\','+t.ampolas_usadas+',-1)">−</button><span class="dv" style="'+(t.ampolas_disp<=0?'color:var(--Rm)':'')+'">'+fNum(t.ampolas_disp)+'</span><button class="db" onclick="adjTirz(\''+t.id+'\','+t.ampolas_usadas+',1)">+</button></div><div class="lt" style="margin-top:4px">ampolas disponíveis</div><button class="btn btn-xs btn-rd" style="margin-top:6px" onclick="abrirRet(\'tirz\',\''+t.id+'\',\'Tirzepatida '+t.mg+'mg\','+t.ampolas_disp+',\'amp\')">− Retirar c/ PDF</button></div>'
       +'<div class="tc" style="gap:5px;flex-direction:column">'
         +(isAdmin()?'<button class="btn btn-xs btn-edit" onclick="abrirEditarTirz(\''+t.id+'\')">✏ Editar</button>':'')
         +(isAdmin()?'<button class="btn btn-xs btn-del" onclick="rmTirz(\''+t.id+'\')">🗑 Remover</button>':'')
@@ -1580,7 +1585,7 @@ async function renderSetor(setor,cid){
   var lows=lst.filter(function(i){return Math.max(0,(i.estoque_ideal||0)-(i.usado_total||0))<=(i.estoque_min||0);}).length;
   var sugs=(SUGS[setor]||[]).filter(function(s){return !lst.find(function(x){return x.nome.toLowerCase()===s.toLowerCase();});});
   var h='<div class="shdr"><div class="sico" style="background:'+cfg.cor+'18;color:'+cfg.cor+'">'+cfg.ico+'</div>'
-    +'<div style="flex:1"><div class="snm">'+cfg.lbl+'</div><div class="sct">'+lst.length+' item(s)'+(lows>0?' · <strong style="color:var(--Rm)">'+lows+' abaixo do mínimo</strong>':'')+'</div></div>'
+    +'<div style="flex:1"><div class="snm">'+cfg.lbl+'</div><div class="sct">'+fNum(lst.length)+' item(s)'+(lows>0?' · <strong style="color:var(--Rm)">'+fNum(lows)+' abaixo do mínimo</strong>':'')+'</div></div>'
     +'<button class="btn btn-gd btn-sm" onclick="addInsManual(\''+setor+'\',\''+setorId+'\',\''+cid+'\')">+ Adicionar item</button></div>';
   if(sugs.length){
     h+='<div style="margin-bottom:13px;padding:10px 14px;background:#fff;border:1px solid var(--c6);border-radius:var(--rad)"><div style="font-size:8px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--c4);margin-bottom:7px">Sugestões rápidas</div><div class="sgrid">';
@@ -1599,7 +1604,7 @@ async function renderSetor(setor,cid){
     var nomeEsc=(item.nome||'').replace(/['"]/g,'');
     h+='<div class="icard'+(isLow?' li':'')+'">'
       +'<div class="ic"><input class="ini" value="'+item.nome+'" onchange="updIns(\''+item.id+'\',\'nome\',this.value)"></div>'
-      +'<div class="ic ctr"><div class="qc"><button class="qb" onclick="adjIns(\''+item.id+'\',\''+setor+'\',\''+cid+'\',-1)">−</button><span class="qv" style="'+(isLow?'color:var(--Rm)':'')+'">'+disp+'</span><button class="qb" onclick="adjIns(\''+item.id+'\',\''+setor+'\',\''+cid+'\',1)">+</button></div></div>'
+      +'<div class="ic ctr"><div class="qc"><button class="qb" onclick="adjIns(\''+item.id+'\',\''+setor+'\',\''+cid+'\',-1)">−</button><span class="qv" style="'+(isLow?'color:var(--Rm)':'')+'">'+fNum(disp)+'</span><button class="qb" onclick="adjIns(\''+item.id+'\',\''+setor+'\',\''+cid+'\',1)">+</button></div></div>'
       +'<div class="ic"><input class="ie" value="'+(item.unidade||'un')+'" onchange="updIns(\''+item.id+'\',\'unidade\',this.value)" style="width:62px;font-size:12px"></div>'
       +'<div class="ic ctr"><input class="ie ien" type="number" min="0" value="'+(item.estoque_min||0)+'" onchange="updIns(\''+item.id+'\',\'estoque_min\',+this.value)" style="font-size:13px;width:50px"></div>'
       +'<div class="ic ctr"><input class="ie ien" type="number" min="0" value="'+(item.estoque_ideal||0)+'" onchange="updIns(\''+item.id+'\',\'estoque_ideal\',+this.value)" style="font-size:13px;width:50px"></div>'
@@ -1648,18 +1653,18 @@ async function renderFin(){
   var {data:tirzFin}=await db.from('tirzepatida_frascos').select('preco_pago,ampolas_disp').eq('status','ativo').neq('mg',0);
   var {data:implFin}=await db.from('tirzepatida_frascos').select('preco_pago,ampolas_disp').eq('status','ativo').eq('mg',0);
   var {data:compras}=await db.from('lotes').select('sum_valor:preco_total.sum()').eq('status','aprovado').single();
-  var totalMeds=(meds||[]).reduce(function(s,m){return s+(m.custo_estoque||0);},0);
-  var totalTirz=(tirzFin||[]).reduce(function(s,t){return s+t.preco_pago;},0);
-  var totalImpl=(implFin||[]).reduce(function(s,i){return s+i.preco_pago;},0);
+  var totalMeds=(meds||[]).reduce(function(s,m){return s+n(m.custo_estoque);},0);
+  var totalTirz=(tirzFin||[]).reduce(function(s,t){return s+n(t.preco_pago);},0);
+  var totalImpl=(implFin||[]).reduce(function(s,i){return s+n(i.preco_pago);},0);
   var totalGeral=totalMeds+totalTirz+totalImpl;
-  var custoRepor=(meds||[]).reduce(function(s,m){return s+(m.preco_medio_cx>0?Math.max(0,Math.ceil(((m.estoque_ideal||0)-m.disponivel)/(m.amp_por_caixa||1))*m.preco_medio_cx):0);},0);
+  var custoRepor=(meds||[]).reduce(function(s,m){return s+(n(m.preco_medio_cx)>0?Math.max(0,Math.ceil(((n(m.estoque_ideal)||0)-n(m.disponivel))/(n(m.amp_por_caixa)||1))*n(m.preco_medio_cx)):0);},0);
   function fcard(lbl,val,sub,cor){
     var parts=fBRL(val).split(' ');
     var rs=parts[0];var num=parts[1]||'0';
     return'<div class="fc"><div class="fl">'+lbl+'</div>'
       +'<div style="display:flex;align-items:baseline;gap:5px;margin:8px 0 5px">'
         +'<span style="font-size:13px;font-weight:700;color:'+(cor||'var(--c)')+'">'+rs+'</span>'
-        +'<span style="font-family:Georgia,serif;font-size:24px;font-weight:500;line-height:1;color:'+(cor||'var(--c)')+'">'+num+'</span>'
+        +'<span style="font-family:system-ui,-apple-system,sans-serif;font-size:24px;font-weight:700;letter-spacing:-.03em;line-height:1;color:'+(cor||'var(--c)')+'">'+num+'</span>'
       +'</div>'
       +'<div class="fs">'+sub+'</div></div>';
   }
@@ -1669,10 +1674,10 @@ async function renderFin(){
     +fcard('Tirzepatida',totalTirz,(tirzFin?tirzFin.length:0)+' frasco(s)','var(--Tm)')
     +fcard('Implantes',totalImpl,(implFin?implFin.length:0)+' lote(s)','var(--Pm)')
     +fcard('Custo para repor ideal',custoRepor,'medicamentos','var(--Wm)')
-    +fcard('Total gasto em compras',compras&&compras.sum_valor?compras.sum_valor:0,'entradas aprovadas','var(--c)');
+    +fcard('Total gasto em compras',n(compras&&compras.sum_valor),'entradas aprovadas','var(--c)');
   if(meds) document.getElementById('ftbody').innerHTML=meds.map(function(m){
-    var cr=m.preco_medio_cx>0?Math.max(0,Math.ceil((m.estoque_ideal-m.disponivel)/m.amp_por_caixa)*m.preco_medio_cx):0;
-    return'<tr><td style="font-weight:700;font-size:13px">'+m.nome+'</td><td style="font-family:Georgia,serif;font-size:16px">'+m.disponivel+'</td><td style="font-family:Georgia,serif;font-size:16px">'+(m.estoque_ideal||'—')+'</td><td>'+(m.preco_medio_cx>0?fBRL(m.preco_medio_cx):'—')+'</td><td style="color:var(--Gm)">'+(m.custo_estoque>0?fBRL(m.custo_estoque):'—')+'</td><td style="color:'+(cr>0?'var(--Wm)':'var(--c4)')+';font-weight:600">'+(cr>0?fBRL(cr):'—')+'</td></tr>';
+    var cr=n(m.preco_medio_cx)>0?Math.max(0,Math.ceil((n(m.estoque_ideal)-n(m.disponivel))/(n(m.amp_por_caixa)||1))*n(m.preco_medio_cx)):0;
+    return'<tr><td style="font-weight:700;font-size:13px">'+m.nome+'</td><td style="font-family:system-ui,-apple-system,sans-serif;font-size:16px;font-weight:700">'+fNum(m.disponivel)+'</td><td style="font-family:system-ui,-apple-system,sans-serif;font-size:16px;font-weight:700">'+(m.estoque_ideal!=null?fNum(m.estoque_ideal):'—')+'</td><td>'+(n(m.preco_medio_cx)>0?fBRL(m.preco_medio_cx):'—')+'</td><td style="color:var(--Gm)">'+(n(m.custo_estoque)>0?fBRL(m.custo_estoque):'—')+'</td><td style="color:'+(cr>0?'var(--Wm)':'var(--c4)')+';font-weight:600">'+(cr>0?fBRL(cr):'—')+'</td></tr>';
   }).join('');
   // Comparativo fornecedores
   var {data:comp}=await db.from('comparativo_fornecedores').select('*');
@@ -1827,6 +1832,11 @@ async function buildContextoIA(){
 }
 
 // ── IA CHAT ──────────────────────────────────────────────────────────
+function ensureIAIntro(){
+  var el=document.getElementById('chat-area');
+  if(!el||el.children.length) return;
+  addMsg('ai','Posso analisar vencimentos, níveis de estoque, custo de reposição, fornecedores e prioridades do próximo pedido.');
+}
 async function enviarChat(){
   var inp=document.getElementById('chat-inp');
   var txt=inp.value.trim();if(!txt)return;
@@ -1973,11 +1983,11 @@ async function renderImpl(){
   impl=impl||[];
   if(f==='testosterona') impl=impl.filter(function(i){return(i.observacoes||'').toLowerCase().includes('testosterona');});
   if(f==='estradiol')    impl=impl.filter(function(i){return(i.observacoes||'').toLowerCase().includes('estradiol');});
-  var total=impl.reduce(function(s,i){return s+i.ampolas_disp;},0);
-  var tvlr=impl.reduce(function(s,i){return s+i.preco_pago;},0);
+  var total=impl.reduce(function(s,i){return s+n(i.ampolas_disp);},0);
+  var tvlr=impl.reduce(function(s,i){return s+n(i.preco_pago);},0);
   var venc=impl.filter(function(i){var sv=st(i.validade);return sv==='venc'||sv==='crit';}).length;
   var is=document.getElementById('istats');
-  if(is) is.innerHTML='<div class="fc"><div class="fl">Total de Lotes</div><div class="fv" style="color:var(--Pm)">'+impl.length+'</div><div class="fs">lotes ativos</div></div>'+'<div class="fc"><div class="fl">Unidades Disponíveis</div><div class="fv" style="color:var(--Pm)">'+total+'</div><div class="fs">implantes</div></div>'+'<div class="fc"><div class="fl">Total Investido</div><div class="fv">'+fBRL(tvlr)+'</div><div class="fs">'+impl.length+' lote(s)</div></div>'+'<div class="fc"><div class="fl">Atenção / Vencidos</div><div class="fv" style="color:var(--Rm)">'+venc+'</div><div class="fs">verificar validade</div></div>';
+  if(is) is.innerHTML='<div class="fc"><div class="fl">Total de Lotes</div><div class="fv" style="color:var(--Pm)">'+fNum(impl.length)+'</div><div class="fs">lotes ativos</div></div>'+'<div class="fc"><div class="fl">Unidades Disponíveis</div><div class="fv" style="color:var(--Pm)">'+fNum(total)+'</div><div class="fs">implantes</div></div>'+'<div class="fc"><div class="fl">Total Investido</div><div class="fv">'+fBRL(tvlr)+'</div><div class="fs">'+fNum(impl.length)+' lote(s)</div></div>'+'<div class="fc"><div class="fl">Atenção / Vencidos</div><div class="fv" style="color:var(--Rm)">'+fNum(venc)+'</div><div class="fs">verificar validade</div></div>';
   var el=document.getElementById('ilist'); if(!el) return;
   document.getElementById('eimpl').style.display=impl.length?'none':'block';
   el.innerHTML='';
@@ -1992,10 +2002,10 @@ async function renderImpl(){
       +'<div class="tc"><span style="display:inline-flex;align-items:center;justify-content:center;background:var(--Pbg);color:var(--P);border:1.5px solid var(--Pbr);border-radius:var(--rad);font-size:13px;font-weight:700;padding:5px 12px">'+obs+'</span></div>'
       +'<div class="tc"><div style="font-size:14px;font-weight:700">'+(t.fornecedores?t.fornecedores.nome:'—')+'</div><div style="font-size:11px;color:var(--c4);margin-top:2px">'+(t.numero_lote?'Lote: '+t.numero_lote:'—')+'</div></div>'
       +'<div class="tc">'+bdg(t.validade)+'<div style="font-size:11px;color:var(--c3);margin-top:4px">'+fd(t.validade)+'</div></div>'
-      +(isAdmin()?'<div class="tc"><div style="font-family:Georgia,serif;font-size:18px;font-weight:500">'+(t.preco_pago>0?fBRL(t.preco_pago):'—')+'</div>'+(t.preco_pago>0&&t.ampolas_total>0?'<div class="lt">'+fBRL(t.preco_por_amp)+'/un</div>':'')+'</div>':'<div class="tc"></div>')
+      +(isAdmin()?'<div class="tc"><div style="font-family:system-ui,-apple-system,sans-serif;font-size:18px;font-weight:700;letter-spacing:-.02em">'+(t.preco_pago>0?fBRL(t.preco_pago):'—')+'</div>'+(t.preco_pago>0&&t.ampolas_total>0?'<div class="lt">'+fBRL(t.preco_por_amp)+'/un</div>':'')+'</div>':'<div class="tc"></div>')
       +'<div class="tc"><div class="dc">'
         +'<button class="db" onclick="adjImpl(\''+tid+'\','+tus+',-1)">−</button>'
-        +'<span class="dv" style="'+(tdisp<=0?'color:var(--Rm)':'')+'">'+tdisp+'</span>'
+        +'<span class="dv" style="'+(tdisp<=0?'color:var(--Rm)':'')+'">'+fNum(tdisp)+'</span>'
         +'<button class="db" onclick="adjImpl(\''+tid+'\','+tus+',1)">+</button>'
       +'</div>'
       +'<div class="lt" style="margin-top:4px">unidades disp.</div>'
@@ -2052,10 +2062,10 @@ async function salvarImpl(){
   document.getElementById('impl-ideal').value=0;
 }
 
-// ── OUTROS INSUMOS ───────────────────────────────────────────────────
-async function renderOutros(){
+// ── APOIO ────────────────────────────────────────────────────────────
+async function renderApoio(){
   var setores=['Limpeza','Conforto','Escritório'];
-  var ids=['outros-lmp','outros-cnf','outros-esc'];
+  var ids=['apoio-lmp','apoio-cnf','apoio-esc'];
   for(var i=0;i<setores.length;i++) await renderSetor(setores[i],ids[i]);
 }
 
@@ -2099,7 +2109,7 @@ function renderPedList(){
         +'<div style="padding:10px 12px;text-align:center"><input type="checkbox" class="pchk" checked data-oid="'+a.oid+'" data-nome="'+a.nome+'" data-disp="'+a.disp+'" data-min="'+a.min+'" data-ideal="'+a.ideal+'" data-custo="'+a.custo.toFixed(2)+'" data-urg="'+(a.urg?'1':'0')+'" style="width:15px;height:15px;accent-color:var(--gold);cursor:pointer" onchange="atualizarTotalPed()"></div>'
         +'<div style="padding:10px 12px"><div style="font-size:13px;font-weight:700;color:var(--c)">'+a.nome+'</div><div style="font-size:9px;color:var(--c4);margin-top:2px">Disp: '+a.disp+' · Ideal: '+a.ideal+'</div></div>'
         +'<div style="padding:10px 12px;text-align:center">'+(a.urg?'<span class="badge bd" style="font-size:7px">Urgente</span>':'<span class="badge bw" style="font-size:7px">Repor</span>')+'</div>'
-        +'<div style="padding:10px 12px;text-align:center;font-family:Georgia,serif;font-size:18px;font-weight:500;color:'+(a.disp<=a.min?'var(--Rm)':'var(--c)')+'">'+a.disp+'</div>'
+        +'<div style="padding:10px 12px;text-align:center;font-family:system-ui,-apple-system,sans-serif;font-size:18px;font-weight:700;letter-spacing:-.02em;color:'+(a.disp<=a.min?'var(--Rm)':'var(--c)')+'">'+fNum(a.disp)+'</div>'
         +'<div style="padding:6px 8px;text-align:center"><input type="number" id="pqtd-'+a.oid+'" value="'+(a.qtdSug||1)+'" min="1" style="width:55px;text-align:center;padding:6px;border:1.5px solid var(--c5);border-radius:5px;font-family:system-ui,-apple-system,sans-serif;font-size:13px;font-weight:700;color:var(--c);outline:none;background:var(--c8)" onchange="atualizarTotalPed()"></div>'
         +'<div style="padding:6px 8px"><input type="text" id="po-'+a.oid+'" placeholder="Observação..." style="width:100%;padding:6px 8px;border:1.5px solid var(--c5);border-radius:5px;font-family:system-ui,-apple-system,sans-serif;font-size:11px;color:var(--c);outline:none;background:var(--c8)"></div>'
         +'<div style="padding:10px 12px;text-align:center;font-size:13px;font-weight:700;color:var(--Wm)">'+(a.custo>0?fBRL(a.custo):'—')+'</div>'
