@@ -1355,13 +1355,24 @@ async function verLotes(itemId,nome){
   wrap.innerHTML=html;wrap.classList.add('on');
 }
 async function aprovarLote(id){
-  await db.from('lotes').update({status:'aprovado',aprovado_por:USER.id,aprovado_em:new Date().toISOString()}).eq('id',id);
-  await db.from('auditoria').insert({usuario_id:USER.id,usuario_nome:PERFIL?PERFIL.nome:'',acao:'aprovou_lote',tabela:'lotes',registro_id:id});
-  flash();fechar('modal-lotes');scheduleRefresh(true);
+  if(!id){ alert('Lote não encontrado para aprovação.'); return; }
+  var upd=await db.from('lotes').update({status:'aprovado',aprovado_por:USER.id,aprovado_em:new Date().toISOString()}).eq('id',id);
+  if(!okResp(upd,'Erro ao aprovar lote')) return;
+  var aud=await db.from('auditoria').insert({usuario_id:USER.id,usuario_nome:PERFIL?PERFIL.nome:'',acao:'aprovou_lote',tabela:'lotes',registro_id:id});
+  if(!okResp(aud,'Erro ao registrar auditoria da aprovação')) return;
+  flash();
+  if(document.getElementById('modal-lotes')) fechar('modal-lotes');
+  await renderNFs();
+  scheduleRefresh(true);
 }
 async function rejeitarLote(id){
-  await db.from('lotes').update({status:'rejeitado'}).eq('id',id);
-  flash();fechar('modal-lotes');scheduleRefresh(true);
+  if(!id){ alert('Lote não encontrado para rejeição.'); return; }
+  var upd=await db.from('lotes').update({status:'rejeitado'}).eq('id',id);
+  if(!okResp(upd,'Erro ao rejeitar lote')) return;
+  flash();
+  if(document.getElementById('modal-lotes')) fechar('modal-lotes');
+  await renderNFs();
+  scheduleRefresh(true);
 }
 
 // ── RETIRADA ─────────────────────────────────────────────────────────
