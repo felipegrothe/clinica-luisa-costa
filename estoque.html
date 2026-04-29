@@ -1189,6 +1189,9 @@ async function renderMeds(){
     var cls=b?'lc':(s==='critico'||s==='atencao')?'wc':'oc';
     var pct=m.estoque_ideal>0?Math.min(100,Math.round((m.disponivel/m.estoque_ideal)*100)):0;
     var pctColor=pct<30?'var(--Rm)':pct<60?'var(--Wm)':'var(--gold)';
+    var ampPorCx=n(m.amp_por_caixa)||1;
+    var caixasCheias=Math.floor(n(m.disponivel)/ampPorCx);
+    var ampolasAvulsas=n(m.disponivel)%ampPorCx;
     var nomeEsc=(m.nome||'').replace(/['"\\]/g,'');
     var div=document.createElement('div');
     div.className='mcard '+cls;
@@ -1197,8 +1200,8 @@ async function renderMeds(){
         +'<div class="mc"><div class="col-lbl">Medicamento</div><div style="font-size:14px;font-weight:700;color:var(--c)">'+m.nome+'</div><div class="lt">'+m.setor+'</div></div>'
         +'<div class="mc"><div class="col-lbl">Validade</div><div style="font-size:12px">'+fd(m.proxima_validade)+'</div></div>'
         +'<div class="mc"><div class="col-lbl">Status</div>'+bdg(m.proxima_validade||'2099-01-01')+'</div>'
-        +'<div class="mc ctr"><div class="col-lbl">Caixas</div><div class="nb">'+fNum(Math.round(n(m.disponivel)/(n(m.amp_por_caixa)||1)))+'</div></div>'
-        +'<div class="mc ctr"><div class="col-lbl">Amp/Cx</div><div style="font-size:14px;font-weight:600">'+fNum(m.amp_por_caixa)+'</div></div>'
+        +'<div class="mc ctr"><div class="col-lbl">Caixas</div><div class="nb">'+fNum(caixasCheias)+'</div>'+(ampolasAvulsas>0?'<div class="lt">'+fNum(ampolasAvulsas)+' amp avulsas</div>':'')+'</div>'
+        +'<div class="mc ctr"><div class="col-lbl">Amp/Cx</div><div style="font-size:14px;font-weight:600">'+fNum(ampPorCx)+'</div></div>'
         +'<div class="mc" style="gap:5px;flex-direction:column;justify-content:center;padding:10px 12px">'
           +'<button class="btn btn-gd btn-sm" onclick="abrirLote(\''+m.id+'\',\''+nomeEsc+'\','+m.amp_por_caixa+')">+ Entrada</button>'
           +'<button class="btn btn-rd btn-sm" onclick="abrirRet(\'med\',\''+m.id+'\',\''+nomeEsc+'\','+m.disponivel+',\'amp\')">− Retirar</button>'
