@@ -1379,16 +1379,36 @@ async function confirmarRet(){
   var ts=new Date().toISOString();
   if(pendRet.tipo==='med'){
     // Descontar do lote mais antigo aprovado
-    var lotesResp=await db.from('lotes').select('*').eq('item_id',pendRet.id).eq('status','aprovado').gt('disponivel_base',0).order('validade',{ascending:true});
+    var lotesResp=await db.from('lotes').select('*').eq('item_id',pendRet.id).eq('status','aprovado').order('validade',{ascending:true});
     if(!okResp(lotesResp,'Erro ao buscar lotes'))return;
-    var lotes=lotesResp.data;
+    var lotes=(lotesResp.data||[]).map(function(l){
+      var total=n(l.quantidade_cx)*n(l.amp_por_caixa);
+      var usado=n(l.usado_base);
+      return Object.assign({},l,{_disp:Math.max(0,total-usado)});
+    }).filter(function(l){ return l._disp>0; });
+    var totalDisponivel=lotes.reduce(function(s,l){ return s+l._disp; },0);
+    if(!lotes.length||totalDisponivel<=0){
+      msg.style.color='var(--Rm)';
+      msg.textContent='Este medicamento não possui lote aprovado com saldo disponível para retirada.';
+      return;
+    }
+    if(qty>totalDisponivel){
+      msg.style.color='var(--Rm)';
+      msg.textContent='A quantidade solicitada excede o saldo disponível nos lotes aprovados.';
+      return;
+    }
     var restante=qty;
-    for(var i=0;i<(lotes||[]).length&&restante>0;i++){
+    for(var i=0;i<lotes.length&&restante>0;i++){
       var l=lotes[i];
-      var desconto=Math.min(restante,l.disponivel_base);
-      var loteUpd=await db.from('lotes').update({usado_base:l.usado_base+desconto}).eq('id',l.id);
+      var desconto=Math.min(restante,l._disp);
+      var loteUpd=await db.from('lotes').update({usado_base:n(l.usado_base)+desconto}).eq('id',l.id);
       if(!okResp(loteUpd,'Erro ao atualizar lote'))return;
       restante-=desconto;
+    }
+    if(restante>0){
+      msg.style.color='var(--Rm)';
+      msg.textContent='Não foi possível concluir a baixa em todos os lotes.';
+      return;
     }
     var movResp=await db.from('movimentacoes').insert({item_id:pendRet.id,tipo:'saida',quantidade:qty,data,motivo:obs,responsavel_id:USER.id,responsavel_nome:PERFIL?PERFIL.nome:''});
     if(!okResp(movResp,'Erro ao registrar movimentação'))return;
