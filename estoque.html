@@ -770,12 +770,12 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
     </div>
     <input type="file" id="nf-upload" accept=".pdf,image/*" style="display:none" onchange="onNFUpload(this)">
   </div>
-  <div style="background:var(--Wbg);border:1px solid var(--Wbr);border-radius:var(--rad);padding:10px 14px;font-size:11px;color:var(--W);margin-bottom:4px">
+  <div id="lote-aprov-warn" style="background:var(--Wbg);border:1px solid var(--Wbr);border-radius:var(--rad);padding:10px 14px;font-size:11px;color:var(--W);margin-bottom:4px">
     ⚠ Este lote ficará <strong>pendente de aprovação</strong> pelo administrador antes de entrar no estoque.
   </div>
   <div class="ma">
     <button class="btn btn-gh" onclick="fechar('madlote')">Cancelar</button>
-    <button class="btn btn-gd" onclick="salvarLote()">Enviar para Aprovação</button>
+    <button class="btn btn-gd" id="lote-submit-btn" onclick="salvarLote()">Enviar para Aprovação</button>
   </div>
   <div id="lote-msg" class="fmsg" style="margin-top:8px"></div>
 </div></div>
@@ -948,6 +948,13 @@ function isAdmin(){ return NIVEL==='administrador'; }
 function isAdminOrCompras(){ return NIVEL==='administrador'||NIVEL==='compras'; }
 function showVal(val,fallback){ return isAdmin()?val:(fallback||'—'); }
 function showBRL(val){ return isAdmin()?fBRL(val):'—'; }
+function askQtdAjuste(label){
+  var raw=prompt(label,'1');
+  if(raw===null) return null;
+  var qty=parseInt(raw,10);
+  if(!Number.isFinite(qty)||qty<=0){ alert('Informe uma quantidade válida.'); return null; }
+  return qty;
+}
 function getActiveTab(){
   var el=document.querySelector('.ntab.on');
   return el&&el.dataset&&el.dataset.tab?el.dataset.tab:'dash';
@@ -1277,6 +1284,17 @@ function abrirLote(itemId,nome,apx){
   document.getElementById('lvalor').value='';
   document.getElementById('lfarm').value='';
   document.getElementById('lote-msg').textContent='';
+  var warn=document.getElementById('lote-aprov-warn');
+  var btn=document.getElementById('lote-submit-btn');
+  if(warn){
+    warn.innerHTML=isAdmin()
+      ? '✓ Como administrador, esta entrada será <strong>aprovada imediatamente</strong> e entrará no estoque agora.'
+      : '⚠ Este lote ficará <strong>pendente de aprovação</strong> pelo administrador antes de entrar no estoque.';
+    warn.style.background=isAdmin()?'var(--Gbg)':'var(--Wbg)';
+    warn.style.borderColor=isAdmin()?'var(--Gbr)':'var(--Wbr)';
+    warn.style.color=isAdmin()?'var(--G)':'var(--W)';
+  }
+  if(btn) btn.textContent=isAdmin()?'Salvar Entrada':'Enviar para Aprovação';
   abrir('madlote');
 }
 async function salvarLote(){
@@ -1295,15 +1313,18 @@ async function salvarLote(){
     if(forn) fornId=forn.id;
     else{var {data:nf}=await db.from('fornecedores').insert({nome:farm,tipo:'farmacia'}).select('id').single();if(nf)fornId=nf.id;}
   }
+  var statusLote=isAdmin()?'aprovado':'pendente';
+  var aprovadoEm=isAdmin()?new Date().toISOString():null;
+  var aprovadoPor=isAdmin()?USER.id:null;
   var {error}=await db.from('lotes').insert({
     item_id:pendLoteId.itemId,numero_lote:document.getElementById('llote').value.trim()||null,
     validade:val,quantidade_cx:cx,amp_por_caixa:apx,preco_total:valor,
     fornecedor_id:fornId,observacoes:document.getElementById('lobs').value.trim()||null,
-    status:'pendente',criado_por:USER.id
+    status:statusLote,aprovado_em:aprovadoEm,aprovado_por:aprovadoPor,criado_por:USER.id
   });
   if(error){msg.style.color='var(--Rm)';msg.textContent='Erro ao registrar.';return;}
   fechar('madlote');flash();
-  msg.style.color='var(--Gm)';msg.textContent='Lote registrado! Aguarda aprovação do administrador.';
+  msg.style.color='var(--Gm)';msg.textContent=isAdmin()?'Entrada registrada no estoque com sucesso.':'Lote registrado! Aguarda aprovação do administrador.';
   scheduleRefresh(true);
   // Registrar auditoria
   await db.from('auditoria').insert({usuario_id:USER.id,usuario_nome:PERFIL?PERFIL.nome:'',acao:'criou_lote',tabela:'lotes',dados_depois:{item:pendLoteId.nome,cx,val}});
@@ -1340,8 +1361,8 @@ async function rejeitarLote(id){
 }
 
 // ── RETIRADA ─────────────────────────────────────────────────────────
-function abrirRet(tipo,id,nome,disp,unid){
-  pendRet={tipo,id,nome,disp,unid};
+function abrirRet(tipo,id,nome,disp,unid,usadas,total){
+  pendRet={tipo,id,nome,disp,unid,usadas:usadas||0,total:total||0};
   document.getElementById('ret-info').textContent=nome+' — Disponível: '+disp+' '+unid;
   document.getElementById('rqty').value=1;document.getElementById('rqty').max=disp;
   document.getElementById('rdata').value=today();document.getElementById('robs').value='';
@@ -1372,10 +1393,15 @@ async function confirmarRet(){
     var movResp=await db.from('movimentacoes').insert({item_id:pendRet.id,tipo:'saida',quantidade:qty,data,motivo:obs,responsavel_id:USER.id,responsavel_nome:PERFIL?PERFIL.nome:''});
     if(!okResp(movResp,'Erro ao registrar movimentação'))return;
   } else if(pendRet.tipo==='tirz'){
-    var tzUpd=await db.from('tirzepatida_frascos').update({ampolas_usadas:pendRet.usadas+qty}).eq('id',pendRet.id);
+    var tzUpd=await db.from('tirzepatida_frascos').update({ampolas_usadas:n(pendRet.usadas)+qty}).eq('id',pendRet.id);
     if(!okResp(tzUpd,'Erro ao atualizar tirzepatida'))return;
     var tzMov=await db.from('tirzepatida_movimentacoes').insert({frasco_id:pendRet.id,tipo:'saida',quantidade:qty,data,motivo:obs,responsavel_id:USER.id,responsavel_nome:PERFIL?PERFIL.nome:''});
     if(!okResp(tzMov,'Erro ao registrar movimentação'))return;
+  } else if(pendRet.tipo==='impl'){
+    var implUpd=await db.from('tirzepatida_frascos').update({ampolas_usadas:n(pendRet.usadas)+qty}).eq('id',pendRet.id);
+    if(!okResp(implUpd,'Erro ao atualizar implante'))return;
+    var implMov=await db.from('tirzepatida_movimentacoes').insert({frasco_id:pendRet.id,tipo:'saida',quantidade:qty,data,motivo:obs,responsavel_id:USER.id,responsavel_nome:PERFIL?PERFIL.nome:''});
+    if(!okResp(implMov,'Erro ao registrar movimentação'))return;
   } else {
     var insResp=await db.from('itens').select('*').eq('id',pendRet.id).single();
     if(!okResp(insResp,'Erro ao buscar item'))return;
@@ -1430,7 +1456,7 @@ async function renderTirz(){
       +'<div class="tc"><div style="font-size:14px;font-weight:700">'+t.fornecedores.nome+'</div><div style="font-size:11px;color:var(--c4);margin-top:2px">'+(t.numero_lote?'Lote: '+t.numero_lote:'—')+'</div>'+(t.observacoes?'<div style="font-size:11px;color:var(--c3);margin-top:2px">'+t.observacoes+'</div>':'')+'</div>'
       +'<div class="tc">'+bdg(t.validade)+'<div style="font-size:11px;color:var(--c3);margin-top:5px">'+fd(t.validade)+'</div></div>'
       +(isAdmin()?'<div class="tc"><div class="nm">'+(t.preco_pago>0?fBRL(t.preco_pago):'—')+'</div>'+(t.preco_pago>0&&t.ampolas_total>0?'<div class="lt">'+fBRL(t.preco_por_amp)+'/amp</div>':'')+'</div>':'<div class="tc"></div>')
-      +'<div class="tc"><div class="dc"><button class="db" onclick="adjTirz(\''+t.id+'\','+t.ampolas_usadas+',-1)">−</button><span class="dv" style="'+(t.ampolas_disp<=0?'color:var(--Rm)':'')+'">'+fNum(t.ampolas_disp)+'</span><button class="db" onclick="adjTirz(\''+t.id+'\','+t.ampolas_usadas+',1)">+</button></div><div class="lt" style="margin-top:4px">ampolas disponíveis</div><button class="btn btn-xs btn-rd" style="margin-top:6px" onclick="abrirRet(\'tirz\',\''+t.id+'\',\'Tirzepatida '+t.mg+'mg\','+t.ampolas_disp+',\'amp\')">− Retirar c/ PDF</button></div>'
+      +'<div class="tc"><div class="dc"><button class="db" onclick="adjTirz(\''+t.id+'\','+t.ampolas_total+','+t.ampolas_usadas+',-1)">−</button><span class="dv" style="'+(t.ampolas_disp<=0?'color:var(--Rm)':'')+'">'+fNum(t.ampolas_disp)+'</span><button class="db" onclick="adjTirz(\''+t.id+'\','+t.ampolas_total+','+t.ampolas_usadas+',1)">+</button></div><div class="lt" style="margin-top:4px">ampolas disponíveis</div><button class="btn btn-xs btn-rd" style="margin-top:6px" onclick="abrirRet(\'tirz\',\''+t.id+'\',\'Tirzepatida '+t.mg+'mg\','+t.ampolas_disp+',\'amp\','+t.ampolas_usadas+','+t.ampolas_total+')">− Retirar c/ PDF</button></div>'
       +'<div class="tc" style="gap:5px;flex-direction:column">'
         +(isAdmin()?'<button class="btn btn-xs btn-edit" onclick="abrirEditarTirz(\''+t.id+'\')">✏ Editar</button>':'')
         +(isAdmin()?'<button class="btn btn-xs btn-del" onclick="rmTirz(\''+t.id+'\')">🗑 Remover</button>':'')
@@ -1439,9 +1465,20 @@ async function renderTirz(){
     el.appendChild(div);
   });
 }
-async function adjTirz(id,usadas,delta){
-  var novoUsado=Math.max(0,usadas-delta);
-  var r=await db.from('tirzepatida_frascos').update({ampolas_usadas:novoUsado,atualizado_em:new Date().toISOString()}).eq('id',id);
+async function adjTirz(id,total,usadas,delta){
+  var qty=askQtdAjuste(delta>0?'Quantas ampolas deseja adicionar ao estoque?':'Quantas ampolas deseja baixar do estoque?');
+  if(qty===null) return;
+  total=n(total); usadas=n(usadas);
+  var upd={atualizado_em:new Date().toISOString()};
+  if(delta>0){
+    upd.ampolas_total=total+qty;
+  } else {
+    var disp=Math.max(0,total-usadas);
+    if(qty>disp){ alert('A quantidade excede o disponível em estoque.'); return; }
+    upd.ampolas_total=Math.max(0,total-qty);
+    if(usadas>upd.ampolas_total) upd.ampolas_usadas=upd.ampolas_total;
+  }
+  var r=await db.from('tirzepatida_frascos').update(upd).eq('id',id);
   if(!okResp(r,'Erro ao ajustar tirzepatida'))return;
   flash();scheduleRefresh(true);
 }
@@ -1656,7 +1693,17 @@ async function renderSetor(setor,cid){
 async function addSug(setor,nome,setorId,cid){var r=await db.from('itens').insert({nome,setor_id:setorId,estoque_min:2,estoque_ideal:10,amp_por_caixa:1});if(!okResp(r,'Erro ao adicionar item'))return;flash();scheduleRefresh(true);}
 async function addInsManual(setor,setorId,cid){var n=prompt('Nome do item:');if(!n||!n.trim())return;var r=await db.from('itens').insert({nome:n.trim(),setor_id:setorId,estoque_min:2,estoque_ideal:10,amp_por_caixa:1});if(!okResp(r,'Erro ao adicionar item'))return;flash();scheduleRefresh(true);}
 async function updIns(id,field,val,setor,cid){var upd={};upd[field]=val;upd.atualizado_em=new Date().toISOString();var r=await db.from('itens').update(upd).eq('id',id);if(!okResp(r,'Erro ao atualizar item'))return;flash();if(setor&&cid)renderSetor(setor,cid);scheduleRefresh(true);}
-async function adjIns(id,setor,cid,delta){var itemResp=await db.from('itens').select('*').eq('id',id).single();if(!okResp(itemResp,'Erro ao buscar item'))return;var item=itemResp.data;if(!item)return;var r=await db.from('itens').update({usado_total:Math.max(0,item.usado_total-delta),atualizado_em:new Date().toISOString()}).eq('id',id);if(!okResp(r,'Erro ao ajustar item'))return;flash();renderSetor(setor,cid);scheduleRefresh(true);}
+async function adjIns(id,setor,cid,delta){
+  var qty=askQtdAjuste(delta>0?'Quantas unidades deseja adicionar ao estoque?':'Quantas unidades deseja baixar do estoque?');
+  if(qty===null) return;
+  var itemResp=await db.from('itens').select('*').eq('id',id).single();
+  if(!okResp(itemResp,'Erro ao buscar item'))return;
+  var item=itemResp.data;if(!item)return;
+  var novoUsado=n(item.usado_total)-(delta*qty);
+  var r=await db.from('itens').update({usado_total:novoUsado,atualizado_em:new Date().toISOString()}).eq('id',id);
+  if(!okResp(r,'Erro ao ajustar item'))return;
+  flash();renderSetor(setor,cid);scheduleRefresh(true);
+}
 async function rmIns(id,setor,cid){var r=await db.from('itens').update({ativo:false}).eq('id',id);if(!okResp(r,'Erro ao excluir item'))return;flash();renderSetor(setor,cid);scheduleRefresh(true);}
 
 // ── NOTAS FISCAIS ────────────────────────────────────────────────────
@@ -1926,6 +1973,24 @@ function calcMedTotalDaCx(){
   var calc=document.getElementById('avalor-calc');
   if(calc)calc.textContent=total>0?total.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'0,00';
 }
+function calcTirzTotal(){
+  var amp=parseFloat(document.getElementById('tamp').value)||0;
+  var valorAmp=parseFloat(document.getElementById('tvalamp').value)||0;
+  var total=amp*valorAmp;
+  var totalEl=document.getElementById('tvalor');
+  if(totalEl) totalEl.value=total>0?total.toFixed(2):'';
+  var calc=document.getElementById('tvalamp-calc');
+  if(calc) calc.textContent=valorAmp>0?fBRL(valorAmp):'—';
+}
+function calcTirzAmp(){
+  var amp=parseFloat(document.getElementById('tamp').value)||0;
+  var total=parseFloat(document.getElementById('tvalor').value)||0;
+  var valorAmp=amp>0?total/amp:0;
+  var ampEl=document.getElementById('tvalamp');
+  if(ampEl) ampEl.value=valorAmp>0?valorAmp.toFixed(2):'';
+  var calc=document.getElementById('tvalamp-calc');
+  if(calc) calc.textContent=valorAmp>0?fBRL(valorAmp):'—';
+}
 async function salvarMed(){
   var nome=document.getElementById('an').value.trim();
   var msg=document.getElementById('med-msg');
@@ -2041,12 +2106,12 @@ async function renderImpl(){
       +'<div class="tc">'+bdg(t.validade)+'<div style="font-size:11px;color:var(--c3);margin-top:4px">'+fd(t.validade)+'</div></div>'
       +(isAdmin()?'<div class="tc"><div style="font-family:system-ui,-apple-system,sans-serif;font-size:18px;font-weight:700;letter-spacing:-.02em">'+(t.preco_pago>0?fBRL(t.preco_pago):'—')+'</div>'+(t.preco_pago>0&&t.ampolas_total>0?'<div class="lt">'+fBRL(t.preco_por_amp)+'/un</div>':'')+'</div>':'<div class="tc"></div>')
       +'<div class="tc"><div class="dc">'
-        +'<button class="db" onclick="adjImpl(\''+tid+'\','+tus+',-1)">−</button>'
+        +'<button class="db" onclick="adjImpl(\''+tid+'\','+t.ampolas_total+','+tus+',-1)">−</button>'
         +'<span class="dv" style="'+(tdisp<=0?'color:var(--Rm)':'')+'">'+fNum(tdisp)+'</span>'
-        +'<button class="db" onclick="adjImpl(\''+tid+'\','+tus+',1)">+</button>'
+        +'<button class="db" onclick="adjImpl(\''+tid+'\','+t.ampolas_total+','+tus+',1)">+</button>'
       +'</div>'
       +'<div class="lt" style="margin-top:4px">unidades disp.</div>'
-      +'<button class="btn btn-xs btn-rd" style="margin-top:6px" onclick="abrirRet(\'ins\',\''+tid+'\',\''+nomeEsc+'\','+tdisp+',\'un\')">− Retirar</button></div>'
+      +'<button class="btn btn-xs btn-rd" style="margin-top:6px" onclick="abrirRet(\'impl\',\''+tid+'\',\''+nomeEsc+'\','+tdisp+',\'un\','+tus+','+t.ampolas_total+')">− Retirar</button></div>'
       +'<div class="tc" style="gap:5px;flex-direction:column">'
         +(isAdmin()?'<button class="btn btn-xs btn-edit" onclick="abrirEditarImpl(\''+tid+'\')">✏ Editar</button>':'')
         +(isAdmin()?'<button class="btn btn-xs btn-del" onclick="rmImpl(\''+tid+'\')">🗑 Remover</button>':'')
@@ -2055,7 +2120,23 @@ async function renderImpl(){
     el.appendChild(div);
   });
 }
-async function adjImpl(id,usadas,delta){var r=await db.from('tirzepatida_frascos').update({ampolas_usadas:Math.max(0,usadas-delta),atualizado_em:new Date().toISOString()}).eq('id',id);if(!okResp(r,'Erro ao ajustar implante'))return;flash();scheduleRefresh(true);}
+async function adjImpl(id,total,usadas,delta){
+  var qty=askQtdAjuste(delta>0?'Quantas unidades deseja adicionar ao estoque?':'Quantas unidades deseja baixar do estoque?');
+  if(qty===null) return;
+  total=n(total); usadas=n(usadas);
+  var upd={atualizado_em:new Date().toISOString()};
+  if(delta>0){
+    upd.ampolas_total=total+qty;
+  } else {
+    var disp=Math.max(0,total-usadas);
+    if(qty>disp){ alert('A quantidade excede o disponível em estoque.'); return; }
+    upd.ampolas_total=Math.max(0,total-qty);
+    if(usadas>upd.ampolas_total) upd.ampolas_usadas=upd.ampolas_total;
+  }
+  var r=await db.from('tirzepatida_frascos').update(upd).eq('id',id);
+  if(!okResp(r,'Erro ao ajustar implante'))return;
+  flash();scheduleRefresh(true);
+}
 async function rmImpl(id){if(!confirm('Remover lote?'))return;var r=await db.from('tirzepatida_frascos').update({status:'descartado'}).eq('id',id);if(!okResp(r,'Erro ao remover lote'))return;flash();scheduleRefresh(true);}
 function abrirEditarImpl(id){
   db.from('tirzepatida_frascos').select('*,fornecedores(nome)').eq('id',id).single().then(function(r){
