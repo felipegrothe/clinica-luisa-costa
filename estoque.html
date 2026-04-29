@@ -845,7 +845,8 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
   <h3>Confirmar Retirada</h3>
   <div id="ret-info" style="background:var(--c8);border:1px solid var(--c6);border-radius:var(--rad);padding:11px 14px;margin-bottom:14px;font-size:13px;font-weight:700;color:var(--c)"></div>
   <div class="fg2">
-    <div class="frow"><label>Quantidade</label><input type="number" id="rqty" min="1" value="1"></div>
+    <div class="frow" id="ret-mode-wrap" style="display:none"><label>Retirar em</label><select id="ret-mode" onchange="atualizarModoRetirada()"><option value="cx">Caixas</option><option value="amp">Ampolas</option></select></div>
+    <div class="frow"><label id="ret-qty-label">Quantidade</label><input type="number" id="rqty" min="1" value="1"></div>
     <div class="frow"><label>Data</label><input type="date" id="rdata"></div>
   </div>
   <div class="frow"><label>Motivo / Observação</label><textarea id="robs" placeholder="Paciente, protocolo, finalidade..."></textarea></div>
@@ -1204,7 +1205,7 @@ async function renderMeds(){
         +'<div class="mc ctr"><div class="col-lbl">Amp/Cx</div><div style="font-size:14px;font-weight:600">'+fNum(ampPorCx)+'</div></div>'
         +'<div class="mc" style="gap:5px;flex-direction:column;justify-content:center;padding:10px 12px">'
           +'<button class="btn btn-gd btn-sm" onclick="abrirLote(\''+m.id+'\',\''+nomeEsc+'\','+m.amp_por_caixa+')">+ Entrada</button>'
-          +'<button class="btn btn-rd btn-sm" onclick="abrirRet(\'med\',\''+m.id+'\',\''+nomeEsc+'\','+m.disponivel+',\'amp\')">− Retirar</button>'
+          +'<button class="btn btn-rd btn-sm" onclick="abrirRet(\'med\',\''+m.id+'\',\''+nomeEsc+'\','+m.disponivel+',\'cx\',0,0,'+ampPorCx+')">− Retirar</button>'
           +(isAdmin()?'<div style="display:flex;gap:4px;margin-top:3px;width:100%">'
             +'<button class="btn btn-xs" style="background:#fff;border-color:var(--c5);color:var(--c2);flex:1;font-size:7.5px;padding:4px 6px" onclick="abrirEditar(\''+m.id+'\',\''+nomeEsc+'\',\''+m.unidade+'\','+m.amp_por_caixa+','+(m.estoque_min||0)+','+(m.estoque_ideal||0)+')">✏ Editar</button>'
             +'<button class="btn btn-xs btn-del" style="font-size:7.5px;padding:4px 8px" onclick="excluirItem(\''+m.id+'\',\''+nomeEsc+'\')">🗑</button>'
@@ -1364,13 +1365,48 @@ async function rejeitarLote(id){
 }
 
 // ── RETIRADA ─────────────────────────────────────────────────────────
-function abrirRet(tipo,id,nome,disp,unid,usadas,total){
-  pendRet={tipo,id,nome,disp,unid,usadas:usadas||0,total:total||0};
-  document.getElementById('ret-info').textContent=nome+' — Disponível: '+disp+' '+unid;
-  document.getElementById('rqty').value=1;document.getElementById('rqty').max=disp;
+function abrirRet(tipo,id,nome,disp,unid,usadas,total,fator){
+  pendRet={tipo,id,nome,disp,unid,usadas:usadas||0,total:total||0,fator:fator||1,modo:'padrao'};
+  var infoDisp=disp;
+  var modeWrap=document.getElementById('ret-mode-wrap');
+  var modeSel=document.getElementById('ret-mode');
+  if(tipo==='med'){
+    var caixasDisp=Math.floor(n(disp)/(n(fator)||1));
+    var avulsas=n(disp)%(n(fator)||1);
+    infoDisp=caixasDisp+' cx'+(avulsas>0?' + '+avulsas+' amp':'');
+    pendRet.modo='cx';
+    if(modeWrap) modeWrap.style.display='block';
+    if(modeSel) modeSel.value='cx';
+  } else {
+    if(modeWrap) modeWrap.style.display='none';
+  }
+  document.getElementById('ret-info').textContent=nome+' — Disponível: '+infoDisp;
+  document.getElementById('rqty').value=1;
   document.getElementById('rdata').value=today();document.getElementById('robs').value='';
   document.getElementById('ret-msg').textContent='';
+  atualizarModoRetirada();
   abrir('madret');
+}
+function atualizarModoRetirada(){
+  if(!pendRet) return;
+  var qtyInput=document.getElementById('rqty');
+  var qtyLabel=document.getElementById('ret-qty-label');
+  var modeSel=document.getElementById('ret-mode');
+  if(!qtyInput||!qtyLabel) return;
+  if(pendRet.tipo==='med'){
+    var modo=modeSel?modeSel.value:'cx';
+    pendRet.modo=modo;
+    if(modo==='amp'){
+      qtyLabel.textContent='Quantidade em ampolas';
+      qtyInput.max=n(pendRet.disp);
+    } else {
+      qtyLabel.textContent='Quantidade em caixas';
+      qtyInput.max=Math.floor(n(pendRet.disp)/(n(pendRet.fator)||1));
+    }
+  } else {
+    qtyLabel.textContent='Quantidade';
+    qtyInput.max=n(pendRet.disp);
+  }
 }
 async function confirmarRet(){
   if(!pendRet) return;
@@ -1378,7 +1414,9 @@ async function confirmarRet(){
   var obs=document.getElementById('robs').value.trim();
   var data=document.getElementById('rdata').value;
   var msg=document.getElementById('ret-msg');
-  if(qty<=0||qty>pendRet.disp){msg.style.color='var(--Rm)';msg.textContent='Quantidade inválida.';return;}
+  var qtyBase=qty;
+  if(pendRet.tipo==='med') qtyBase=pendRet.modo==='amp'?qty:qty*(n(pendRet.fator)||1);
+  if(qty<=0||qtyBase>pendRet.disp){msg.style.color='var(--Rm)';msg.textContent='Quantidade inválida.';return;}
   var ts=new Date().toISOString();
   if(pendRet.tipo==='med'){
     // Descontar do lote mais antigo. Prioriza aprovados, mas aceita lotes legados sem status consistente.
@@ -1400,12 +1438,12 @@ async function confirmarRet(){
       msg.textContent='Este medicamento não possui lote aprovado com saldo disponível para retirada.';
       return;
     }
-    if(qty>totalDisponivel){
+    if(qtyBase>totalDisponivel){
       msg.style.color='var(--Rm)';
       msg.textContent='A quantidade solicitada excede o saldo disponível nos lotes aprovados.';
       return;
     }
-    var restante=qty;
+    var restante=qtyBase;
     for(var i=0;i<lotes.length&&restante>0;i++){
       var l=lotes[i];
       var desconto=Math.min(restante,l._disp);
@@ -1418,7 +1456,7 @@ async function confirmarRet(){
       msg.textContent='Não foi possível concluir a baixa em todos os lotes.';
       return;
     }
-    var movResp=await db.from('movimentacoes').insert({item_id:pendRet.id,tipo:'saida',quantidade:qty,data,motivo:obs,responsavel_id:USER.id,responsavel_nome:PERFIL?PERFIL.nome:''});
+    var movResp=await db.from('movimentacoes').insert({item_id:pendRet.id,tipo:'saida',quantidade:qtyBase,data,motivo:obs,responsavel_id:USER.id,responsavel_nome:PERFIL?PERFIL.nome:''});
     if(!okResp(movResp,'Erro ao registrar movimentação'))return;
   } else if(pendRet.tipo==='tirz'){
     var tzUpd=await db.from('tirzepatida_frascos').update({ampolas_usadas:n(pendRet.usadas)+qty}).eq('id',pendRet.id);
@@ -1441,9 +1479,9 @@ async function confirmarRet(){
     var insMov=await db.from('movimentacoes').insert({item_id:pendRet.id,tipo:'saida',quantidade:qty,data,motivo:obs,responsavel_id:USER.id,responsavel_nome:PERFIL?PERFIL.nome:''});
     if(!okResp(insMov,'Erro ao registrar movimentação'))return;
   }
-  await db.from('auditoria').insert({usuario_id:USER.id,usuario_nome:PERFIL?PERFIL.nome:'',acao:'retirada',tabela:'movimentacoes',dados_depois:{item:pendRet.nome,qty,data,obs}});
+  await db.from('auditoria').insert({usuario_id:USER.id,usuario_nome:PERFIL?PERFIL.nome:'',acao:'retirada',tabela:'movimentacoes',dados_depois:{item:pendRet.nome,qty:qtyBase,qty_digitada:qty,modo:pendRet.modo||pendRet.unid,data,obs}});
   fechar('madret');flash();
-  gerarPdfRet(pendRet,qty,obs,data,{nome:PERFIL?PERFIL.nome:''},ts);
+  gerarPdfRet({nome:pendRet.nome,unid:pendRet.tipo==='med'?(pendRet.modo==='amp'?'amp':'cx'):pendRet.unid},qty,obs,data,{nome:PERFIL?PERFIL.nome:''},ts);
   scheduleRefresh(true);
   pendRet=null;
 }
