@@ -200,7 +200,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
 
 /* MED CARDS */
 .mlist{display:flex;flex-direction:column;gap:10px}
-.mcard{background:#fff;border:1px solid var(--c6);border-radius:var(--rad);overflow:hidden;box-shadow:var(--sh1);transition:.2s}
+.mcard{background:#fff;border:1px solid var(--c6);border-radius:var(--rad);overflow:hidden;box-shadow:var(--sh1);transition:.2s;cursor:pointer}
 .mcard:hover{box-shadow:var(--sh2)}
 .mcard.lc{border-left:4px solid var(--Rm)}.mcard.wc{border-left:4px solid var(--Wm)}.mcard.oc{border-left:4px solid var(--Gm)}
 .mrow{display:grid;grid-template-columns:minmax(180px,2.2fr) 150px 110px 80px 80px 110px;align-items:stretch}
@@ -209,6 +209,39 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
 .mc:last-child{border-right:none}
 .mc.ctr{align-items:center}
 .col-lbl{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--c4);margin-bottom:4px}
+.mhero{display:grid;grid-template-columns:minmax(260px,2.2fr) minmax(320px,1.5fr) 150px;align-items:stretch}
+.mhero-main,.mhero-side,.mhero-actions{min-width:0}
+.mhero-main{padding:18px 20px}
+.mhero-side{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-left:1px solid var(--c7)}
+.mhero-actions{padding:14px;border-left:1px solid var(--c7);display:flex;flex-direction:column;gap:6px;justify-content:center;background:linear-gradient(180deg,rgba(250,248,245,.92),rgba(245,240,233,.96))}
+.mhero-title{font-size:15px;font-weight:700;color:var(--c);line-height:1.3;overflow-wrap:anywhere}
+.mhero-sub{font-size:11px;color:var(--c4);margin-top:4px}
+.mhero-hint{font-size:9px;color:var(--gold);font-weight:700;letter-spacing:.6px;margin-top:10px;text-transform:uppercase}
+.mstat{padding:16px 14px;border-right:1px solid var(--c7);display:flex;flex-direction:column;justify-content:center;min-width:0}
+.mstat:last-child{border-right:none}
+.mstat .badge{max-width:100%}
+.mstat-value{font-family:system-ui,-apple-system,sans-serif;font-size:15px;font-weight:700;color:var(--c);line-height:1.2;overflow-wrap:anywhere}
+.mstat-note{font-size:10px;color:var(--c4);margin-top:4px;overflow-wrap:anywhere}
+.mfact-grid{display:grid;grid-template-columns:minmax(240px,2fr) repeat(4,minmax(120px,1fr));background:var(--c8);border-top:1px solid var(--c6)}
+.mfact{padding:14px 16px;border-right:1px solid var(--c7);min-width:0}
+.mfact:last-child{border-right:none}
+.mfact-value{font-family:system-ui,-apple-system,sans-serif;font-size:17px;font-weight:700;line-height:1.25;letter-spacing:-.01em;color:var(--c);overflow-wrap:anywhere}
+.mfact-value.mfact-money{color:var(--Gm)}
+.mfact-value.mfact-warn{color:var(--Wm)}
+.mstock-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px}
+.mprogress{display:flex;align-items:center;gap:6px;margin-top:6px}
+.mprogress-track{flex:1;height:5px;background:var(--c7);border-radius:3px;overflow:hidden}
+.mprogress-fill{height:100%;border-radius:3px}
+.mprogress-pct{font-size:9px;font-weight:700;color:var(--c4);min-width:34px;text-align:right}
+.mmodal-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.mmini{border:1px solid var(--c6);border-radius:var(--rad);padding:12px;background:var(--c8)}
+.mmini .col-lbl{margin-bottom:6px}
+.mprice-list{display:flex;flex-direction:column;gap:8px}
+.mprice-row{display:flex;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid var(--c6);border-radius:var(--rad);background:#fff}
+.mprice-left{min-width:0}
+.mprice-name{font-size:12px;font-weight:700;color:var(--c);overflow-wrap:anywhere}
+.mprice-meta{font-size:10px;color:var(--c4);margin-top:3px}
+.mempty-note{font-size:11px;color:var(--c4);padding:8px 0}
 .mni{border:none;background:transparent;font-family:system-ui,-apple-system,sans-serif;font-size:14px;font-weight:700;color:var(--c);width:100%;padding:2px 5px;border-radius:4px;outline:none}
 .mni:hover{background:var(--c7)}
 .mni:focus{background:var(--c6);outline:2px solid var(--gold)}
@@ -474,10 +507,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
       </select>
       <button class="btn btn-gd" onclick="abrir('madmed')">Novo Medicamento</button>
     </div>
-    <div style="display:grid;grid-template-columns:minmax(180px,2.2fr) 150px 110px 80px 80px 110px;gap:0;padding:8px 16px;background:var(--c7);border-radius:var(--rad);margin-bottom:8px;border:1px solid var(--c6)">
-      <div class="col-lbl">Medicamento</div><div class="col-lbl">Validade</div><div class="col-lbl">Status</div>
-      <div class="col-lbl" style="text-align:center">Caixas</div><div class="col-lbl" style="text-align:center">Amp/Cx</div><div class="col-lbl" style="text-align:center">Ações</div>
-    </div>
+    <div style="font-size:10px;color:var(--c4);margin:4px 2px 10px">Clique em um card para ver histórico de preços, médias e detalhes do medicamento.</div>
     <div class="mlist" id="mlist"></div>
     <div id="emeds" style="display:none" class="empty"><div class="et">Nenhum item</div><div class="es">Tente outro filtro</div></div>
   </div>
@@ -1199,50 +1229,108 @@ async function renderMeds(){
     var caixasCheias=Math.floor(n(m.disponivel)/ampPorCx);
     var ampolasAvulsas=n(m.disponivel)%ampPorCx;
     var nomeEsc=(m.nome||'').replace(/['"\\]/g,'');
+    var custoRepor=m.preco_medio_cx>0&&m.disponivel<(m.estoque_ideal||0)
+      ? Math.ceil(((m.estoque_ideal||0)-m.disponivel)/(m.amp_por_caixa||1))*m.preco_medio_cx
+      : 0;
+    var dispLinha=fNum(m.disponivel)+' amp';
+    if(ampolasAvulsas>0) dispLinha+=' · '+fNum(caixasCheias)+' cx + '+fNum(ampolasAvulsas)+' avulsas';
     var div=document.createElement('div');
     div.className='mcard '+cls;
+    div.setAttribute('onclick',"abrirDetalheMed('"+m.id+"')");
     div.innerHTML=
-      '<div class="mrow">'
-        +'<div class="mc"><div class="col-lbl">Medicamento</div><div style="font-size:14px;font-weight:700;color:var(--c)">'+m.nome+'</div><div class="lt">'+m.setor+'</div></div>'
-        +'<div class="mc"><div class="col-lbl">Validade</div><div style="font-size:12px">'+fd(m.proxima_validade)+'</div></div>'
-        +'<div class="mc"><div class="col-lbl">Status</div>'+bdg(m.proxima_validade||'2099-01-01')+'</div>'
-        +'<div class="mc ctr"><div class="col-lbl">Caixas</div><div class="nb">'+fNum(caixasCheias)+'</div>'+(ampolasAvulsas>0?'<div class="lt">'+fNum(ampolasAvulsas)+' amp avulsas</div>':'')+'</div>'
-        +'<div class="mc ctr"><div class="col-lbl">Amp/Cx</div><div style="font-size:14px;font-weight:600">'+fNum(ampPorCx)+'</div></div>'
-        +'<div class="mc" style="gap:5px;flex-direction:column;justify-content:center;padding:10px 12px">'
-          +'<button class="btn btn-gd btn-sm btn-block" onclick="abrirLote(\''+m.id+'\',\''+nomeEsc+'\','+m.amp_por_caixa+')">Entrada</button>'
-          +'<button class="btn btn-rd btn-sm btn-block" onclick="abrirRet(\'med\',\''+m.id+'\',\''+nomeEsc+'\','+m.disponivel+',\'cx\',0,0,'+ampPorCx+')">Retirar</button>'
-          +(isAdmin()?'<div class="btn-split" style="margin-top:3px">'
-            +'<button class="btn btn-xs btn-edit" onclick="abrirEditar(\''+m.id+'\',\''+nomeEsc+'\',\''+m.unidade+'\','+m.amp_por_caixa+','+(m.estoque_min||0)+','+(m.estoque_ideal||0)+')">Editar</button>'
-            +'<button class="btn btn-xs btn-del" onclick="excluirItem(\''+m.id+'\',\''+nomeEsc+'\')">Excluir</button>'
-          +'</div>':'')
-        +'</div>'
-      +'</div>'
-      +'<div class="mrow bot">'
-        +'<div class="mc"><div class="col-lbl">Ampolas Disponíveis</div>'
-          +'<div style="display:flex;align-items:center;gap:8px;margin-top:4px">'
+      '<div class="mhero">'
+        +'<div class="mhero-main">'
+          +'<div class="col-lbl">Medicamento</div>'
+          +'<div class="mhero-title">'+m.nome+'</div>'
+          +'<div class="mhero-sub">'+(m.setor||'Medicamentos')+'</div>'
+          +'<div class="mstock-line">'
             +'<span class="nb" style="'+(b?'color:var(--Rm)':'')+'">'+fNum(m.disponivel)+'</span>'
-            +'<span style="font-size:11px;color:var(--c4)">amp</span>'
+            +'<span style="font-size:11px;color:var(--c4)">amp disponíveis</span>'
             +(b?'<span class="badge bd" style="font-size:7px">Mínimo</span>':'')
           +'</div>'
-          +'<div style="display:flex;align-items:center;gap:6px;margin-top:5px">'
-            +'<div style="flex:1;height:5px;background:var(--c7);border-radius:3px;overflow:hidden"><div style="height:100%;border-radius:3px;background:'+pctColor+';width:'+pct+'%"></div></div>'
-            +'<span style="font-size:9px;font-weight:700;color:var(--c4)">'+pct+'%</span>'
+          +'<div class="mprogress">'
+            +'<div class="mprogress-track"><div class="mprogress-fill" style="background:'+pctColor+';width:'+pct+'%"></div></div>'
+            +'<span class="mprogress-pct">'+pct+'%</span>'
           +'</div>'
-          +'<div class="lt">Mín: '+fNum(m.estoque_min||0)+' · Ideal: '+(m.estoque_ideal!=null?fNum(m.estoque_ideal):'—')+'</div>'
+          +'<div class="lt">Mín: '+fNum(m.estoque_min||0)+' · Ideal: '+(m.estoque_ideal!=null?fNum(m.estoque_ideal):'—')+' · '+dispLinha+'</div>'
+          +'<div class="mhero-hint">Clique para ver histórico de preços e detalhes</div>'
         +'</div>'
-        +(isAdmin()?'<div class="mc"><div class="col-lbl">Último Preço/Cx</div><div class="nm" style="margin-top:4px">'+(m.ultimo_preco_cx>0?fBRL(m.ultimo_preco_cx):'<span style="color:var(--c4)">—</span>')+'</div></div>':'')
-        +(isAdmin()?'<div class="mc"><div class="col-lbl">Preço Médio/Cx</div><div class="nm" style="margin-top:4px">'+(m.preco_medio_cx>0?fBRL(m.preco_medio_cx):'<span style="color:var(--c4)">—</span>')+'</div></div>':'')
-        +(isAdmin()?'<div class="mc"><div class="col-lbl">Custo Estoque</div><div class="nm" style="margin-top:4px;color:var(--Gm)">'+(m.custo_estoque>0?fBRL(m.custo_estoque):'—')+'</div></div>':'')
-        +(isAdmin()?'<div class="mc"><div class="col-lbl">Custo p/ Repor</div>'
-          +(m.preco_medio_cx>0&&m.disponivel<(m.estoque_ideal||0)
-            ?'<div class="nm" style="margin-top:4px;color:var(--Wm)">'+fBRL(Math.ceil(((m.estoque_ideal||0)-m.disponivel)/(m.amp_por_caixa||1))*m.preco_medio_cx)+'</div>'
-            :'<div class="nm" style="margin-top:4px;color:var(--c4)">—</div>')
-        +'</div>':'')
-        +'<div class="mc"><div class="col-lbl">Lotes</div><button class="btn btn-gh btn-xs" style="margin-top:5px" onclick="verLotes(\''+m.id+'\',\''+nomeEsc+'\')">Ver Lotes</button></div>'
+        +'<div class="mhero-side">'
+          +'<div class="mstat"><div class="col-lbl">Validade</div><div class="mstat-value">'+fd(m.proxima_validade)+'</div><div class="mstat-note">'+(s==='critico'||s==='atencao'?'atenção ao prazo':'controle de lote')+'</div></div>'
+          +'<div class="mstat"><div class="col-lbl">Status</div>'+bdg(m.proxima_validade||'2099-01-01')+'<div class="mstat-note">situação atual</div></div>'
+          +'<div class="mstat"><div class="col-lbl">Caixas</div><div class="mstat-value">'+fNum(caixasCheias)+'</div><div class="mstat-note">'+(ampolasAvulsas>0?fNum(ampolasAvulsas)+' amp avulsas':'sem fracionado')+'</div></div>'
+          +'<div class="mstat"><div class="col-lbl">Amp/Cx</div><div class="mstat-value">'+fNum(ampPorCx)+'</div><div class="mstat-note">unidade de retirada</div></div>'
+        +'</div>'
+        +'<div class="mhero-actions">'
+          +'<button class="btn btn-gd btn-sm btn-block" onclick="event.stopPropagation();abrirLote(\''+m.id+'\',\''+nomeEsc+'\','+m.amp_por_caixa+')">Entrada</button>'
+          +'<button class="btn btn-rd btn-sm btn-block" onclick="event.stopPropagation();abrirRet(\'med\',\''+m.id+'\',\''+nomeEsc+'\','+m.disponivel+',\'cx\',0,0,'+ampPorCx+')">Retirar</button>'
+          +(isAdmin()?'<button class="btn btn-xs btn-edit btn-block" onclick="event.stopPropagation();abrirEditar(\''+m.id+'\',\''+nomeEsc+'\',\''+m.unidade+'\','+m.amp_por_caixa+','+(m.estoque_min||0)+','+(m.estoque_ideal||0)+')">Editar</button>':'')
+          +(isAdmin()?'<button class="btn btn-xs btn-del btn-block" onclick="event.stopPropagation();excluirItem(\''+m.id+'\',\''+nomeEsc+'\')">Excluir</button>':'')
+        +'</div>'
+      +'</div>'
+      +'<div class="mfact-grid">'
+        +(isAdmin()?'<div class="mfact"><div class="col-lbl">Último Preço/Cx</div><div class="mfact-value">'+(m.ultimo_preco_cx>0?fBRL(m.ultimo_preco_cx):'<span style="color:var(--c4)">—</span>')+'</div></div>':'<div class="mfact"><div class="col-lbl">Lotes</div><div class="mfact-value">Clique no card</div></div>')
+        +(isAdmin()?'<div class="mfact"><div class="col-lbl">Preço Médio/Cx</div><div class="mfact-value">'+(m.preco_medio_cx>0?fBRL(m.preco_medio_cx):'<span style="color:var(--c4)">—</span>')+'</div></div>':'')
+        +(isAdmin()?'<div class="mfact"><div class="col-lbl">Custo Estoque</div><div class="mfact-value mfact-money">'+(m.custo_estoque>0?fBRL(m.custo_estoque):'—')+'</div></div>':'')
+        +(isAdmin()?'<div class="mfact"><div class="col-lbl">Custo p/ Repor</div><div class="mfact-value '+(custoRepor>0?'mfact-warn':'')+'">'+(custoRepor>0?fBRL(custoRepor):'<span style="color:var(--c4)">—</span>')+'</div></div>':'')
+        +'<div class="mfact"><div class="col-lbl">Lotes</div><button class="btn btn-gh btn-xs" style="margin-top:4px" onclick="event.stopPropagation();verLotes(\''+m.id+'\',\''+nomeEsc+'\')">Ver Lotes</button></div>'
       +'</div>';
     c.appendChild(div);
   });
   renderAlrt(meds);
+}
+function precoCxLote(l){
+  return n(l.preco_por_cx)||(n(l.preco_total)>0&&n(l.quantidade_cx)>0?n(l.preco_total)/n(l.quantidade_cx):0);
+}
+async function abrirDetalheMed(id){
+  var m=(medsCache||[]).find(function(x){return x.id===id;});
+  if(!m) return;
+  var nomeEsc=(m.nome||'Medicamento').replace(/['"\\]/g,'');
+  var {data:lotes}=await db.from('lotes')
+    .select('id,validade,criado_em,status,quantidade_cx,amp_por_caixa,preco_total,preco_por_cx,fornecedores(nome)')
+    .eq('item_id',id)
+    .order('criado_em',{ascending:false})
+    .limit(12);
+  lotes=lotes||[];
+  var aprovados=lotes.filter(function(l){return l.status==='aprovado';});
+  var hist=aprovados.slice(0,3);
+  var custoRepor=m.preco_medio_cx>0&&m.disponivel<(m.estoque_ideal||0)
+    ? Math.ceil(((m.estoque_ideal||0)-m.disponivel)/(m.amp_por_caixa||1))*m.preco_medio_cx
+    : 0;
+  var caixasCheias=Math.floor(n(m.disponivel)/(n(m.amp_por_caixa)||1));
+  var ampolasAvulsas=n(m.disponivel)%(n(m.amp_por_caixa)||1);
+  var html='<div class="mbox" style="max-width:860px">'
+    +'<h3>'+m.nome+'</h3>'
+    +'<div class="mmodal-grid">'
+      +'<div class="mmini"><div class="col-lbl">Disponível</div><div class="mfact-value">'+fNum(m.disponivel)+' amp</div><div class="lt">'+fNum(caixasCheias)+' cx'+(ampolasAvulsas>0?' · '+fNum(ampolasAvulsas)+' avulsas':'')+'</div></div>'
+      +'<div class="mmini"><div class="col-lbl">Último Preço/Cx</div><div class="mfact-value">'+(m.ultimo_preco_cx>0?fBRL(m.ultimo_preco_cx):'—')+'</div><div class="lt">última compra aprovada</div></div>'
+      +'<div class="mmini"><div class="col-lbl">Preço Médio/Cx</div><div class="mfact-value">'+(m.preco_medio_cx>0?fBRL(m.preco_medio_cx):'—')+'</div><div class="lt">histórico aprovado</div></div>'
+      +'<div class="mmini"><div class="col-lbl">Custo p/ Repor</div><div class="mfact-value '+(custoRepor>0?'mfact-warn':'')+'">'+(custoRepor>0?fBRL(custoRepor):'—')+'</div><div class="lt">até o estoque ideal</div></div>'
+    +'</div>'
+    +'<div class="sdiv" style="margin:6px 0 12px"><div class="sdiv-t">Últimos 3 preços aprovados</div><div class="sdiv-l"></div></div>';
+  if(hist.length){
+    html+='<div class="mprice-list">'+hist.map(function(l){
+      var preco=precoCxLote(l);
+      return '<div class="mprice-row">'
+        +'<div class="mprice-left"><div class="mprice-name">'+(l.fornecedores&&l.fornecedores.nome?l.fornecedores.nome:'Fornecedor não informado')+'</div><div class="mprice-meta">'+fd(l.validade)+' · '+fdt(l.criado_em)+' · '+fNum(l.quantidade_cx)+' cx</div></div>'
+        +'<div class="mfact-value">'+(preco>0?fBRL(preco):'—')+'</div>'
+      +'</div>';
+    }).join('')+'</div>';
+  }else{
+    html+='<div class="mempty-note">Ainda não há 3 compras aprovadas para montar o histórico de preços deste medicamento.</div>';
+  }
+  html+='<div class="sdiv" style="margin:16px 0 12px"><div class="sdiv-t">Resumo</div><div class="sdiv-l"></div></div>'
+    +'<div class="mprice-list">'
+      +'<div class="mprice-row"><div class="mprice-left"><div class="mprice-name">Validade atual</div><div class="mprice-meta">próximo lote a vencer</div></div><div class="mfact-value">'+fd(m.proxima_validade)+'</div></div>'
+      +'<div class="mprice-row"><div class="mprice-left"><div class="mprice-name">Estoque ideal</div><div class="mprice-meta">configuração do item</div></div><div class="mfact-value">'+(m.estoque_ideal!=null?fNum(m.estoque_ideal)+' amp':'—')+'</div></div>'
+      +'<div class="mprice-row"><div class="mprice-left"><div class="mprice-name">Custo do estoque atual</div><div class="mprice-meta">baseado no preço médio do item</div></div><div class="mfact-value mfact-money">'+(m.custo_estoque>0?fBRL(m.custo_estoque):'—')+'</div></div>'
+    +'</div>'
+    +'<div class="ma"><button class="btn btn-gh" onclick="fechar(\'modal-med-info\')">Fechar</button><button class="btn btn-gh" onclick="event.stopPropagation();verLotes(\''+m.id+'\',\''+nomeEsc+'\')">Ver Lotes</button></div>'
+  +'</div>';
+  var wrap=document.getElementById('modal-med-info');
+  if(!wrap){wrap=document.createElement('div');wrap.id='modal-med-info';wrap.className='mwrap';document.body.appendChild(wrap);}
+  wrap.innerHTML=html;
+  wrap.classList.add('on');
 }
 function renderStatsFromData(meds){
   var t=meds.length,v=0,a=0,b=0,ok=0;
