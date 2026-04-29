@@ -1378,10 +1378,15 @@ async function confirmarRet(){
   if(qty<=0||qty>pendRet.disp){msg.style.color='var(--Rm)';msg.textContent='Quantidade inválida.';return;}
   var ts=new Date().toISOString();
   if(pendRet.tipo==='med'){
-    // Descontar do lote mais antigo aprovado
-    var lotesResp=await db.from('lotes').select('*').eq('item_id',pendRet.id).eq('status','aprovado').order('validade',{ascending:true});
+    // Descontar do lote mais antigo. Prioriza aprovados, mas aceita lotes legados sem status consistente.
+    var lotesResp=await db.from('lotes').select('*').eq('item_id',pendRet.id).order('validade',{ascending:true});
     if(!okResp(lotesResp,'Erro ao buscar lotes'))return;
-    var lotes=(lotesResp.data||[]).map(function(l){
+    var lotesBase=(lotesResp.data||[]).filter(function(l){
+      return l.status!=='rejeitado'&&l.status!=='descartado';
+    });
+    var lotesAprovados=lotesBase.filter(function(l){ return l.status==='aprovado'; });
+    var lotesFonte=lotesAprovados.length?lotesAprovados:lotesBase;
+    var lotes=lotesFonte.map(function(l){
       var total=n(l.quantidade_cx)*n(l.amp_por_caixa);
       var usado=n(l.usado_base);
       return Object.assign({},l,{_disp:Math.max(0,total-usado)});
