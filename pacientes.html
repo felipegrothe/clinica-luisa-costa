@@ -615,6 +615,8 @@ let pacientesSupabaseOk=false;
 let pacienteHistoryReady=false;
 let filtroAtual='todos';
 let agendaEventosFuturos=[];
+let agendaAtivosById=new Set();
+let agendaAtivosByNome=new Set();
 const followupSugestoesPendentes=new Set();
 let financeiroPacienteCache={};
 let financeiroMatchRunning=false;
@@ -691,8 +693,53 @@ function dataEventoAgenda(ev){
   return ev?.data||ev?.data_inicio||ev?.inicio||ev?.start_at||'';
 }
 
+function nomeNorm(v){
+  return String(v||'')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase()
+    .replace(/\([^)]*\)/g,' ')
+    .replace(/\b(dra|dr|sr|sra)\.?\b/g,' ')
+    .replace(/[^a-z0-9\s]/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+
+function nomeTokens(v){
+  return nomeNorm(v).split(' ').filter(t=>t&&t.length>1);
+}
+
+function nomeAssinaturas(v){
+  const tokens=nomeTokens(v);
+  const set=new Set();
+  const base=tokens.join(' ').trim();
+  if(base)set.add(base);
+  if(tokens.length>=2){
+    set.add(`${tokens[0]} ${tokens[tokens.length-1]}`.trim());
+    set.add(tokens.slice(0,2).join(' '));
+  }
+  return set;
+}
+
+function nomesParecidosPacienteAgenda(nomePaciente,nomeAgenda){
+  const a=nomeNorm(nomePaciente);
+  const b=nomeNorm(nomeAgenda);
+  if(!a||!b)return false;
+  if(a===b)return true;
+  if(a.length>=7&&b.includes(a))return true;
+  if(b.length>=7&&a.includes(b))return true;
+  const ta=nomeTokens(a);
+  const tb=nomeTokens(b);
+  if(!ta.length||!tb.length)return false;
+  const common=ta.filter(t=>tb.includes(t));
+  if(common.length>=2)return true;
+  if(ta[0]===tb[0]&&ta[ta.length-1]===tb[tb.length-1]&&ta[0]&&ta[ta.length-1])return true;
+  return false;
+}
+
 async function carregarAgendaFuturaPacientes(){
   agendaEventosFuturos=[];
+  agendaAtivosById=new Set();
+  agendaAtivosByNome=new Set();
   try{
     const hoje=new Date();
     hoje.setHours(0,0,0,0);
@@ -713,8 +760,14 @@ async function carregarAgendaFuturaPacientes(){
       if(dt<hoje||dt>limite)return false;
       return true;
     });
+    agendaEventosFuturos.forEach(ev=>{
+      if(ev?.paciente_id)agendaAtivosById.add(String(ev.paciente_id));
+      nomeAssinaturas(ev?.paciente_nome||'').forEach(sig=>agendaAtivosByNome.add(sig));
+    });
   }catch(e){
     agendaEventosFuturos=[];
+    agendaAtivosById=new Set();
+    agendaAtivosByNome=new Set();
   }
 }
 
@@ -949,11 +1002,11 @@ function temProtocoloAtivo(p){return getProtocolos(p).some(x=>x.ativo);}
 function temAgendaProxima90(p){
   if(!p)return false;
   const id=String(p.id||'');
-  const nk=nomeKey(p.nome);
-  return agendaEventosFuturos.some(ev=>{
-    if(ev?.paciente_id&&String(ev.paciente_id)===id)return true;
-    return nk&&nomeKey(ev?.paciente_nome||'')===nk;
-  });
+  if(id&&agendaAtivosById.has(id))return true;
+  const assPac=nomeAssinaturas(p.nome||'');
+  for(const sig of assPac){if(agendaAtivosByNome.has(sig))return true;}
+  // fallback completo para nomes com abreviações/variações
+  return agendaEventosFuturos.some(ev=>nomesParecidosPacienteAgenda(p.nome||'',ev?.paciente_nome||''));
 }
 
 function getCardMeta(p){
