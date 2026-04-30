@@ -140,13 +140,13 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
 .sh{font-size:9px;color:var(--c4);margin-top:5px}
 
 /* TOOLBAR */
-.tb{display:flex;gap:10px;margin-bottom:18px;align-items:center;flex-wrap:wrap}
+.tb{display:flex;gap:12px;margin-bottom:18px;align-items:center;flex-wrap:wrap}
 .sw{flex:1;min-width:180px;position:relative}
-.sw input{width:100%;padding:10px 14px 10px 36px;border:1.5px solid var(--c5);border-radius:var(--rad);font-family:system-ui,-apple-system,sans-serif;font-size:13px;color:var(--c);background:#fff;outline:none;transition:.2s;box-shadow:var(--sh1)}
+.sw input{width:100%;min-height:48px;padding:10px 14px 10px 36px;border:1.5px solid var(--c5);border-radius:var(--rad);font-family:system-ui,-apple-system,sans-serif;font-size:13px;color:var(--c);background:#fff;outline:none;transition:.2s;box-shadow:var(--sh1)}
 .sw input:focus{border-color:var(--gold)}
 .sw input::placeholder{color:var(--c4)}
 .si{position:absolute;left:11px;top:50%;transform:translateY(-50%);opacity:.35;width:14px;height:14px;pointer-events:none}
-.sel{padding:10px 12px;border:1.5px solid var(--c5);border-radius:var(--rad);background:#fff;font-family:system-ui,-apple-system,sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--c2);outline:none;cursor:pointer;box-shadow:var(--sh1)}
+.sel{padding:10px 14px;min-height:48px;border:1.5px solid var(--c5);border-radius:var(--rad);background:#fff;font-family:system-ui,-apple-system,sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--c2);outline:none;cursor:pointer;box-shadow:var(--sh1)}
 .sel:focus{border-color:var(--gold)}
 
 /* BUTTONS */
@@ -234,18 +234,39 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
 .mdw-price-name{font-size:12px;font-weight:700;color:var(--c);overflow-wrap:anywhere}
 .mdw-price-meta{font-size:10px;color:var(--c4);margin-top:3px}
 .mdw-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px}
+.xsection-head{display:grid;grid-template-columns:minmax(220px,2fr) 150px 150px 130px 120px 120px;gap:0;padding:10px 16px;background:#f3eee7;border-radius:var(--rad);margin-bottom:8px;border:1px solid var(--c6);min-height:44px;align-items:center}
+.xcard{background:#fff;border:1px solid var(--c6);border-radius:var(--rad);overflow:hidden;margin-bottom:10px;box-shadow:var(--sh1);transition:.2s}
+.xcard:hover{box-shadow:var(--sh2)}
+.xcard.tv,.xcard.iv{border-left:4px solid var(--Rm)}
+.xcard.tw,.xcard.iw{border-left:4px solid var(--Wm)}
+.xcard.ok,.xcard.iok{border-left:4px solid var(--Gm)}
+.xrow{display:grid;grid-template-columns:minmax(260px,2.6fr) 150px 150px 120px 120px 132px;align-items:stretch}
+.xrow.bot{background:var(--c8);border-top:1px solid var(--c6)}
+.xmain-title{font-size:14px;font-weight:700;color:var(--c);overflow-wrap:anywhere;line-height:1.3}
+.xmain-sub{font-size:11px;color:var(--c4);margin-top:4px;overflow-wrap:anywhere}
+.xdrawer-split{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center}
+.xstock-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px}
+.xstock-line{display:flex;align-items:center;gap:7px;margin-top:6px}
+.xstock-line .prog-track{min-width:120px}
+.xbadge-box{display:inline-flex;align-items:center;justify-content:center;background:var(--Pbg);color:var(--P);border:1.5px solid var(--Pbr);border-radius:var(--rad);font-size:13px;font-weight:700;padding:5px 12px;max-width:100%;overflow-wrap:anywhere;text-align:center}
 @media (max-width:1500px){
   .mrow{grid-template-columns:minmax(240px,2.5fr) 130px 130px 82px 82px 120px}
   .mc{padding:12px 12px}
   .mname{font-size:13px}
   .mcard .nb{font-size:18px}
   .mcard .nm{font-size:14px}
+  .xrow{grid-template-columns:minmax(220px,2.2fr) 130px 130px 104px 104px 120px}
 }
 @media (max-width:1280px){
   .mrow{grid-template-columns:minmax(220px,2.3fr) 118px 118px 74px 74px 112px}
   .mc{padding:11px 10px}
   .mdw{width:min(420px,94vw);padding:18px}
   .mdw-grid{grid-template-columns:1fr}
+  .xsection-head{display:none}
+  .xrow{grid-template-columns:minmax(0,1fr)}
+  .xrow .mc{border-right:none;border-bottom:1px solid var(--c7)}
+  .xrow .mc:last-child{border-bottom:none}
+  .xdrawer-split{grid-template-columns:1fr}
 }
 .mni{border:none;background:transparent;font-family:system-ui,-apple-system,sans-serif;font-size:14px;font-weight:700;color:var(--c);width:100%;padding:2px 5px;border-radius:4px;outline:none}
 .mni:hover{background:var(--c7)}
@@ -277,9 +298,9 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
 .fcard h3{font-family:Georgia,serif;font-size:20px;font-weight:400;letter-spacing:2px;text-transform:uppercase;color:var(--c);margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--c6)}
 .frow{margin-bottom:13px}
 .frow label{font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--c3);display:block;margin-bottom:5px}
-.frow input,.frow select,.frow textarea{width:100%;padding:10px 12px;border:1.5px solid var(--c5);border-radius:var(--rad);font-family:system-ui,-apple-system,sans-serif;font-size:13px;color:var(--c);background:#fff;outline:none;transition:.2s}
+.frow input,.frow select,.frow textarea{width:100%;min-height:46px;padding:10px 12px;box-sizing:border-box;border:1.5px solid var(--c5);border-radius:var(--rad);font-family:system-ui,-apple-system,sans-serif;font-size:13px;color:var(--c);background:#fff;outline:none;transition:.2s}
 .frow input:focus,.frow select:focus,.frow textarea:focus{border-color:var(--gold)}
-.frow textarea{resize:vertical;min-height:70px}
+.frow textarea{resize:vertical;min-height:92px}
 .fg2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
 .fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px}
 .fg4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:13px}
@@ -289,9 +310,14 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
 /* MODAL */
 .mwrap{display:none;position:fixed;inset:0;z-index:500;background:rgba(30,24,20,.52);align-items:center;justify-content:center;padding:20px}
 .mwrap.on{display:flex}
-.mbox{background:#fff;border-radius:10px;border-top:4px solid var(--gold);padding:26px;width:100%;max-width:500px;box-shadow:var(--sh3);max-height:90vh;overflow-y:auto;animation:fi .2s ease}
+.mwrap.modal-top{z-index:760}
+.mbox{background:#fff;border-radius:14px;border-top:4px solid var(--gold);padding:26px;width:100%;max-width:760px;box-shadow:var(--sh3);max-height:90vh;overflow-y:auto;animation:fi .2s ease}
+.mbox.mbox-narrow{max-width:540px}
+.mbox.mbox-medium{max-width:760px}
 .mbox h3{font-family:Georgia,serif;font-size:20px;font-weight:400;letter-spacing:2px;text-transform:uppercase;color:var(--c);margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--c6)}
 .ma{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;padding-top:12px;border-top:1px solid var(--c6)}
+.mbox .fg2,.mbox .fg3,.mbox .fg4{align-items:end}
+.mbox .frow input,.mbox .frow select,.mbox .frow textarea{height:auto}
 
 /* HIST */
 .hlist{background:#fff;border:1px solid var(--c6);border-radius:var(--rad);overflow:hidden;box-shadow:var(--sh1)}
@@ -341,11 +367,12 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
 .dv{font-family:system-ui,-apple-system,sans-serif;font-size:20px;font-weight:700;min-width:30px;text-align:center;letter-spacing:-.02em}
 
 /* FINANCEIRO */
-.fgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin-bottom:22px}
-.fc{background:#fff;border:1px solid var(--c6);border-radius:var(--rad);padding:18px 20px;box-shadow:var(--sh1)}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:20px}
+.fc{background:#fff;border:1px solid var(--c6);border-radius:var(--rad);padding:16px 18px;box-shadow:var(--sh1);position:relative;overflow:hidden;min-height:108px;display:flex;flex-direction:column;justify-content:center}
+.fc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--gold);border-radius:0 0 var(--rad) var(--rad)}
 .fl{font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--c3);margin-bottom:9px}
-.fv{font-family:system-ui,-apple-system,sans-serif;font-size:26px;font-weight:700;color:var(--c);line-height:1;letter-spacing:-.03em}
-.fs{font-size:9.5px;color:var(--c4);margin-top:5px}
+.fv{font-family:system-ui,-apple-system,sans-serif;font-size:30px;font-weight:700;color:var(--c);line-height:1;letter-spacing:-.03em}
+.fs{font-size:9px;color:var(--c4);margin-top:5px}
 .ftbl{width:100%;border-collapse:collapse}
 .ftbl th{text-align:left;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--c3);padding:9px 13px;border-bottom:1.5px solid var(--c6);background:var(--c8)}
 .ftbl td{padding:11px 13px;border-bottom:1px solid var(--c7);font-size:12px;color:var(--c);vertical-align:middle}
@@ -526,9 +553,9 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
       </select>
     </div>
     <div class="fgrid" id="tstats"></div>
-    <div style="display:grid;grid-template-columns:85px minmax(140px,1.6fr) 120px 110px 140px auto;gap:0;padding:8px 16px;background:var(--c7);border-radius:var(--rad);margin-bottom:8px;border:1px solid var(--c6)">
-      <div class="col-lbl">MG</div><div class="col-lbl">Farmácia / Lote</div><div class="col-lbl">Vencimento</div>
-      <div class="col-lbl">Valor Pago</div><div class="col-lbl">Ampolas</div><div class="col-lbl"></div>
+    <div class="xsection-head">
+      <div class="col-lbl">Frasco</div><div class="col-lbl">Vencimento</div><div class="col-lbl">Status</div>
+      <div class="col-lbl">Disponível</div><div class="col-lbl">Preço/Amp</div><div class="col-lbl">Ações</div>
     </div>
     <div id="tlist"></div>
     <div id="etrz" style="display:none" class="empty"><div class="et">Nenhum frasco</div></div>
@@ -547,9 +574,9 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
       </select>
     </div>
     <div class="fgrid" id="istats"></div>
-    <div style="display:grid;grid-template-columns:minmax(140px,1.8fr) minmax(120px,1.4fr) 110px 100px 130px auto;gap:0;padding:8px 16px;background:var(--c7);border-radius:var(--rad);margin-bottom:8px;border:1px solid var(--c6)">
-      <div class="col-lbl">Tipo / Dosagem</div><div class="col-lbl">Farmácia / Lote</div><div class="col-lbl">Vencimento</div>
-      <div class="col-lbl">Valor Pago</div><div class="col-lbl">Unidades</div><div class="col-lbl"></div>
+    <div class="xsection-head">
+      <div class="col-lbl">Implante</div><div class="col-lbl">Vencimento</div><div class="col-lbl">Status</div>
+      <div class="col-lbl">Disponível</div><div class="col-lbl">Preço/Un</div><div class="col-lbl">Ações</div>
     </div>
     <div id="ilist"></div>
     <div id="eimpl" style="display:none" class="empty"><div class="et">Nenhum implante</div><div class="es">Adicione acima</div></div>
@@ -676,7 +703,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
 </div>
 
 <!-- MODAIS -->
-<div class="mwrap" id="madmed"><div class="mbox" style="max-width:580px">
+<div class="mwrap modal-top" id="madmed"><div class="mbox mbox-medium">
   <h3>Novo Medicamento</h3>
 
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
@@ -735,21 +762,24 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
   <div id="med-msg" class="fmsg" style="margin-top:8px"></div>
 </div></div>
 
-<div class="mwrap" id="madedit"><div class="mbox" style="max-width:540px">
+<div class="mwrap modal-top" id="madedit"><div class="mbox mbox-medium">
   <h3>Editar Medicamento</h3>
   <input type="hidden" id="edit-id">
   <div class="fg2">
     <div class="frow"><label>Nome do medicamento</label><input type="text" id="edit-nome"></div>
     <div class="frow"><label>Farmácia / Fornecedor</label><input type="text" id="edit-farm" placeholder="Nome da farmácia"></div>
   </div>
-  <div class="fg3">
+  <div class="fg2">
     <div class="frow"><label>Comprado em</label><select id="edit-unit"><option>caixas</option><option>ampolas</option><option>frascos</option><option>comprimidos</option><option>unidades</option></select></div>
-    <div class="frow"><label>Unid. por embalagem</label><input type="number" id="edit-apx" min="1"></div>
     <div class="frow"><label>Setor</label><select id="edit-setor"></select></div>
   </div>
   <div class="fg2">
+    <div class="frow"><label>Unid. por embalagem</label><input type="number" id="edit-apx" min="1"></div>
     <div class="frow"><label>Estoque mínimo</label><input type="number" id="edit-min" min="0"></div>
+  </div>
+  <div class="fg2">
     <div class="frow"><label>Estoque ideal</label><input type="number" id="edit-ideal" min="0"></div>
+    <div class="frow"><label>Resumo atual</label><input type="text" id="edit-resumo" readonly></div>
   </div>
   <div class="ma">
     <button class="btn btn-gh" onclick="fechar('madedit')">Cancelar</button>
@@ -758,7 +788,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
   <div id="edit-msg" class="fmsg" style="margin-top:8px"></div>
 </div></div>
 
-<div class="mwrap" id="madimpl"><div class="mbox">
+<div class="mwrap modal-top" id="madimpl"><div class="mbox mbox-medium">
   <h3>Novo Lote — Implante Hormonal</h3>
   <div class="fg2">
     <div class="frow"><label>Nome do Implante</label><input type="text" id="impl-tipo" placeholder="Ex: Testosterona, Estradiol, DHEA..."></div>
@@ -787,7 +817,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
   <div id="impl-msg" class="fmsg" style="margin-top:8px"></div>
 </div></div>
 
-<div class="mwrap" id="madlote"><div class="mbox">
+<div class="mwrap modal-top" id="madlote"><div class="mbox mbox-medium">
   <h3>Adicionar Lote / Entrada</h3>
   <div id="lote-item-info" style="background:var(--c8);border:1px solid var(--c6);border-radius:var(--rad);padding:10px 14px;margin-bottom:14px;font-size:13px;font-weight:700;color:var(--c)"></div>
   <div class="fg2">
@@ -819,7 +849,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
   <div id="lote-msg" class="fmsg" style="margin-top:8px"></div>
 </div></div>
 
-<div class="mwrap" id="madtz"><div class="mbox">
+<div class="mwrap modal-top" id="madtz"><div class="mbox mbox-medium">
   <h3>Novo Frasco — Tirzepatida</h3>
   <div class="fg2">
     <div class="frow"><label>Apresentação (mg)</label><select id="tmg"><option value="60">60 mg</option><option value="90">90 mg</option></select></div>
@@ -849,8 +879,8 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
   <div id="tirz-msg" class="fmsg" style="margin-top:8px"></div>
 </div></div>
 
-<div class="mwrap" id="madedittz"><div class="mbox">
-  <h3>Editar Frasco — Tirzepatida</h3>
+<div class="mwrap modal-top" id="madedittz"><div class="mbox mbox-medium">
+  <h3 id="editz-title">Editar Frasco — Tirzepatida</h3>
   <input type="hidden" id="editz-id">
   <div class="fg2">
     <div class="frow"><label>Apresentação (mg)</label><select id="editz-mg"><option value="60">60 mg</option><option value="90">90 mg</option></select></div>
@@ -865,13 +895,10 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
     <div class="frow"><label>Estoque mínimo (ampolas)</label><input type="number" id="editz-min" min="0"></div>
   </div>
   <div class="fg2">
+    <div class="frow"><label>Estoque ideal (ampolas)</label><input type="number" id="editz-ideal" min="0" value="0"></div>
     <div class="frow"><label>Valor total (R$)</label><input type="number" id="editz-valor" min="0" step="0.01"></div>
-    <div class="frow"><label>Observação</label><input type="text" id="editz-obs"></div>
   </div>
-  <div class="fg2">
-    <div class="frow"><label>Estoque mínimo (ampolas)</label><input type="number" id="editz-ideal" min="0"></div>
-    <div class="frow"><label>Estoque ideal (ampolas)</label><input type="number" id="editz-ideal2" min="0" value="0"></div>
-  </div>
+  <div class="frow"><label>Observação</label><input type="text" id="editz-obs"></div>
   <div class="ma">
     <button class="btn btn-gh" onclick="fechar('madedittz')">Cancelar</button>
     <button class="btn btn-rd btn-sm" onclick="excluirTirz(document.getElementById('editz-id').value)">Excluir</button>
@@ -880,7 +907,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
   <div id="editz-msg" class="fmsg" style="margin-top:8px"></div>
 </div></div>
 
-<div class="mwrap" id="madret"><div class="mbox">
+<div class="mwrap modal-top" id="madret"><div class="mbox mbox-medium">
   <h3>Confirmar Retirada</h3>
   <div id="ret-info" style="background:var(--c8);border:1px solid var(--c6);border-radius:var(--rad);padding:11px 14px;margin-bottom:14px;font-size:13px;font-weight:700;color:var(--c)"></div>
   <div class="fg2">
@@ -942,6 +969,8 @@ var PERFIL     = null;
 var NIVEL      = null;
 var afilt      = 'all';
 var medDrawerId = null;
+var tirzDrawerId = null;
+var implDrawerId = null;
 var pendRet    = null;
 var pendLoteId = null;
 var chatMsgs   = [];
@@ -1314,6 +1343,10 @@ function renderMedDrawer(){
   var html='<div class="mdw" onclick="event.stopPropagation()">'
     +'<div class="mdw-top"><div><h3>Medicamento</h3><div class="mdw-name">'+esc(m.nome)+'</div><div class="mdw-sub">'+esc(m.setor||'Medicamentos')+' · '+fNum(m.disponivel)+' amp disponíveis'+(ampolasAvulsas>0?' · '+fNum(caixasCheias)+' cx + '+fNum(ampolasAvulsas)+' avulsas':'')+'</div></div><button class="btn btn-gh btn-sm mdw-close" onclick="fecharMedDrawer()">Fechar</button></div>'
     +'<div class="mdw-grid">'
+      +'<div class="mdw-card"><div class="col-lbl">Quantidade Atual</div><div class="mdw-val">'+fNum(m.disponivel)+' amp</div></div>'
+      +'<div class="mdw-card"><div class="col-lbl">Estoque Mínimo</div><div class="mdw-val">'+fNum(m.estoque_min||0)+'</div></div>'
+      +'<div class="mdw-card"><div class="col-lbl">Estoque Ideal</div><div class="mdw-val">'+fNum(m.estoque_ideal||0)+'</div></div>'
+      +'<div class="mdw-card"><div class="col-lbl">Validade Atual</div><div class="mdw-val">'+fd(m.proxima_validade)+'</div></div>'
       +'<div class="mdw-card"><div class="col-lbl">Último Preço/Cx</div><div class="mdw-val">'+(m.ultimo_preco_cx>0?fBRL(m.ultimo_preco_cx):'—')+'</div></div>'
       +'<div class="mdw-card"><div class="col-lbl">Preço Médio/Cx</div><div class="mdw-val">'+(m.preco_medio_cx>0?fBRL(m.preco_medio_cx):'—')+'</div></div>'
       +'<div class="mdw-card"><div class="col-lbl">Custo Estoque</div><div class="mdw-val ok">'+(m.custo_estoque>0?fBRL(m.custo_estoque):'—')+'</div></div>'
@@ -1325,7 +1358,7 @@ function renderMedDrawer(){
     }).join('')+'</div>':'<div class="mdw-price-meta" style="margin-bottom:6px">Ainda não há compras aprovadas suficientes para mostrar histórico de preços.</div>')
     +'<div class="mdw-actions">'
       +'<button class="btn btn-gh btn-sm" onclick="verLotes(\''+m.id+'\',\''+nomeEsc+'\')">Ver Lotes</button>'
-      +(isAdmin()?'<button class="btn btn-edit btn-sm" onclick="abrirEditar(\''+m.id+'\',\''+nomeEsc+'\',\''+m.unidade+'\','+m.amp_por_caixa+','+(m.estoque_min||0)+','+(m.estoque_ideal||0)+')">Editar</button>':'')
+      +(isAdmin()?'<button class="btn btn-edit btn-sm" onclick="fecharMedDrawer();abrirEditar(\''+m.id+'\',\''+nomeEsc+'\',\''+m.unidade+'\','+m.amp_por_caixa+','+(m.estoque_min||0)+','+(m.estoque_ideal||0)+')">Editar</button>':'')
       +(isAdmin()?'<button class="btn btn-del btn-sm" onclick="excluirItem(\''+m.id+'\',\''+nomeEsc+'\')">Excluir</button>':'')
     +'</div>'
   +'</div>';
@@ -1621,21 +1654,51 @@ async function renderTirz(){
   if(!el) return;
   document.getElementById('etrz').style.display=tirz.length?'none':'block';
   el.innerHTML='';
+  medsCache=medsCache; // no-op to keep grouping stable
   tirz.forEach(function(t){
-    var s=st(t.validade),cls=s==='venc'?'tv':s==='crit'?'tw':'';
-    var div=document.createElement('div');div.className='tcard '+cls;
-    div.innerHTML='<div class="tgrid">'
-      +'<div class="tc"><span class="mgp">'+t.mg+'mg</span></div>'
-      +'<div class="tc"><div style="font-size:14px;font-weight:700">'+t.fornecedores.nome+'</div><div style="font-size:11px;color:var(--c4);margin-top:2px">'+(t.numero_lote?'Lote: '+t.numero_lote:'—')+'</div>'+(t.observacoes?'<div style="font-size:11px;color:var(--c3);margin-top:2px">'+t.observacoes+'</div>':'')+'</div>'
-      +'<div class="tc">'+bdg(t.validade)+'<div style="font-size:11px;color:var(--c3);margin-top:5px">'+fd(t.validade)+'</div></div>'
-      +(isAdmin()?'<div class="tc"><div class="nm">'+(t.preco_pago>0?fBRL(t.preco_pago):'—')+'</div>'+(t.preco_pago>0&&t.ampolas_total>0?'<div class="lt">'+fBRL(t.preco_por_amp)+'/amp</div>':'')+'</div>':'<div class="tc"></div>')
-      +'<div class="tc"><div class="dc"><button class="db" onclick="adjTirz(\''+t.id+'\','+t.ampolas_total+','+t.ampolas_usadas+',-1)">−</button><span class="dv" style="'+(t.ampolas_disp<=0?'color:var(--Rm)':'')+'">'+fNum(t.ampolas_disp)+'</span><button class="db" onclick="adjTirz(\''+t.id+'\','+t.ampolas_total+','+t.ampolas_usadas+',1)">+</button></div><div class="lt" style="margin-top:4px">ampolas disponíveis</div><button class="btn btn-xs btn-rd btn-block" style="margin-top:6px" onclick="abrirRet(\'tirz\',\''+t.id+'\',\'Tirzepatida '+t.mg+'mg\','+t.ampolas_disp+',\'amp\','+t.ampolas_usadas+','+t.ampolas_total+')">Retirar</button></div>'
-      +'<div class="tc" style="gap:5px;flex-direction:column">'
-        +(isAdmin()?'<button class="btn btn-xs btn-edit btn-block" onclick="abrirEditarTirz(\''+t.id+'\')">Editar</button>':'')
-        +(isAdmin()?'<button class="btn btn-xs btn-del btn-block" onclick="rmTirz(\''+t.id+'\')">Excluir</button>':'')
-      +'</div>'
+    var s=st(t.validade),cls=s==='venc'?'tv':s==='crit'?'tw':'ok';
+    var farm=(t.fornecedores&&t.fornecedores.nome)?t.fornecedores.nome:'Fornecedor não informado';
+    var lote=t.numero_lote?('Lote: '+t.numero_lote):'Sem lote';
+    var div=document.createElement('div');div.className='xcard '+cls;
+    div.innerHTML='<div class="xrow">'
+      +'<div class="mc"><div class="col-lbl">Frasco</div><div class="xmain-title">Tirzepatida '+t.mg+'mg</div><div class="xmain-sub">'+farm+' · '+lote+'</div></div>'
+      +'<div class="mc"><div class="col-lbl">Vencimento</div><div style="font-size:12px">'+fd(t.validade)+'</div></div>'
+      +'<div class="mc"><div class="col-lbl">Status</div>'+bdg(t.validade)+'</div>'
+      +'<div class="mc ctr"><div class="col-lbl">Disponível</div><div class="nb" style="'+(t.ampolas_disp<=0?'color:var(--Rm)':'')+'">'+fNum(t.ampolas_disp)+'</div><div class="lt">ampolas</div></div>'
+      +'<div class="mc"><div class="col-lbl">Preço/Amp</div><div class="nm">'+(t.preco_por_amp>0?fBRL(t.preco_por_amp):'—')+'</div></div>'
+      +'<div class="mc mactions"><button class="btn btn-rd btn-sm btn-block" onclick="abrirRet(\'tirz\',\''+t.id+'\',\'Tirzepatida '+t.mg+'mg\','+t.ampolas_disp+',\'amp\','+t.ampolas_usadas+','+t.ampolas_total+')">Retirar</button></div>'
+    +'</div>'
+    +'<div class="xrow bot">'
+      +'<div class="mc mstock-cell"><div class="col-lbl">Estoque</div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px"><span class="nb">'+fNum(t.ampolas_disp)+'</span><span style="font-size:11px;color:var(--c4)">amp disponíveis</span>'+((t.estoque_min_ampolas||0)>0&&t.ampolas_disp<=(t.estoque_min_ampolas||0)?'<span class="badge bd" style="font-size:7px">Mínimo</span>':'')+'</div><div class="lt">Mín: '+fNum(t.estoque_min_ampolas||0)+' · Total: '+fNum(t.ampolas_total)+'</div></div>'
+      +'<div class="mc ctr mexpand-toggle"><button class="btn btn-gh btn-xs" onclick="abrirTirzDrawer(\''+t.id+'\')">Detalhes</button></div>'
     +'</div>';
     el.appendChild(div);
+  });
+}
+function abrirTirzDrawer(id){ tirzDrawerId=id; renderTirzDrawer(); }
+function fecharTirzDrawer(){ tirzDrawerId=null; var wrap=document.getElementById('modal-tirz-drawer'); if(wrap) wrap.classList.remove('on'); }
+function renderTirzDrawer(){
+  if(!tirzDrawerId) return;
+  db.from('tirzepatida_frascos').select('*,fornecedores(nome)').eq('id',tirzDrawerId).single().then(function(r){
+    if(!r.data) return;
+    var t=r.data, farm=(t.fornecedores&&t.fornecedores.nome)?t.fornecedores.nome:'Fornecedor não informado';
+    var html='<div class="mdw" onclick="event.stopPropagation()">'
+      +'<div class="mdw-top"><div><h3>Tirzepatida</h3><div class="mdw-name">'+t.mg+'mg</div><div class="mdw-sub">'+farm+' · '+(t.numero_lote||'Sem lote')+'</div></div><button class="btn btn-gh btn-sm mdw-close" onclick="fecharTirzDrawer()">Fechar</button></div>'
+      +'<div class="mdw-grid">'
+        +'<div class="mdw-card"><div class="col-lbl">Disponível</div><div class="mdw-val">'+fNum(t.ampolas_disp)+' amp</div></div>'
+        +'<div class="mdw-card"><div class="col-lbl">Estoque Mínimo</div><div class="mdw-val">'+fNum(t.estoque_min_ampolas||0)+'</div></div>'
+        +'<div class="mdw-card"><div class="col-lbl">Estoque Ideal</div><div class="mdw-val">'+fNum(t.estoque_ideal_ampolas||0)+'</div></div>'
+        +'<div class="mdw-card"><div class="col-lbl">Validade</div><div class="mdw-val">'+fd(t.validade)+'</div></div>'
+        +'<div class="mdw-card"><div class="col-lbl">Valor Pago</div><div class="mdw-val">'+(t.preco_pago>0?fBRL(t.preco_pago):'—')+'</div></div>'
+        +'<div class="mdw-card"><div class="col-lbl">Preço/Amp</div><div class="mdw-val">'+(t.preco_por_amp>0?fBRL(t.preco_por_amp):'—')+'</div></div>'
+        +'<div class="mdw-card"><div class="col-lbl">Lote</div><div class="mdw-val">'+esc(t.numero_lote||'—')+'</div></div>'
+        +'<div class="mdw-card"><div class="col-lbl">Observação</div><div class="mdw-val">'+esc(t.observacoes||'—')+'</div></div>'
+      +'</div>'
+      +'<div class="mdw-actions"><button class="btn btn-rd btn-sm" onclick="abrirRet(\'tirz\',\''+t.id+'\',\'Tirzepatida '+t.mg+'mg\','+t.ampolas_disp+',\'amp\','+t.ampolas_usadas+','+t.ampolas_total+')">Retirar</button>'+(isAdmin()?'<button class="btn btn-edit btn-sm" onclick="fecharTirzDrawer();abrirEditarTirz(\''+t.id+'\')">Editar</button><button class="btn btn-del btn-sm" onclick="rmTirz(\''+t.id+'\')">Excluir</button>':'')+'</div>'
+    +'</div>';
+    var wrap=document.getElementById('modal-tirz-drawer');
+    if(!wrap){wrap=document.createElement('div');wrap.id='modal-tirz-drawer';wrap.className='mwrap';document.body.appendChild(wrap);}
+    wrap.innerHTML=html; wrap.onclick=fecharTirzDrawer; wrap.classList.add('on');
   });
 }
 async function adjTirz(id,total,usadas,delta){
@@ -1659,6 +1722,7 @@ function abrirEditarTirz(id){
   db.from('tirzepatida_frascos').select('*,fornecedores(nome)').eq('id',id).single().then(function(r){
     if(!r.data) return;
     var t=r.data;
+    var title=document.getElementById('editz-title');if(title)title.textContent='Editar Frasco — Tirzepatida';
     document.getElementById('editz-id').value=id;
     document.getElementById('editz-mg').value=t.mg;
     document.getElementById('editz-amp').value=t.ampolas_total;
@@ -2203,6 +2267,7 @@ async function abrirEditar(id,nome,unit,apx,min,ideal){
   document.getElementById('edit-apx').value=apx||1;
   document.getElementById('edit-min').value=min||0;
   document.getElementById('edit-ideal').value=ideal||0;
+  document.getElementById('edit-resumo').value='Carregando...';
   document.getElementById('edit-msg').textContent='';
   var sel=document.getElementById('edit-setor');
   if(sel){
@@ -2215,6 +2280,8 @@ async function abrirEditar(id,nome,unit,apx,min,ideal){
     var ef=document.getElementById('edit-farm');
     if(ef)ef.value=item.fornecedores?item.fornecedores.nome:'';
     if(sel&&item.setor_id)sel.value=item.setor_id;
+    var resumo=document.getElementById('edit-resumo');
+    if(resumo) resumo.value='Mín '+fNum(item.estoque_min||0)+' · Ideal '+fNum(item.estoque_ideal||0)+' · Atual '+fNum(Math.max(0,n(item.estoque_ideal||0)-n(item.usado_total||0)));
   }
   abrir('madedit');
 }
@@ -2271,26 +2338,47 @@ async function renderImpl(){
     var obs=t.observacoes||'Implante';
     var nomeEsc=(obs||'').replace(/['"]/g,'');
     var tid=t.id, tus=t.ampolas_usadas, tdisp=t.ampolas_disp;
+    var pct=t.ampolas_total>0?Math.max(0,Math.min(100,Math.round((tdisp/t.ampolas_total)*100))):0;
     var div=document.createElement('div');
-    div.className='impl-card '+cls;
-    div.innerHTML='<div class="impl-grid">'
-      +'<div class="tc"><span style="display:inline-flex;align-items:center;justify-content:center;background:var(--Pbg);color:var(--P);border:1.5px solid var(--Pbr);border-radius:var(--rad);font-size:13px;font-weight:700;padding:5px 12px">'+obs+'</span></div>'
-      +'<div class="tc"><div style="font-size:14px;font-weight:700">'+(t.fornecedores?t.fornecedores.nome:'—')+'</div><div style="font-size:11px;color:var(--c4);margin-top:2px">'+(t.numero_lote?'Lote: '+t.numero_lote:'—')+'</div></div>'
-      +'<div class="tc">'+bdg(t.validade)+'<div style="font-size:11px;color:var(--c3);margin-top:4px">'+fd(t.validade)+'</div></div>'
-      +(isAdmin()?'<div class="tc"><div style="font-family:system-ui,-apple-system,sans-serif;font-size:18px;font-weight:700;letter-spacing:-.02em">'+(t.preco_pago>0?fBRL(t.preco_pago):'—')+'</div>'+(t.preco_pago>0&&t.ampolas_total>0?'<div class="lt">'+fBRL(t.preco_por_amp)+'/un</div>':'')+'</div>':'<div class="tc"></div>')
-      +'<div class="tc"><div class="dc">'
-        +'<button class="db" onclick="adjImpl(\''+tid+'\','+t.ampolas_total+','+tus+',-1)">−</button>'
-        +'<span class="dv" style="'+(tdisp<=0?'color:var(--Rm)':'')+'">'+fNum(tdisp)+'</span>'
-        +'<button class="db" onclick="adjImpl(\''+tid+'\','+t.ampolas_total+','+tus+',1)">+</button>'
-      +'</div>'
-      +'<div class="lt" style="margin-top:4px">unidades disp.</div>'
-      +'<button class="btn btn-xs btn-rd btn-block" style="margin-top:6px" onclick="abrirRet(\'impl\',\''+tid+'\',\''+nomeEsc+'\','+tdisp+',\'un\','+tus+','+t.ampolas_total+')">Retirar</button></div>'
-      +'<div class="tc" style="gap:5px;flex-direction:column">'
-        +(isAdmin()?'<button class="btn btn-xs btn-edit btn-block" onclick="abrirEditarImpl(\''+tid+'\')">Editar</button>':'')
-        +(isAdmin()?'<button class="btn btn-xs btn-del btn-block" onclick="rmImpl(\''+tid+'\')">Excluir</button>':'')
-      +'</div>'
+    div.className='xcard '+cls;
+    div.innerHTML='<div class="xrow">'
+      +'<div class="mc"><div class="col-lbl">Implante</div><div class="xmain-title">'+esc(obs)+'</div><div class="xmain-sub">'+esc(t.fornecedores&&t.fornecedores.nome?t.fornecedores.nome:'Fornecedor não informado')+' · '+esc(t.numero_lote?('Lote: '+t.numero_lote):'Sem lote')+'</div></div>'
+      +'<div class="mc"><div class="col-lbl">Vencimento</div><div style="font-size:12px">'+fd(t.validade)+'</div></div>'
+      +'<div class="mc"><div class="col-lbl">Status</div>'+bdg(t.validade)+'</div>'
+      +'<div class="mc ctr"><div class="col-lbl">Disponível</div><div class="nb" style="'+(tdisp<=0?'color:var(--Rm)':'')+'">'+fNum(tdisp)+'</div><div class="lt">unidades</div></div>'
+      +'<div class="mc"><div class="col-lbl">Preço/Un</div><div class="nm">'+(t.preco_por_amp>0?fBRL(t.preco_por_amp):'—')+'</div></div>'
+      +'<div class="mc mactions"><button class="btn btn-rd btn-sm btn-block" onclick="abrirRet(\'impl\',\''+tid+'\',\''+nomeEsc+'\','+tdisp+',\'un\','+tus+','+t.ampolas_total+')">Retirar</button></div>'
+    +'</div>'
+    +'<div class="xrow bot">'
+      +'<div class="mc mstock-cell"><div class="xdrawer-split"><div><div class="col-lbl">Disponibilidade</div><div class="xstock-meta"><span class="nb">'+fNum(tdisp)+'</span><span style="font-size:11px;color:var(--c4)">un disponíveis</span>'+((t.estoque_min_ampolas||0)>0&&tdisp<=(t.estoque_min_ampolas||0)?'<span class="badge bd" style="font-size:7px">Mínimo</span>':'')+'</div><div class="xstock-line"><div class="prog-track"><div class="prog-fill" style="width:'+pct+'%;background:'+(tdisp<=(t.estoque_min_ampolas||0)&&n(t.estoque_min_ampolas||0)>0?'var(--Rm)':'var(--Pm)')+'"></div></div><span class="prog-pct">'+pct+'%</span></div><div class="lt">Mín: '+fNum(t.estoque_min_ampolas||0)+' · Ideal: '+fNum(t.estoque_ideal_ampolas||0)+' · Total: '+fNum(t.ampolas_total||0)+'</div></div><button class="btn btn-gh btn-xs" onclick="abrirImplDrawer(\''+tid+'\')">Detalhes</button></div></div>'
     +'</div>';
     el.appendChild(div);
+  });
+}
+function abrirImplDrawer(id){ implDrawerId=id; renderImplDrawer(); }
+function fecharImplDrawer(){ implDrawerId=null; var wrap=document.getElementById('modal-impl-drawer'); if(wrap) wrap.classList.remove('on'); }
+function renderImplDrawer(){
+  if(!implDrawerId) return;
+  db.from('tirzepatida_frascos').select('*,fornecedores(nome)').eq('id',implDrawerId).single().then(function(r){
+    if(!r.data) return;
+    var t=r.data, obs=t.observacoes||'Implante';
+    var html='<div class="mdw" onclick="event.stopPropagation()">'
+      +'<div class="mdw-top"><div><h3>Implante</h3><div class="mdw-name">'+esc(obs)+'</div><div class="mdw-sub">'+esc(t.fornecedores&&t.fornecedores.nome?t.fornecedores.nome:'Fornecedor não informado')+' · '+esc(t.numero_lote||'Sem lote')+'</div></div><button class="btn btn-gh btn-sm mdw-close" onclick="fecharImplDrawer()">Fechar</button></div>'
+      +'<div class="mdw-grid">'
+        +'<div class="mdw-card"><div class="col-lbl">Quantidade Atual</div><div class="mdw-val">'+fNum(t.ampolas_disp)+' un</div></div>'
+        +'<div class="mdw-card"><div class="col-lbl">Estoque Mínimo</div><div class="mdw-val">'+fNum(t.estoque_min_ampolas||0)+'</div></div>'
+        +'<div class="mdw-card"><div class="col-lbl">Estoque Ideal</div><div class="mdw-val">'+fNum(t.estoque_ideal_ampolas||0)+'</div></div>'
+        +'<div class="mdw-card"><div class="col-lbl">Validade Atual</div><div class="mdw-val">'+fd(t.validade)+'</div></div>'
+        +'<div class="mdw-card"><div class="col-lbl">Valor Pago</div><div class="mdw-val">'+(t.preco_pago>0?fBRL(t.preco_pago):'—')+'</div></div>'
+        +'<div class="mdw-card"><div class="col-lbl">Preço por Unidade</div><div class="mdw-val">'+(t.preco_por_amp>0?fBRL(t.preco_por_amp):'—')+'</div></div>'
+        +'<div class="mdw-card"><div class="col-lbl">Lote</div><div class="mdw-val">'+esc(t.numero_lote||'—')+'</div></div>'
+        +'<div class="mdw-card"><div class="col-lbl">Fornecedor</div><div class="mdw-val">'+esc(t.fornecedores&&t.fornecedores.nome?t.fornecedores.nome:'—')+'</div></div>'
+      +'</div>'
+      +'<div class="mdw-actions"><button class="btn btn-rd btn-sm" onclick="abrirRet(\'impl\',\''+t.id+'\',\''+esc(obs).replace(/'/g,"\\'")+'\','+t.ampolas_disp+',\'un\','+t.ampolas_usadas+','+t.ampolas_total+')">Retirar</button>'+(isAdmin()?'<button class="btn btn-edit btn-sm" onclick="fecharImplDrawer();abrirEditarImpl(\''+t.id+'\')">Editar</button><button class="btn btn-del btn-sm" onclick="rmImpl(\''+t.id+'\')">Excluir</button>':'')+'</div>'
+    +'</div>';
+    var wrap=document.getElementById('modal-impl-drawer');
+    if(!wrap){wrap=document.createElement('div');wrap.id='modal-impl-drawer';wrap.className='mwrap';document.body.appendChild(wrap);}
+    wrap.innerHTML=html; wrap.onclick=fecharImplDrawer; wrap.classList.add('on');
   });
 }
 async function adjImpl(id,total,usadas,delta){
@@ -2315,6 +2403,7 @@ function abrirEditarImpl(id){
   db.from('tirzepatida_frascos').select('*,fornecedores(nome)').eq('id',id).single().then(function(r){
     if(!r.data) return;
     var t=r.data;
+    var title=document.getElementById('editz-title');if(title)title.textContent='Editar Lote — Implante';
     document.getElementById('editz-id').value=id;
     document.getElementById('editz-mg').value=0;
     var nmEl=document.getElementById('editz-obs');if(nmEl)nmEl.value=t.observacoes||'';
