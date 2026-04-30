@@ -617,6 +617,7 @@ let filtroAtual='todos';
 let agendaEventosFuturos=[];
 let agendaAtivosById=new Set();
 let agendaAtivosByNome=new Set();
+let agendaAtivosDiag={ok:false,total:0,motivo:''};
 const followupSugestoesPendentes=new Set();
 let financeiroPacienteCache={};
 let financeiroMatchRunning=false;
@@ -740,6 +741,7 @@ async function carregarAgendaFuturaPacientes(){
   agendaEventosFuturos=[];
   agendaAtivosById=new Set();
   agendaAtivosByNome=new Set();
+  agendaAtivosDiag={ok:false,total:0,motivo:''};
   try{
     const hoje=new Date();
     hoje.setHours(0,0,0,0);
@@ -747,8 +749,7 @@ async function carregarAgendaFuturaPacientes(){
     limite.setDate(limite.getDate()+90);
     const {data,error}=await db.from('agenda_eventos')
       .select('id,paciente_id,paciente_nome,status,data,data_inicio,inicio,start_at')
-      .order('created_at',{ascending:false})
-      .limit(4000);
+      .limit(8000);
     if(error)throw error;
     agendaEventosFuturos=(data||[]).filter(ev=>{
       const st=String(ev?.status||'').toLowerCase();
@@ -764,10 +765,13 @@ async function carregarAgendaFuturaPacientes(){
       if(ev?.paciente_id)agendaAtivosById.add(String(ev.paciente_id));
       nomeAssinaturas(ev?.paciente_nome||'').forEach(sig=>agendaAtivosByNome.add(sig));
     });
+    agendaAtivosDiag={ok:true,total:agendaEventosFuturos.length,motivo:''};
   }catch(e){
     agendaEventosFuturos=[];
     agendaAtivosById=new Set();
     agendaAtivosByNome=new Set();
+    agendaAtivosDiag={ok:false,total:0,motivo:String(e?.message||'erro desconhecido')};
+    toast('Não foi possível ler a agenda para marcar pacientes ativos automaticamente. Verifique permissão SELECT em agenda_eventos.');
   }
 }
 
@@ -999,6 +1003,10 @@ function calcAniversario(p){
 }
 
 function temProtocoloAtivo(p){return getProtocolos(p).some(x=>x.ativo);}
+function statusCadastroAtivo(p){
+  const st=String(p?.status||'').toLowerCase().trim();
+  return st==='ativo'||st==='andamento';
+}
 function temAgendaProxima90(p){
   if(!p)return false;
   const id=String(p.id||'');
@@ -1015,7 +1023,8 @@ function getCardMeta(p){
   const revisao=aguardandoRevisao(p);
   const ativoProto=temProtocoloAtivo(p);
   const ativoAgenda90=temAgendaProxima90(p);
-  const ativoCarteira=ativoProto||ativoAgenda90;
+  const ativoCadastro=statusCadastroAtivo(p);
+  const ativoCarteira=ativoProto||ativoAgenda90||(!agendaAtivosDiag.ok&&ativoCadastro);
   const ultimaAcao=getUltimaAcaoPaciente(p);
   const diasUltima=ultimaAcao?diasDesde(ultimaAcao):null;
   let statusClass='inativo';
@@ -1058,7 +1067,7 @@ function getCardMeta(p){
   }
 
   const avClass=statusClass==='follow'?'roxo':statusClass==='aniversario'?'amarelo':statusClass==='neutro'||statusClass==='inativo'?'cinza':'terra';
-  return{follow,aniversario,revisao,ativoProto,ativoAgenda90,ativoCarteira,ultimaAcao,diasUltima,statusClass,statusLabel,subtexto,avClass,dotClassName:dot};
+  return{follow,aniversario,revisao,ativoProto,ativoAgenda90,ativoCadastro,ativoCarteira,ultimaAcao,diasUltima,statusClass,statusLabel,subtexto,avClass,dotClassName:dot};
 }
 
 function atualizarContadoresLista(items){
