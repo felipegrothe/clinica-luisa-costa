@@ -74,6 +74,10 @@ body.iframe-mode #topbar{display:none}
 .month-grid{display:grid;grid-template-columns:repeat(7,1fr);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:#fff}.month-cell{min-height:112px;border-right:1px solid var(--bg3);border-bottom:1px solid var(--bg3);padding:8px}.month-cell:nth-child(7n){border-right:0}.month-num{font-size:12px;font-weight:800;color:var(--muted);margin-bottom:7px}.month-cell.out{background:#FCFAF7;color:#B9AEA4}.month-cell.sel{box-shadow:inset 0 0 0 2px var(--terra)}
 .mini-appt{border-left:3px solid var(--terra);background:#fff;border:1px solid var(--line);border-left-width:3px;border-radius:var(--r);padding:7px 8px;font-size:11px;cursor:pointer}.mini-appt:hover{filter:saturate(1.04)}.mini-appt strong{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mini-appt span{display:block;color:var(--muted);font-size:10px;margin-top:2px}
 .compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.compare-col{border:1px solid var(--line);border-radius:var(--r);background:#fff;overflow:hidden}.compare-col h3{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:12px 14px;border-bottom:1px solid var(--bg3);background:#FCFAF7}.compare-col h3 span{font-size:10px;color:var(--muted);font-weight:700}.compare-body{padding:10px;display:grid;gap:8px;min-height:420px}
+.compare-picks{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.compare-pick{display:grid;gap:5px}
+.compare-pick label{font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);font-weight:800}
+.compare-pick select{height:40px;border:1px solid var(--bd2);border-radius:var(--r);padding:0 10px;background:#fff;color:var(--text);font-size:12px;outline:none}
 .tag{font-size:9px;letter-spacing:.8px;text-transform:uppercase;font-weight:800;padding:3px 7px;border-radius:var(--r);background:var(--bg3);color:var(--muted)}
 .tag.confirmado{background:var(--verde-l);color:var(--verde)}.tag.aguardando_confirmacao{background:var(--terra-xl);color:var(--terra-d)}.tag.chegou,.tag.em_atendimento{background:#F3ECD6;color:var(--warn)}.tag.finalizado{background:#EEE;color:#777}.tag.faltou,.tag.cancelado{background:#F8EAEA;color:var(--danger)}.tag.bloqueado{background:#EDE7DF;color:#5E5147}
 .right{width:318px;flex:0 0 318px;background:#fff;border-left:1px solid var(--line);display:flex;flex-direction:column;overflow:auto}.panel{padding:18px}
@@ -113,7 +117,7 @@ body.iframe-mode #topbar{display:none}
 @media(max-width:1180px){.left{width:238px;flex-basis:238px}.right{width:286px;flex-basis:286px}.panel{padding:14px}.title-block h1{font-size:26px}}
 @media(max-width:940px){.right{display:none}.left{width:230px;flex-basis:230px}}
 @media(max-width:1180px){.week-grid{grid-template-columns:repeat(4,minmax(150px,1fr))}.month-cell{min-height:94px}}
-@media(max-width:680px){#main{overflow:auto}.view.active{display:block}.left,.right{width:100%;border:0}.center{overflow:visible}.toolbar{height:auto;align-items:flex-start;padding:16px}.toolbar-actions{width:100%;grid-template-columns:1fr}.daybar{display:block}.date-nav{margin-top:12px}.grid,.grid3,.config-row,.table-row,.compare-grid,.ai-grid,.ai-free-row{grid-template-columns:1fr}.slot{grid-template-columns:58px 1fr}.day-timeline{grid-template-columns:58px 1fr}.week-grid{grid-template-columns:1fr}.month-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:680px){#main{overflow:auto}.view.active{display:block}.left,.right{width:100%;border:0}.center{overflow:visible}.toolbar{height:auto;align-items:flex-start;padding:16px}.toolbar-actions{width:100%;grid-template-columns:1fr}.daybar{display:block}.date-nav{margin-top:12px}.grid,.grid3,.config-row,.table-row,.compare-grid,.compare-picks,.ai-grid,.ai-free-row{grid-template-columns:1fr}.slot{grid-template-columns:58px 1fr}.day-timeline{grid-template-columns:58px 1fr}.week-grid{grid-template-columns:1fr}.month-grid{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -310,6 +314,7 @@ const STATUS=[
 ];
 const MATCH_REVIEW_TAG='[revisao_paciente_pendente]';
 let CONFIG=clone(DEFAULT_CONFIG),pacientes=[],eventos=[],selectedDate=today(),monthRef=new Date(),profFiltro='todos',selectedId=null,agendaSupabaseOk=false,pacientesSupabaseOk=false,agendaView='dia';
+let compareProfA=''; let compareProfB='';
 let agendaMatchRunning=false;
 function clone(v){return JSON.parse(JSON.stringify(v));}
 function profs(activeOnly=false){return (CONFIG.profissionais||[]).filter(p=>!activeOnly||p.ativo!==false);}
@@ -599,12 +604,27 @@ function renderMonthSlots(){
 }
 function renderCompareSlots(){
   const active=profs(true);
-  let chosen=profFiltro==='todos'?active.slice(0,2):[profCfg(profFiltro),active.find(p=>p.id!==profFiltro)].filter(Boolean);
-  if(chosen.length<2){document.getElementById('slots').innerHTML='<div class="empty">Cadastre ou ative ao menos duas agendas para comparar lado a lado.</div>';return;}
-  document.getElementById('slots').innerHTML=`<div class="range-grid"><div class="range-head"><div class="range-title">${brDate(selectedDate)}</div><div class="range-sub">Comparação do dia em duas agendas. Clique no agendamento para editar.</div></div><div class="compare-grid">${chosen.slice(0,2).map(p=>{
+  if(active.length<2){document.getElementById('slots').innerHTML='<div class="empty">Cadastre ou ative ao menos duas agendas para comparar lado a lado.</div>';return;}
+  if(!compareProfA||!active.some(p=>p.id===compareProfA)) compareProfA=profFiltro!=='todos'&&active.some(p=>p.id===profFiltro)?profFiltro:active[0].id;
+  if(!compareProfB||compareProfB===compareProfA||!active.some(p=>p.id===compareProfB)) compareProfB=(active.find(p=>p.id!==compareProfA)||active[1]).id;
+  const chosen=[active.find(p=>p.id===compareProfA),active.find(p=>p.id===compareProfB)].filter(Boolean);
+  if(chosen.length<2){document.getElementById('slots').innerHTML='<div class="empty">Selecione duas agendas diferentes para comparar.</div>';return;}
+  const opts=(selected,other)=>active.map(p=>`<option value="${esc(p.id)}" ${(p.id===selected)?'selected':''} ${(p.id===other)?'disabled':''}>${esc(p.nome)}</option>`).join('');
+  document.getElementById('slots').innerHTML=`<div class="range-grid"><div class="range-head"><div class="range-title">${brDate(selectedDate)}</div><div class="range-sub">Comparação do dia em duas agendas. Clique no agendamento para editar.</div><div class="compare-picks"><div class="compare-pick"><label>Agenda 1</label><select onchange="setCompareProf('a',this.value)">${opts(compareProfA,compareProfB)}</select></div><div class="compare-pick"><label>Agenda 2</label><select onchange="setCompareProf('b',this.value)">${opts(compareProfB,compareProfA)}</select></div></div></div><div class="compare-grid">${chosen.slice(0,2).map(p=>{
     const list=eventos.filter(e=>e.data===selectedDate&&e.profissional===p.id).sort((a,b)=>(a.hora_inicio||'').localeCompare(b.hora_inicio||''));
     return `<div class="compare-col"><h3 style="border-top:3px solid ${esc(p.cor||'#C17B3E')}">${esc(p.nome)} <span>${list.length} agendamento(s)</span></h3><div class="compare-body">${list.length?list.map(miniEventHtml).join(''):'<div class="empty">Agenda livre neste dia.</div>'}</div></div>`;
   }).join('')}</div></div>`;
+}
+function setCompareProf(pos,id){
+  if(pos==='a') compareProfA=id; else compareProfB=id;
+  if(compareProfA===compareProfB){
+    const active=profs(true);
+    const alt=active.find(p=>p.id!==id);
+    if(pos==='a') compareProfB=alt?alt.id:'';
+    else compareProfA=alt?alt.id:'';
+  }
+  selectedId=null;
+  renderAll();
 }
 function apptHtml(e){
   const p=profCfg(e.profissional);
@@ -686,7 +706,7 @@ function irHoje(){setDate(today());}
 function setProf(id,btn){profFiltro=id;document.querySelectorAll('.prof').forEach(b=>b.classList.remove('active'));btn.classList.add('active');selectedId=null;renderAll();}
 function selectEvent(id){selectedId=id;renderSlots();renderDetail();}
 function abrirEdicaoEvento(id){selectedId=id;renderDetail();editarConsulta(id);}
-function setAgendaView(mode,btn){agendaView=mode;document.querySelectorAll('.view-tabs button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');selectedId=null;renderAll();}
+function setAgendaView(mode,btn){agendaView=mode;if(mode!=='duas'){compareProfA='';compareProfB='';}document.querySelectorAll('.view-tabs button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');selectedId=null;renderAll();}
 function tab(id,btn){document.querySelectorAll('#navtabs button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id+'-view').classList.add('active');if(id==='pend')renderPendencias();if(id==='config')renderConfig();}
 function normalizePacienteNome(nome){
   return String(nome||'')
