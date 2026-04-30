@@ -141,6 +141,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
 
 /* TOOLBAR */
 .tb{display:flex;gap:12px;margin-bottom:18px;align-items:center;flex-wrap:wrap}
+.tb .btn{min-height:48px}
 .sw{flex:1;min-width:180px;position:relative}
 .sw input{width:100%;min-height:48px;padding:10px 14px 10px 36px;border:1.5px solid var(--c5);border-radius:var(--rad);font-family:system-ui,-apple-system,sans-serif;font-size:13px;color:var(--c);background:#fff;outline:none;transition:.2s;box-shadow:var(--sh1)}
 .sw input:focus{border-color:var(--gold)}
@@ -234,7 +235,10 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
 .mdw-price-name{font-size:12px;font-weight:700;color:var(--c);overflow-wrap:anywhere}
 .mdw-price-meta{font-size:10px;color:var(--c4);margin-top:3px}
 .mdw-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px}
+.drawer-wrap{display:none;position:fixed;inset:0;z-index:600;background:rgba(30,24,20,.38);justify-content:flex-end}
+.drawer-wrap.on{display:flex;animation:fi .18s ease}
 .xsection-head{display:grid;grid-template-columns:minmax(220px,2fr) 150px 150px 130px 120px 120px;gap:0;padding:10px 16px;background:#f3eee7;border-radius:var(--rad);margin-bottom:8px;border:1px solid var(--c6);min-height:44px;align-items:center}
+.msection-head{display:grid;grid-template-columns:minmax(300px,2.9fr) 150px 150px 90px 90px 132px;gap:0;padding:10px 16px;background:#f3eee7;border-radius:var(--rad);margin-bottom:8px;border:1px solid var(--c6);min-height:44px;align-items:center}
 .xcard{background:#fff;border:1px solid var(--c6);border-radius:var(--rad);overflow:hidden;margin-bottom:10px;box-shadow:var(--sh1);transition:.2s}
 .xcard:hover{box-shadow:var(--sh2)}
 .xcard.tv,.xcard.iv{border-left:4px solid var(--Rm)}
@@ -373,6 +377,16 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
 .fl{font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--c3);margin-bottom:9px}
 .fv{font-family:system-ui,-apple-system,sans-serif;font-size:30px;font-weight:700;color:var(--c);line-height:1;letter-spacing:-.03em}
 .fs{font-size:9px;color:var(--c4);margin-top:5px}
+.sstat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px}
+.sstat{background:#fff;border:1px solid var(--c6);border-radius:var(--rad);padding:16px 18px;box-shadow:var(--sh1);position:relative;overflow:hidden}
+.sstat::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--gold);border-radius:0 0 var(--rad) var(--rad)}
+.sstat.teal::after{background:var(--Tm)}
+.sstat.purple::after{background:var(--Pm)}
+.sstat.red::after{background:var(--Rm)}
+.sstat.green::after{background:var(--Gm)}
+.sstat-lbl{font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--c3);margin-bottom:9px}
+.sstat-val{font-family:system-ui,-apple-system,sans-serif;font-size:28px;font-weight:700;color:var(--c);line-height:1;letter-spacing:-.03em}
+.sstat-sub{font-size:9px;color:var(--c4);margin-top:5px}
 .ftbl{width:100%;border-collapse:collapse}
 .ftbl th{text-align:left;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--c3);padding:9px 13px;border-bottom:1.5px solid var(--c6);background:var(--c8)}
 .ftbl td{padding:11px 13px;border-bottom:1px solid var(--c7);font-size:12px;color:var(--c);vertical-align:middle}
@@ -421,7 +435,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
 .alert-item{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:0.5px solid var(--Rbg)}
 .alert-item:last-child{border-bottom:none}
 .alert-nm{font-size:12px;font-weight:600;color:var(--c)}
-/* IMPL */
+/* IMPL (legacy, deprecated: replaced by .xcard/.xrow/.mc) */
 .impl-card{background:#fff;border:0.5px solid var(--c6);border-radius:var(--rad);margin-bottom:9px;overflow:hidden;box-shadow:var(--sh1);transition:.2s}
 .impl-card:hover{box-shadow:var(--sh2)}
 .impl-card.iv{border-left:4px solid var(--Rm)}.impl-card.iw{border-left:4px solid var(--Wm)}.impl-card.iok{border-left:4px solid var(--Pm)}
@@ -466,7 +480,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
       <div class="brand-div"></div>
       <div class="brand-mod">Gestão de Estoque</div>
       <div class="hdr-right">
-        <span class="spill" id="spill">✓ Salvo</span>
+        <span class="spill" id="spill">Salvo</span>
         <div class="user-pill">
           <div>
             <div class="user-nome" id="user-nome">—</div>
@@ -498,7 +512,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
   <!-- DASHBOARD -->
   <div id="pg-dash" class="pg on">
     <div class="ia-resumo-box" id="dash-resumo" style="background:#fff;border:1px solid var(--c6);border-left:3px solid var(--gold);border-radius:var(--rad);padding:16px 20px;margin-bottom:18px;box-shadow:var(--sh1)">
-      <div class="ia-tag" style="font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);margin-bottom:8px">✦ Resumo do Dia — Inteligência Artificial</div>
+      <div class="ia-tag" style="font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Resumo do Dia — Inteligência Artificial</div>
       <div style="font-size:13px;color:var(--c2);line-height:1.65" id="dash-resumo-txt">Carregando análise...</div>
       <button class="btn btn-gh btn-sm" style="margin-top:10px" onclick="gerarResumo()">Atualizar</button>
     </div>
@@ -539,6 +553,14 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
       </select>
       <button class="btn btn-gd" onclick="abrir('madmed')">Novo Medicamento</button>
     </div>
+    <div class="msection-head">
+      <div class="col-lbl">Medicamento</div>
+      <div class="col-lbl">Validade</div>
+      <div class="col-lbl">Status</div>
+      <div class="col-lbl" style="text-align:center">Caixas</div>
+      <div class="col-lbl" style="text-align:center">Amp Disp.</div>
+      <div class="col-lbl" style="text-align:center">Ações</div>
+    </div>
     <div class="mlist" id="mlist"></div>
     <div id="emeds" style="display:none" class="empty"><div class="et">Nenhum item</div><div class="es">Tente outro filtro</div></div>
   </div>
@@ -552,7 +574,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
         <option value="venc">Vencidos</option><option value="crit">Vence em 30 dias</option>
       </select>
     </div>
-    <div class="fgrid" id="tstats"></div>
+    <div class="sstat-grid" id="tstats"></div>
     <div class="xsection-head">
       <div class="col-lbl">Frasco</div><div class="col-lbl">Vencimento</div><div class="col-lbl">Status</div>
       <div class="col-lbl">Disponível</div><div class="col-lbl">Preço/Amp</div><div class="col-lbl">Ações</div>
@@ -573,7 +595,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
         <option value="crit">Vence em 30d</option>
       </select>
     </div>
-    <div class="fgrid" id="istats"></div>
+    <div class="sstat-grid" id="istats"></div>
     <div class="xsection-head">
       <div class="col-lbl">Implante</div><div class="col-lbl">Vencimento</div><div class="col-lbl">Status</div>
       <div class="col-lbl">Disponível</div><div class="col-lbl">Preço/Un</div><div class="col-lbl">Ações</div>
@@ -617,7 +639,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
       Itens críticos detectados automaticamente. Edite quantidades e observações antes de gerar o PDF.
     </div>
     <div id="ped-ia-box" style="display:none;background:#fff;border:1px solid var(--c6);border-left:3px solid var(--gold);border-radius:var(--rad);padding:16px 20px;margin-bottom:16px;box-shadow:var(--sh1)">
-      <div style="font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);margin-bottom:8px">✦ Análise IA — Pedido de Compras</div>
+      <div style="font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Análise IA — Pedido de Compras</div>
       <div id="ped-ia-txt" style="font-size:13px;color:var(--c2);line-height:1.65"></div>
     </div>
     <div id="pled"></div>
@@ -834,13 +856,13 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
   <div class="frow">
     <label>Nota Fiscal (PDF) — opcional</label>
     <div style="border:1.5px dashed var(--c5);border-radius:var(--rad);padding:12px;text-align:center;cursor:pointer;background:var(--c8);transition:.2s" onclick="document.getElementById('nf-upload').click()" id="nf-drop-area">
-      <div style="font-size:11px;color:var(--c4);margin-bottom:4px">📎 Clique para anexar o PDF da NF</div>
+      <div style="font-size:11px;color:var(--c4);margin-bottom:4px">Clique para anexar o PDF da NF</div>
       <div style="font-size:10px;color:var(--c5)" id="nf-file-name">Nenhum arquivo selecionado</div>
     </div>
     <input type="file" id="nf-upload" accept=".pdf,image/*" style="display:none" onchange="onNFUpload(this)">
   </div>
   <div id="lote-aprov-warn" style="background:var(--Wbg);border:1px solid var(--Wbr);border-radius:var(--rad);padding:10px 14px;font-size:11px;color:var(--W);margin-bottom:4px">
-    ⚠ Este lote ficará <strong>pendente de aprovação</strong> pelo administrador antes de entrar no estoque.
+    Atenção: este lote ficará <strong>pendente de aprovação</strong> pelo administrador antes de entrar no estoque.
   </div>
   <div class="ma">
     <button class="btn btn-gh" onclick="fechar('madlote')">Cancelar</button>
@@ -1181,7 +1203,7 @@ async function renderDash(){
   if(ae){
     ae.innerHTML=(alertas&&alertas.length)?alertas.map(function(a){
       return'<div class="alert-item"><span class="alert-nm">'+a.item_nome+'</span>'+bdg(a.validade)+'</div>';
-    }).join(''):'<div style="font-size:11px;color:var(--Gm);font-weight:600;padding:6px 0">Nenhum alerta crítico ✓</div>';
+    }).join(''):'<div style="font-size:11px;color:var(--Gm);font-weight:600;padding:6px 0">Nenhum alerta crítico</div>';
   }
 
   // Tirzepatida & Implantes
@@ -1363,7 +1385,7 @@ function renderMedDrawer(){
     +'</div>'
   +'</div>';
   var wrap=document.getElementById('modal-med-drawer');
-  if(!wrap){wrap=document.createElement('div');wrap.id='modal-med-drawer';wrap.className='mwrap';document.body.appendChild(wrap);}
+  if(!wrap){wrap=document.createElement('div');wrap.id='modal-med-drawer';wrap.className='drawer-wrap';document.body.appendChild(wrap);}
   wrap.innerHTML=html;
   wrap.onclick=fecharMedDrawer;
   wrap.classList.add('on');
@@ -1421,8 +1443,8 @@ function abrirLote(itemId,nome,apx){
   var btn=document.getElementById('lote-submit-btn');
   if(warn){
     warn.innerHTML=isAdmin()
-      ? '✓ Como administrador, esta entrada será <strong>aprovada imediatamente</strong> e entrará no estoque agora.'
-      : '⚠ Este lote ficará <strong>pendente de aprovação</strong> pelo administrador antes de entrar no estoque.';
+      ? 'Como administrador, esta entrada será <strong>aprovada imediatamente</strong> e entrará no estoque agora.'
+      : 'Atenção: este lote ficará <strong>pendente de aprovação</strong> pelo administrador antes de entrar no estoque.';
     warn.style.background=isAdmin()?'var(--Gbg)':'var(--Wbg)';
     warn.style.borderColor=isAdmin()?'var(--Gbr)':'var(--Wbr)';
     warn.style.color=isAdmin()?'var(--G)':'var(--W)';
@@ -1646,10 +1668,10 @@ async function renderTirz(){
   });
   var ts=document.getElementById('tstats');
   if(ts) ts.innerHTML=
-    '<div class="fc"><div class="fl">Ampolas 60mg</div><div class="fv" style="color:var(--Tm)">'+fNum(a60)+'</div><div class="fs">'+fNum(tirz.filter(function(t){return t.mg==60;}).length)+' frasco(s)</div></div>'
-    +'<div class="fc"><div class="fl">Ampolas 90mg</div><div class="fv" style="color:var(--Tm)">'+fNum(a90)+'</div><div class="fs">'+fNum(tirz.filter(function(t){return t.mg==90;}).length)+' frasco(s)</div></div>'
-    +'<div class="fc"><div class="fl">Total Investido</div><div class="fv">'+fBRL(tvlr)+'</div><div class="fs">'+tirz.length+' frasco(s)</div></div>'
-    +'<div class="fc"><div class="fl">Abaixo do Mínimo</div><div class="fv" style="color:'+(abaixoMin>0?'var(--Rm)':'var(--Gm)')+'">'+fNum(abaixoMin)+'</div><div class="fs">'+(venc>0?fNum(venc)+' vencendo':'validades OK')+'</div></div>';
+    '<div class="sstat teal"><div class="sstat-lbl">Ampolas 60mg</div><div class="sstat-val" style="color:var(--Tm)">'+fNum(a60)+'</div><div class="sstat-sub">'+fNum(tirz.filter(function(t){return t.mg==60;}).length)+' frasco(s)</div></div>'
+    +'<div class="sstat teal"><div class="sstat-lbl">Ampolas 90mg</div><div class="sstat-val" style="color:var(--Tm)">'+fNum(a90)+'</div><div class="sstat-sub">'+fNum(tirz.filter(function(t){return t.mg==90;}).length)+' frasco(s)</div></div>'
+    +'<div class="sstat teal"><div class="sstat-lbl">Total Investido</div><div class="sstat-val">'+fBRL(tvlr)+'</div><div class="sstat-sub">'+tirz.length+' frasco(s)</div></div>'
+    +'<div class="sstat '+(abaixoMin>0?'red':'green')+'"><div class="sstat-lbl">Abaixo do Mínimo</div><div class="sstat-val" style="color:'+(abaixoMin>0?'var(--Rm)':'var(--Gm)')+'">'+fNum(abaixoMin)+'</div><div class="sstat-sub">'+(venc>0?fNum(venc)+' vencendo':'validades OK')+'</div></div>';
   var el=document.getElementById('tlist');
   if(!el) return;
   document.getElementById('etrz').style.display=tirz.length?'none':'block';
@@ -1697,7 +1719,7 @@ function renderTirzDrawer(){
       +'<div class="mdw-actions"><button class="btn btn-rd btn-sm" onclick="abrirRet(\'tirz\',\''+t.id+'\',\'Tirzepatida '+t.mg+'mg\','+t.ampolas_disp+',\'amp\','+t.ampolas_usadas+','+t.ampolas_total+')">Retirar</button>'+(isAdmin()?'<button class="btn btn-edit btn-sm" onclick="fecharTirzDrawer();abrirEditarTirz(\''+t.id+'\')">Editar</button><button class="btn btn-del btn-sm" onclick="rmTirz(\''+t.id+'\')">Excluir</button>':'')+'</div>'
     +'</div>';
     var wrap=document.getElementById('modal-tirz-drawer');
-    if(!wrap){wrap=document.createElement('div');wrap.id='modal-tirz-drawer';wrap.className='mwrap';document.body.appendChild(wrap);}
+    if(!wrap){wrap=document.createElement('div');wrap.id='modal-tirz-drawer';wrap.className='drawer-wrap';document.body.appendChild(wrap);}
     wrap.innerHTML=html; wrap.onclick=fecharTirzDrawer; wrap.classList.add('on');
   });
 }
@@ -1861,15 +1883,19 @@ function onNFUpload(input){
 }
 
 // ── INSUMOS ──────────────────────────────────────────────────────────
+var ICON_INSUMOS='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>';
+var ICON_LIMPEZA='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10"/><path d="M9 7V4h6v3"/><path d="M8 12h8"/><path d="M9 12v7"/><path d="M15 12v7"/><path d="M9 19h6"/></svg>';
+var ICON_CONFORTO='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h11a0 0 0 0 1 0 0v3a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4v-3a0 0 0 0 1 0 0Z"/><path d="M15 11h2a2 2 0 0 1 0 4h-2"/><path d="M6 21h10"/></svg>';
+var ICON_ESCRITORIO='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="12" height="16" rx="2"/><path d="M9 8h6"/><path d="M9 12h6"/><path d="M9 16h4"/></svg>';
 var SCFG={
-  'insumos':{lbl:'Insumos Clínicos',ico:'🩺',cor:'var(--I)'},
-  'Insumos Clínicos':{lbl:'Insumos Clínicos',ico:'🩺',cor:'var(--I)'},
-  'limpeza':{lbl:'Limpeza',ico:'🧹',cor:'var(--G)'},
-  'Limpeza':{lbl:'Limpeza',ico:'🧹',cor:'var(--G)'},
-  'conforto':{lbl:'Conforto',ico:'☕',cor:'var(--W)'},
-  'Conforto':{lbl:'Conforto',ico:'☕',cor:'var(--W)'},
-  'escrit':{lbl:'Escritório',ico:'📋',cor:'var(--c2)'},
-  'Escritório':{lbl:'Escritório',ico:'📋',cor:'var(--c2)'}
+  'insumos':{lbl:'Insumos Clínicos',ico:ICON_INSUMOS,cor:'var(--I)'},
+  'Insumos Clínicos':{lbl:'Insumos Clínicos',ico:ICON_INSUMOS,cor:'var(--I)'},
+  'limpeza':{lbl:'Limpeza',ico:ICON_LIMPEZA,cor:'var(--G)'},
+  'Limpeza':{lbl:'Limpeza',ico:ICON_LIMPEZA,cor:'var(--G)'},
+  'conforto':{lbl:'Conforto',ico:ICON_CONFORTO,cor:'var(--W)'},
+  'Conforto':{lbl:'Conforto',ico:ICON_CONFORTO,cor:'var(--W)'},
+  'escrit':{lbl:'Escritório',ico:ICON_ESCRITORIO,cor:'var(--c2)'},
+  'Escritório':{lbl:'Escritório',ico:ICON_ESCRITORIO,cor:'var(--c2)'}
 };
 var SUGS={
   'insumos':['Luva P','Luva M','Luva G','Luva GG','Seringa 3ml','Seringa 5ml','Seringa 10ml','Agulha 25x7','Agulha 40x12','Gaze estéril','Esparadrapo','Álcool 70%','Algodão','Scalp 23G','Cateter 20G','Atadura','Micropore'],
@@ -2037,7 +2063,7 @@ async function renderHist(){
     var isSaida=h.tipo==='saida';
     return'<div class="hi"><div><div class="hn">'+(h.itens?h.itens.nome:'—')+' <span class="badge '+(isSaida?'bd':'bs')+'" style="font-size:7px">'+(isSaida?'SAÍDA':'ENTRADA')+'</span></div>'
       +'<div class="hd">'+fbr(h.data)+' · '+(h.motivo||'—')+'</div>'
-      +'<div class="hd" style="color:var(--gold);font-weight:600">👤 '+(h.responsavel_nome||'—')+'</div>'
+      +'<div class="hd" style="color:var(--c3)">Responsável: '+(h.responsavel_nome||'—')+'</div>'
       +(h.itens&&h.itens.setores?'<span class="tag">'+h.itens.setores.nome+'</span>':'')
     +'</div><div class="hr"><div class="ha" style="color:'+(isSaida?'var(--Rm)':'var(--Gm)')+';font-size:20px">'+(isSaida?'−':'+')+h.quantidade+'</div><div style="font-size:9px;color:var(--c4)">'+(isSaida?'retirado':'adicionado')+'</div></div></div>';
   }).join('');
@@ -2329,7 +2355,7 @@ async function renderImpl(){
   var tvlr=impl.reduce(function(s,i){return s+n(i.preco_pago);},0);
   var venc=impl.filter(function(i){var sv=st(i.validade);return sv==='venc'||sv==='crit';}).length;
   var is=document.getElementById('istats');
-  if(is) is.innerHTML='<div class="fc"><div class="fl">Total de Lotes</div><div class="fv" style="color:var(--Pm)">'+fNum(impl.length)+'</div><div class="fs">lotes ativos</div></div>'+'<div class="fc"><div class="fl">Unidades Disponíveis</div><div class="fv" style="color:var(--Pm)">'+fNum(total)+'</div><div class="fs">implantes</div></div>'+'<div class="fc"><div class="fl">Total Investido</div><div class="fv">'+fBRL(tvlr)+'</div><div class="fs">'+fNum(impl.length)+' lote(s)</div></div>'+'<div class="fc"><div class="fl">Atenção / Vencidos</div><div class="fv" style="color:var(--Rm)">'+fNum(venc)+'</div><div class="fs">verificar validade</div></div>';
+  if(is) is.innerHTML='<div class="sstat purple"><div class="sstat-lbl">Total de Lotes</div><div class="sstat-val" style="color:var(--Pm)">'+fNum(impl.length)+'</div><div class="sstat-sub">lotes ativos</div></div>'+'<div class="sstat purple"><div class="sstat-lbl">Unidades Disponíveis</div><div class="sstat-val" style="color:var(--Pm)">'+fNum(total)+'</div><div class="sstat-sub">implantes</div></div>'+'<div class="sstat purple"><div class="sstat-lbl">Total Investido</div><div class="sstat-val">'+fBRL(tvlr)+'</div><div class="sstat-sub">'+fNum(impl.length)+' lote(s)</div></div>'+'<div class="sstat red"><div class="sstat-lbl">Atenção / Vencidos</div><div class="sstat-val" style="color:var(--Rm)">'+fNum(venc)+'</div><div class="sstat-sub">verificar validade</div></div>';
   var el=document.getElementById('ilist'); if(!el) return;
   document.getElementById('eimpl').style.display=impl.length?'none':'block';
   el.innerHTML='';
@@ -2377,7 +2403,7 @@ function renderImplDrawer(){
       +'<div class="mdw-actions"><button class="btn btn-rd btn-sm" onclick="abrirRet(\'impl\',\''+t.id+'\',\''+esc(obs).replace(/'/g,"\\'")+'\','+t.ampolas_disp+',\'un\','+t.ampolas_usadas+','+t.ampolas_total+')">Retirar</button>'+(isAdmin()?'<button class="btn btn-edit btn-sm" onclick="fecharImplDrawer();abrirEditarImpl(\''+t.id+'\')">Editar</button><button class="btn btn-del btn-sm" onclick="rmImpl(\''+t.id+'\')">Excluir</button>':'')+'</div>'
     +'</div>';
     var wrap=document.getElementById('modal-impl-drawer');
-    if(!wrap){wrap=document.createElement('div');wrap.id='modal-impl-drawer';wrap.className='mwrap';document.body.appendChild(wrap);}
+    if(!wrap){wrap=document.createElement('div');wrap.id='modal-impl-drawer';wrap.className='drawer-wrap';document.body.appendChild(wrap);}
     wrap.innerHTML=html; wrap.onclick=fecharImplDrawer; wrap.classList.add('on');
   });
 }
@@ -2609,13 +2635,13 @@ async function salvarIns(){
   <div class="frow"><label>Farmácia / Fornecedor</label><input type="text" id="nf-lfarm" placeholder="Nome da farmácia"></div>
   <div class="frow"><label>Nota Fiscal (PDF ou imagem) — opcional</label>
     <div style="border:1.5px dashed var(--c5);border-radius:var(--rad);padding:14px;text-align:center;cursor:pointer;background:var(--c8)" onclick="document.getElementById('nf-upload').click()" id="nf-drop-area">
-      <div style="font-size:20px;margin-bottom:4px">📎</div>
+      <div style="font-size:20px;margin-bottom:4px">NF</div>
       <div style="font-size:11px;color:var(--c4)">Clique para anexar o PDF ou imagem da NF</div>
       <div style="font-size:10px;color:var(--gold);font-weight:700;margin-top:4px" id="nf-file-name">Nenhum arquivo selecionado</div>
     </div>
     <input type="file" id="nf-upload" accept=".pdf,image/*" style="display:none" onchange="onNFUpload(this)">
   </div>
-  <div style="background:var(--Wbg);border:1px solid var(--Wbr);border-radius:var(--rad);padding:10px 14px;font-size:11px;color:var(--W);margin-bottom:4px">⚠ Este lote ficará <strong>pendente de aprovação</strong> pelo administrador antes de entrar no estoque.</div>
+  <div style="background:var(--Wbg);border:1px solid var(--Wbr);border-radius:var(--rad);padding:10px 14px;font-size:11px;color:var(--W);margin-bottom:4px">Atenção: este lote ficará <strong>pendente de aprovação</strong> pelo administrador antes de entrar no estoque.</div>
   <div class="ma"><button class="btn btn-gh" onclick="fechar('madnf')">Cancelar</button><button class="btn btn-gd" onclick="salvarNF()">Enviar para Aprovação</button></div>
   <div id="nf-msg" class="fmsg" style="margin-top:8px"></div>
 </div></div>
