@@ -205,33 +205,48 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
 .mcard.lc{border-left:4px solid var(--Rm)}.mcard.wc{border-left:4px solid var(--Wm)}.mcard.oc{border-left:4px solid var(--Gm)}
 .mrow{display:grid;grid-template-columns:minmax(300px,2.9fr) 150px 150px 90px 90px 132px;align-items:stretch}
 .mrow.bot{background:var(--c8);border-top:1px solid var(--c6)}
-.mc{padding:13px 16px;border-right:1px solid var(--c7);display:flex;flex-direction:column;justify-content:center;min-width:0}
+.mc{padding:13px 16px;border-right:1px solid var(--c7);display:flex;flex-direction:column;justify-content:center;min-width:0;overflow:hidden}
 .mc:last-child{border-right:none}
 .mc.ctr{align-items:center}
 .col-lbl{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--c4);margin-bottom:4px}
-.mcard .nb,.mcard .nm,.mcard .lt,.mcard .col-lbl,.mcard .badge,.mcard .btn{max-width:100%}
+.mcard .nb,.mcard .nm,.mcard .lt,.mcard .col-lbl,.mcard .badge,.mcard .btn,.mcard .mname{max-width:100%}
 .mcard .nm,.mcard .lt,.mcard .nb{overflow-wrap:anywhere}
 .mcard .nm{font-size:15px}
-.mcard .badge{justify-content:center}
+.mcard .badge{justify-content:center;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .mname{font-size:14px;font-weight:700;color:var(--c);overflow-wrap:anywhere;line-height:1.3}
 .mactions{gap:6px;flex-direction:column;justify-content:center;padding:10px 12px}
-.mstock-cell{grid-column:1 / span 3}
-.mcompact-fin{grid-column:4 / span 2}
-.mcompact-fin-line{font-size:11px;color:var(--c3);line-height:1.55;overflow-wrap:anywhere}
-.mcompact-fin-line strong{color:var(--c);font-weight:700}
+.mstock-cell{grid-column:1 / span 5}
 .mexpand-toggle{display:inline-flex;align-items:center;justify-content:center}
-.mexp{background:#fcfaf6;border-top:1px solid var(--c6);padding:14px 16px 16px}
-.mexp-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px}
-.mexp-card{background:#fff;border:1px solid var(--c6);border-radius:var(--rad);padding:12px;min-width:0}
-.mexp-val{font-family:system-ui,-apple-system,sans-serif;font-size:16px;font-weight:700;line-height:1.25;color:var(--c);overflow-wrap:anywhere}
-.mexp-val.ok{color:var(--Gm)}
-.mexp-val.warn{color:var(--Wm)}
-.mexp-prices{display:flex;flex-direction:column;gap:8px}
-.mexp-price{display:flex;justify-content:space-between;gap:12px;padding:10px 12px;background:#fff;border:1px solid var(--c6);border-radius:var(--rad)}
-.mexp-price-info{min-width:0}
-.mexp-price-name{font-size:12px;font-weight:700;color:var(--c);overflow-wrap:anywhere}
-.mexp-price-meta{font-size:10px;color:var(--c4);margin-top:3px}
-.mexp-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:12px}
+.mdw{margin-left:auto;background:#fbf9f5;width:min(480px,92vw);height:100%;padding:20px 22px;box-shadow:-14px 0 40px rgba(30,24,20,.18);overflow-y:auto}
+.mdw h3{font-family:Georgia,serif;font-size:20px;font-weight:400;letter-spacing:2px;text-transform:uppercase;color:var(--c);margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--c6)}
+.mdw-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;min-width:0}
+.mdw-name{font-size:18px;font-weight:700;color:var(--c);line-height:1.3;overflow-wrap:anywhere}
+.mdw-sub{font-size:11px;color:var(--c4);margin-top:4px;overflow-wrap:anywhere}
+.mdw-close{flex-shrink:0}
+.mdw-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.mdw-card{background:#fff;border:1px solid var(--c6);border-radius:var(--rad);padding:12px;min-width:0}
+.mdw-val{font-family:system-ui,-apple-system,sans-serif;font-size:16px;font-weight:700;line-height:1.25;color:var(--c);overflow-wrap:anywhere}
+.mdw-val.ok{color:var(--Gm)}
+.mdw-val.warn{color:var(--Wm)}
+.mdw-prices{display:flex;flex-direction:column;gap:8px}
+.mdw-price{display:flex;justify-content:space-between;gap:12px;padding:10px 12px;background:#fff;border:1px solid var(--c6);border-radius:var(--rad)}
+.mdw-price-info{min-width:0}
+.mdw-price-name{font-size:12px;font-weight:700;color:var(--c);overflow-wrap:anywhere}
+.mdw-price-meta{font-size:10px;color:var(--c4);margin-top:3px}
+.mdw-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px}
+@media (max-width:1500px){
+  .mrow{grid-template-columns:minmax(240px,2.5fr) 130px 130px 82px 82px 120px}
+  .mc{padding:12px 12px}
+  .mname{font-size:13px}
+  .mcard .nb{font-size:18px}
+  .mcard .nm{font-size:14px}
+}
+@media (max-width:1280px){
+  .mrow{grid-template-columns:minmax(220px,2.3fr) 118px 118px 74px 74px 112px}
+  .mc{padding:11px 10px}
+  .mdw{width:min(420px,94vw);padding:18px}
+  .mdw-grid{grid-template-columns:1fr}
+}
 .mni{border:none;background:transparent;font-family:system-ui,-apple-system,sans-serif;font-size:14px;font-weight:700;color:var(--c);width:100%;padding:2px 5px;border-radius:4px;outline:none}
 .mni:hover{background:var(--c7)}
 .mni:focus{background:var(--c6);outline:2px solid var(--gold)}
@@ -926,7 +941,7 @@ var USER       = null;
 var PERFIL     = null;
 var NIVEL      = null;
 var afilt      = 'all';
-var medExpId   = null;
+var medDrawerId = null;
 var pendRet    = null;
 var pendLoteId = null;
 var chatMsgs   = [];
@@ -1240,7 +1255,6 @@ async function renderMeds(){
     var custoRepor=m.preco_medio_cx>0&&m.disponivel<(m.estoque_ideal||0)
       ? Math.ceil(((m.estoque_ideal||0)-m.disponivel)/(m.amp_por_caixa||1))*m.preco_medio_cx
       : 0;
-    var isOpen=medExpId===m.id;
     var div=document.createElement('div');
     div.className='mcard '+cls;
     div.innerHTML=
@@ -1268,10 +1282,8 @@ async function renderMeds(){
           +'</div>'
           +'<div class="lt">Mín: '+fNum(m.estoque_min||0)+' · Ideal: '+(m.estoque_ideal!=null?fNum(m.estoque_ideal):'—')+'</div>'
         +'</div>'
-        +(isAdmin()?'<div class="mc mcompact-fin"><div class="col-lbl">Resumo Financeiro</div><div class="mcompact-fin-line"><strong>Último:</strong> '+(m.ultimo_preco_cx>0?fBRL(m.ultimo_preco_cx):'—')+' · <strong>Médio:</strong> '+(m.preco_medio_cx>0?fBRL(m.preco_medio_cx):'—')+'</div><div class="mcompact-fin-line"><strong>Estoque:</strong> '+(m.custo_estoque>0?fBRL(m.custo_estoque):'—')+' · <strong>Reposição:</strong> '+(custoRepor>0?fBRL(custoRepor):'—')+'</div></div>':'<div class="mc mcompact-fin"><div class="col-lbl">Resumo</div><div class="mcompact-fin-line">Acompanhe disponibilidade, validade e reposição do item.</div></div>')
-        +'<div class="mc ctr mexpand-toggle"><button class="btn btn-gh btn-xs" onclick="toggleMedExp(\''+m.id+'\')">'+(isOpen?'Fechar Detalhes':'Detalhes')+'</button></div>'
-      +'</div>'
-      +(isOpen?renderMedExp(m,nomeEsc,custoRepor):'');
+        +'<div class="mc ctr mexpand-toggle"><button class="btn btn-gh btn-xs" onclick="abrirMedDrawer(\''+m.id+'\')">Detalhes</button></div>'
+      +'</div>';
     c.appendChild(div);
   });
   renderAlrt(meds);
@@ -1279,29 +1291,49 @@ async function renderMeds(){
 function precoCxLote(l){
   return n(l.preco_por_cx)||(n(l.preco_total)>0&&n(l.quantidade_cx)>0?n(l.preco_total)/n(l.quantidade_cx):0);
 }
-function toggleMedExp(id){
-  medExpId=medExpId===id?null:id;
-  renderMeds();
+function abrirMedDrawer(id){
+  medDrawerId=id;
+  renderMedDrawer();
 }
-function renderMedExp(m,nomeEsc,custoRepor){
+function fecharMedDrawer(){
+  medDrawerId=null;
+  var wrap=document.getElementById('modal-med-drawer');
+  if(wrap) wrap.classList.remove('on');
+}
+function renderMedDrawer(){
+  if(!medDrawerId) return;
+  var m=(medsCache||[]).find(function(x){return x.id===medDrawerId;});
+  if(!m) return;
+  var nomeEsc=(m.nome||'Medicamento').replace(/['"\\]/g,'');
+  var custoRepor=m.preco_medio_cx>0&&m.disponivel<(m.estoque_ideal||0)
+    ? Math.ceil(((m.estoque_ideal||0)-m.disponivel)/(m.amp_por_caixa||1))*m.preco_medio_cx
+    : 0;
+  var caixasCheias=Math.floor(n(m.disponivel)/(n(m.amp_por_caixa)||1));
+  var ampolasAvulsas=n(m.disponivel)%(n(m.amp_por_caixa)||1);
   var hist=(m._histPrecos||[]).slice(0,3);
-  return '<div class="mexp">'
-    +'<div class="mexp-grid">'
-      +(isAdmin()?'<div class="mexp-card"><div class="col-lbl">Último Preço/Cx</div><div class="mexp-val">'+(m.ultimo_preco_cx>0?fBRL(m.ultimo_preco_cx):'—')+'</div></div>':'')
-      +(isAdmin()?'<div class="mexp-card"><div class="col-lbl">Preço Médio/Cx</div><div class="mexp-val">'+(m.preco_medio_cx>0?fBRL(m.preco_medio_cx):'—')+'</div></div>':'')
-      +(isAdmin()?'<div class="mexp-card"><div class="col-lbl">Custo Estoque</div><div class="mexp-val ok">'+(m.custo_estoque>0?fBRL(m.custo_estoque):'—')+'</div></div>':'')
-      +(isAdmin()?'<div class="mexp-card"><div class="col-lbl">Custo p/ Repor</div><div class="mexp-val '+(custoRepor>0?'warn':'')+'">'+(custoRepor>0?fBRL(custoRepor):'—')+'</div></div>':'')
+  var html='<div class="mdw" onclick="event.stopPropagation()">'
+    +'<div class="mdw-top"><div><h3>Medicamento</h3><div class="mdw-name">'+esc(m.nome)+'</div><div class="mdw-sub">'+esc(m.setor||'Medicamentos')+' · '+fNum(m.disponivel)+' amp disponíveis'+(ampolasAvulsas>0?' · '+fNum(caixasCheias)+' cx + '+fNum(ampolasAvulsas)+' avulsas':'')+'</div></div><button class="btn btn-gh btn-sm mdw-close" onclick="fecharMedDrawer()">Fechar</button></div>'
+    +'<div class="mdw-grid">'
+      +'<div class="mdw-card"><div class="col-lbl">Último Preço/Cx</div><div class="mdw-val">'+(m.ultimo_preco_cx>0?fBRL(m.ultimo_preco_cx):'—')+'</div></div>'
+      +'<div class="mdw-card"><div class="col-lbl">Preço Médio/Cx</div><div class="mdw-val">'+(m.preco_medio_cx>0?fBRL(m.preco_medio_cx):'—')+'</div></div>'
+      +'<div class="mdw-card"><div class="col-lbl">Custo Estoque</div><div class="mdw-val ok">'+(m.custo_estoque>0?fBRL(m.custo_estoque):'—')+'</div></div>'
+      +'<div class="mdw-card"><div class="col-lbl">Custo p/ Repor</div><div class="mdw-val '+(custoRepor>0?'warn':'')+'">'+(custoRepor>0?fBRL(custoRepor):'—')+'</div></div>'
     +'</div>'
-    +(hist.length?'<div class="sdiv" style="margin:2px 0 10px"><div class="sdiv-t">Últimos 3 Preços</div><div class="sdiv-l"></div></div><div class="mexp-prices">'+hist.map(function(l){
+    +(hist.length?'<div class="sdiv" style="margin:2px 0 10px"><div class="sdiv-t">Últimos 3 Preços</div><div class="sdiv-l"></div></div><div class="mdw-prices">'+hist.map(function(l){
       var preco=precoCxLote(l);
-      return '<div class="mexp-price"><div class="mexp-price-info"><div class="mexp-price-name">'+esc(l.fornecedores&&l.fornecedores.nome?l.fornecedores.nome:'Fornecedor não informado')+'</div><div class="mexp-price-meta">'+fd(l.validade)+' · '+fdt(l.criado_em)+' · '+fNum(l.quantidade_cx)+' cx</div></div><div class="mexp-val">'+(preco>0?fBRL(preco):'—')+'</div></div>';
-    }).join('')+'</div>':'<div class="mexp-price-meta" style="margin-bottom:6px">Ainda não há compras aprovadas suficientes para mostrar histórico de preços.</div>')
-    +'<div class="mexp-actions">'
+      return '<div class="mdw-price"><div class="mdw-price-info"><div class="mdw-price-name">'+esc(l.fornecedores&&l.fornecedores.nome?l.fornecedores.nome:'Fornecedor não informado')+'</div><div class="mdw-price-meta">'+fd(l.validade)+' · '+fdt(l.criado_em)+' · '+fNum(l.quantidade_cx)+' cx</div></div><div class="mdw-val">'+(preco>0?fBRL(preco):'—')+'</div></div>';
+    }).join('')+'</div>':'<div class="mdw-price-meta" style="margin-bottom:6px">Ainda não há compras aprovadas suficientes para mostrar histórico de preços.</div>')
+    +'<div class="mdw-actions">'
       +'<button class="btn btn-gh btn-sm" onclick="verLotes(\''+m.id+'\',\''+nomeEsc+'\')">Ver Lotes</button>'
       +(isAdmin()?'<button class="btn btn-edit btn-sm" onclick="abrirEditar(\''+m.id+'\',\''+nomeEsc+'\',\''+m.unidade+'\','+m.amp_por_caixa+','+(m.estoque_min||0)+','+(m.estoque_ideal||0)+')">Editar</button>':'')
       +(isAdmin()?'<button class="btn btn-del btn-sm" onclick="excluirItem(\''+m.id+'\',\''+nomeEsc+'\')">Excluir</button>':'')
     +'</div>'
   +'</div>';
+  var wrap=document.getElementById('modal-med-drawer');
+  if(!wrap){wrap=document.createElement('div');wrap.id='modal-med-drawer';wrap.className='mwrap';document.body.appendChild(wrap);}
+  wrap.innerHTML=html;
+  wrap.onclick=fecharMedDrawer;
+  wrap.classList.add('on');
 }
 function renderStatsFromData(meds){
   var t=meds.length,v=0,a=0,b=0,ok=0;
