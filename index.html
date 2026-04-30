@@ -962,7 +962,7 @@ async function iniciarApp(user){
   renderPacs();
   carregarProtocolosPacs();
   aplicarPermissoes();
-  syncSbBtns();
+  abrirModuloSalvo(getSavedPage());
 }
 
 async function fazerLogout(){
@@ -997,6 +997,7 @@ let semanas=Array.from({length:12},()=>[]);
 let sessoes=Array.from({length:12},()=>({realizada:false,data:'',hora:'',enfermeiro:'',obs:'',intercorrencias:'',itens:{}}));
 let activeSessao=0,dragItem=null,selSide=new Set(),activeDistCat='';
 let editingAtivo=null,payMode='pix',parcSel=2;
+const APP_PAGE_KEY='clc_app_current_page';
 
 function loadState(){
   try{
@@ -1097,6 +1098,25 @@ function aplicarPermissoes(){
   }
 }
 
+function saveCurrentPage(id){
+  try{ localStorage.setItem(APP_PAGE_KEY,id||'dashboard'); }catch(e){}
+}
+
+function getSavedPage(){
+  try{ return localStorage.getItem(APP_PAGE_KEY)||'dashboard'; }catch(e){ return 'dashboard'; }
+}
+
+function abrirModuloSalvo(id){
+  const modulo=(id||'dashboard').toLowerCase();
+  if(!podeAcessarModulo(modulo)) return goPage('dashboard');
+  const btn=document.querySelector(`.sb-btn[data-module="${modulo}"]`);
+  if(modulo==='precificador') return carregarPrecificador(btn);
+  if(modulo==='pacientes') return carregarPacientes(btn);
+  if(modulo==='agenda') return carregarAgenda(btn);
+  if(modulo==='administracao') return carregarAdministracao(btn);
+  return goPage(modulo,btn);
+}
+
 function goPage(id,btn){
   if(!podeAcessarModulo(id)){
     showToast('Acesso não permitido para este perfil.','err');
@@ -1107,6 +1127,7 @@ function goPage(id,btn){
   syncSbBtns(id);
   document.getElementById('tb-page').textContent=PAGE_LABELS[id]||'';
   document.getElementById('tb-clinic').textContent=PAGE_PREFIX[id]||'';
+  saveCurrentPage(id);
   if(id==='dashboard')renderDashboard();
   if(id==='estoque')carregarEstoque();
   if(id==='financeiro')carregarFinanceiro();
