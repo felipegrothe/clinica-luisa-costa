@@ -132,6 +132,9 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 #main.list-mode .pi-sub{font-size:11px;color:var(--muted);margin-top:3px;white-space:normal;line-height:1.45}
 .pi-badge-wrap{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0}
 .pi-badge{font-size:9px;font-weight:600;padding:2px 8px;border-radius:20px}
+.pi-origin{font-size:8px;letter-spacing:.6px;font-weight:700;padding:2px 7px;border-radius:20px;border:1px solid var(--bd2);color:var(--tl);background:#fff}
+.pi-origin.proto{border-color:#CFE4D5;color:#2B6A3F;background:#F3FAF5}
+.pi-origin.agenda{border-color:#E7D7C4;color:#8A5B2B;background:#FBF4EC}
 .pi-badge-ativo{background:#EAF2EC;color:#1e4d2e}
 .pi-badge-inativo{background:#F0EBE3;color:#6B5A4E}
 .pi-badge-follow{background:#EEEDFE;color:#3D2A9E}
@@ -611,6 +614,7 @@ let protocolosPorPaciente={};
 let pacientesSupabaseOk=false;
 let pacienteHistoryReady=false;
 let filtroAtual='todos';
+let agendaEventosFuturos=[];
 const followupSugestoesPendentes=new Set();
 let financeiroPacienteCache={};
 let financeiroMatchRunning=false;
@@ -632,6 +636,7 @@ async function init(){
 
 async function carregar(){
   await carregarProtocolosExternos();
+  await carregarAgendaFuturaPacientes();
   const{data,error}=await db.from('pacientes').select('*').order('nome');
   if(error){
     pacientesSupabaseOk=false;
@@ -681,6 +686,35 @@ function atualizarSyncPanel(){
 }
 
 function nomeKey(nome){return String(nome||'').trim().toLowerCase();}
+
+function dataEventoAgenda(ev){
+  return ev?.data||ev?.data_inicio||ev?.inicio||ev?.start_at||'';
+}
+
+async function carregarAgendaFuturaPacientes(){
+  agendaEventosFuturos=[];
+  try{
+    const hoje=new Date();
+    hoje.setHours(0,0,0,0);
+    const limite=new Date(hoje);
+    limite.setDate(limite.getDate()+90);
+    const de=hoje.toISOString().slice(0,10);
+    const ate=limite.toISOString().slice(0,10);
+    const {data,error}=await db.from('agenda_eventos')
+      .select('id,paciente_id,paciente_nome,status,data,data_inicio,inicio,start_at')
+      .gte('data',de)
+      .lte('data',ate);
+    if(error)throw error;
+    agendaEventosFuturos=(data||[]).filter(ev=>{
+      const st=String(ev?.status||'').toLowerCase();
+      if(st==='bloqueado'||st==='cancelado')return false;
+      if(!ev?.paciente_id&&!String(ev?.paciente_nome||'').trim())return false;
+      return true;
+    });
+  }catch(e){
+    agendaEventosFuturos=[];
+  }
+}
 
 async function carregarProtocolosExternos(){
   protocolosPorPaciente={};
@@ -910,12 +944,23 @@ function calcAniversario(p){
 }
 
 function temProtocoloAtivo(p){return getProtocolos(p).some(x=>x.ativo);}
+function temAgendaProxima90(p){
+  if(!p)return false;
+  const id=String(p.id||'');
+  const nk=nomeKey(p.nome);
+  return agendaEventosFuturos.some(ev=>{
+    if(ev?.paciente_id&&String(ev.paciente_id)===id)return true;
+    return nk&&nomeKey(ev?.paciente_nome||'')===nk;
+  });
+}
 
 function getCardMeta(p){
   const follow=calcFollowup(p);
   const aniversario=calcAniversario(p);
   const revisao=aguardandoRevisao(p);
   const ativoProto=temProtocoloAtivo(p);
+  const ativoAgenda90=temAgendaProxima90(p);
+  const ativoCarteira=ativoProto||ativoAgenda90;
   const ultimaAcao=getUltimaAcaoPaciente(p);
   const diasUltima=ultimaAcao?diasDesde(ultimaAcao):null;
   let statusClass='inativo';
@@ -942,13 +987,13 @@ function getCardMeta(p){
       ? 'Faz aniversário hoje.'
       : `Aniversário em ${aniversario.dias} dia${aniversario.dias>1?'s':''}.`;
     dot='w';
-  }else if(ativoProto){
+  }else if(ativoCarteira){
     const ativo=getProtocolos(p).find(x=>x.ativo);
     statusClass='ativo';
     statusLabel='Ativo';
     subtexto=ativo
       ? `${esc(ativo.nome||'Protocolo ativo')} · semana ${ativo.semanaAtual||1} de ${ativo.totalSemanas||12}`
-      : 'Protocolo ativo em andamento.';
+      : (ativoAgenda90?'Consulta agendada nos próximos 90 dias.':'Protocolo ativo em andamento.');
   }else{
     statusClass='inativo';
     statusLabel='Inativo';
@@ -958,7 +1003,7 @@ function getCardMeta(p){
   }
 
   const avClass=statusClass==='follow'?'roxo':statusClass==='aniversario'?'amarelo':statusClass==='neutro'||statusClass==='inativo'?'cinza':'terra';
-  return{follow,aniversario,revisao,ativoProto,ultimaAcao,diasUltima,statusClass,statusLabel,subtexto,avClass,dotClassName:dot};
+  return{follow,aniversario,revisao,ativoProto,ativoAgenda90,ativoCarteira,ultimaAcao,diasUltima,statusClass,statusLabel,subtexto,avClass,dotClassName:dot};
 }
 
 function atualizarContadoresLista(items){
@@ -995,6 +1040,9 @@ function renderPacienteCard(item){
   const p=item.p;
   const meta=item.meta;
   const ativo=pAtual?.id===p.id?'ativo':'';
+  const origemAtivo=meta.statusClass==='ativo'
+    ? '<span class="pi-origin proto">Ativo</span>'
+    : '';
   const iniciais=(p.nome||'').split(' ').filter(Boolean).slice(0,2).map(n=>n[0]).join('').toUpperCase()||'?';
   const foto=p.foto_url?`<img src="${p.foto_url}" alt=""/>`:iniciais;
   const iaTexto=esc(p.followup_sugestao_ia||'');
@@ -1012,6 +1060,7 @@ function renderPacienteCard(item){
     </div>
     <div class="pi-badge-wrap">
       <span class="pi-badge pi-badge-${meta.statusClass}">${meta.statusLabel}</span>
+      ${origemAtivo}
       <div class="pi-dot ${meta.dotClassName}"></div>
     </div>
   </div>
@@ -1023,8 +1072,8 @@ function matchesFiltro(item){
   if(filtroAtual==='followup')return !!item.meta.follow;
   if(filtroAtual==='aniversario')return !!item.meta.aniversario;
   if(filtroAtual==='revisao')return !!item.meta.revisao;
-  if(filtroAtual==='ativo')return item.meta.ativoProto;
-  if(filtroAtual==='inativo')return !item.meta.ativoProto;
+  if(filtroAtual==='ativo')return item.meta.ativoCarteira;
+  if(filtroAtual==='inativo')return !item.meta.ativoCarteira;
   return true;
 }
 
@@ -1035,7 +1084,7 @@ function renderListaAgrupada(items){
   anivers.forEach(item=>usados.add(item.p.id));
   const revisao=items.filter(item=>!usados.has(item.p.id)&&item.meta.revisao).sort((a,b)=>(a.p.nome||'').localeCompare(b.p.nome||''));
   revisao.forEach(item=>usados.add(item.p.id));
-  const ativos=items.filter(item=>!usados.has(item.p.id)&&item.meta.ativoProto).sort((a,b)=>(a.p.nome||'').localeCompare(b.p.nome||''));
+  const ativos=items.filter(item=>!usados.has(item.p.id)&&item.meta.ativoCarteira).sort((a,b)=>(a.p.nome||'').localeCompare(b.p.nome||''));
   ativos.forEach(item=>usados.add(item.p.id));
   const inativos=items.filter(item=>!usados.has(item.p.id)).sort((a,b)=>(a.p.nome||'').localeCompare(b.p.nome||''));
   return [
