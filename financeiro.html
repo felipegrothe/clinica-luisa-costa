@@ -2131,19 +2131,28 @@ function exportarDRE(){
   </div>
   <div>${corpo.innerHTML}</div>
   <div class="foot">Relatório gerado automaticamente pelo módulo Financeiro.</div>
-  <script>
-    window.addEventListener('load',function(){
-      setTimeout(function(){window.print();},120);
-    });
-  <\/script>
 </body>
 </html>`;
-  const w=window.open('','_blank','noopener,noreferrer,width=980,height=820');
-  if(!w){showToast('Permita pop-up para exportar o PDF','err');return;}
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
-  showToast('Prévia de impressão aberta. Salve como PDF.');
+  try{
+    const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const w=window.open(url,'_blank','width=980,height=820');
+    if(!w){
+      URL.revokeObjectURL(url);
+      showToast('Permita pop-up para exportar o PDF','err');
+      return;
+    }
+    const tryPrint=()=>{
+      try{w.focus();w.print();}catch(_){}
+      setTimeout(()=>{try{URL.revokeObjectURL(url);}catch(_){}},1200);
+    };
+    w.addEventListener('load',()=>setTimeout(tryPrint,180),{once:true});
+    setTimeout(tryPrint,900);
+    showToast('Prévia de impressão aberta. Salve como PDF.');
+  }catch(e){
+    console.error('Erro ao exportar DRE:',e);
+    showToast('Não foi possível exportar o DRE','err');
+  }
 }
 
 // ── IA ─────────────────────────────────────────────────────────
