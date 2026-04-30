@@ -698,17 +698,19 @@ async function carregarAgendaFuturaPacientes(){
     hoje.setHours(0,0,0,0);
     const limite=new Date(hoje);
     limite.setDate(limite.getDate()+90);
-    const de=hoje.toISOString().slice(0,10);
-    const ate=limite.toISOString().slice(0,10);
     const {data,error}=await db.from('agenda_eventos')
       .select('id,paciente_id,paciente_nome,status,data,data_inicio,inicio,start_at')
-      .gte('data',de)
-      .lte('data',ate);
+      .order('created_at',{ascending:false})
+      .limit(4000);
     if(error)throw error;
     agendaEventosFuturos=(data||[]).filter(ev=>{
       const st=String(ev?.status||'').toLowerCase();
       if(st==='bloqueado'||st==='cancelado')return false;
       if(!ev?.paciente_id&&!String(ev?.paciente_nome||'').trim())return false;
+      const dt=parseDateLoose(dataEventoAgenda(ev));
+      if(!dt)return false;
+      dt.setHours(0,0,0,0);
+      if(dt<hoje||dt>limite)return false;
       return true;
     });
   }catch(e){
