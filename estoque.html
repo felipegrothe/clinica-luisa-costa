@@ -497,11 +497,10 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
       <div class="ntab" data-tab="tirz" onclick="tab('tirz')">Tirzepatida</div>
       <div class="ntab" data-tab="impl" onclick="tab('impl')">Implantes</div>
       <div class="ndiv"></div>
-      <div class="ntab" data-tab="insumos" onclick="tab('insumos')">Insumos Clínicos</div>
-      <div class="ntab" data-tab="apoio" onclick="tab('apoio')">Apoio</div>
+      <div class="ntab" data-tab="insumos" onclick="tab('insumos')">Insumos e Apoio</div>
       <div class="ndiv"></div>
       <div class="ntab" data-tab="ia" onclick="tab('ia')">Assistente IA</div>
-      <div class="ntab admin-only" data-tab="nfs" onclick="tab('nfs')">Notas Fiscais</div>
+      <div class="ntab admin-only" data-tab="nfs" onclick="tab('nfs')">Compras e Fluxo</div>
       <div class="ntab" data-tab="pedidos" onclick="tab('pedidos')">Pedido de Compras</div>
       <div class="ntab admin-only" data-tab="fin" onclick="tab('fin')">Financeiro</div>
       <div class="ndiv"></div>
@@ -597,19 +596,17 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
     </div>
     <div class="sstat-grid" id="istats"></div>
     <div class="xsection-head">
-      <div class="col-lbl">Implante</div><div class="col-lbl">Vencimento</div><div class="col-lbl">Status</div>
-      <div class="col-lbl">Disponível</div><div class="col-lbl">Preço/Un</div><div class="col-lbl">Ações</div>
+      <div class="col-lbl">Frasco</div><div class="col-lbl">Vencimento</div><div class="col-lbl">Status</div>
+      <div class="col-lbl">Disponível</div><div class="col-lbl">Preço/Amp</div><div class="col-lbl">Ações</div>
     </div>
     <div id="ilist"></div>
     <div id="eimpl" style="display:none" class="empty"><div class="et">Nenhum implante</div><div class="es">Adicione acima</div></div>
   </div>
 
   <!-- INSUMOS -->
-  <div id="pg-insumos" class="pg"><div id="ins-c"></div></div>
-
-  <!-- APOIO -->
-  <div id="pg-apoio" class="pg">
-    <div class="sdiv"><div class="sdiv-t">Apoio da Clínica</div><div class="sdiv-l"></div></div>
+  <div id="pg-insumos" class="pg">
+    <div id="ins-c"></div>
+    <div class="sdiv" style="margin:20px 0 16px"><div class="sdiv-t">Apoio da Clínica</div><div class="sdiv-l"></div></div>
     <div style="display:flex;flex-direction:column;gap:18px">
       <div id="apoio-lmp"></div>
       <div id="apoio-cnf"></div>
@@ -617,14 +614,16 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
     </div>
   </div>
 
-  <!-- NOTAS FISCAIS -->
+  <!-- COMPRAS -->
   <div id="pg-nfs" class="pg">
-    <div class="sdiv"><div class="sdiv-t">Notas Fiscais Pendentes de Aprovação</div><div class="sdiv-l"></div>
-      <button class="btn btn-gd btn-sm" onclick="abrirNFUpload()">Nova Entrada / NF</button>
+    <div class="sdiv"><div class="sdiv-t">Compras em Orçamento / Aprovação</div><div class="sdiv-l"></div>
+      <button class="btn btn-gd btn-sm" onclick="abrirNFUpload()">Nova Compra</button>
     </div>
     <div id="nfs-pendentes"></div>
-    <div class="sdiv" style="margin-top:20px"><div class="sdiv-t">Histórico de NFs</div><div class="sdiv-l"></div></div>
+    <div class="sdiv" style="margin-top:20px"><div class="sdiv-t">Compras em Trânsito / Recebidas</div><div class="sdiv-l"></div></div>
     <div id="nfs-historico"></div>
+    <div class="sdiv" style="margin-top:20px"><div class="sdiv-t">Comparativo de Orçamentos</div><div class="sdiv-l"></div></div>
+    <div id="nfs-comparativo"></div>
   </div>
 
   <!-- PEDIDOS -->
@@ -1058,7 +1057,7 @@ async function refreshVisibleData(includeDash){
   if(t==='meds')    await renderMeds();
   if(t==='tirz')    await renderTirz();
   if(t==='impl')    await renderImpl();
-  if(t==='insumos') await renderSetor('insumos','ins-c');
+  if(t==='insumos') { await renderSetor('insumos','ins-c'); await renderApoio(); }
   if(t==='apoio')   await renderApoio();
   if(t==='nfs')     await renderNFs();
   if(t==='pedidos') await renderPedidos();
@@ -1146,7 +1145,7 @@ function tab(t){
   if(t==='dash')    renderDash();
   if(t==='nfs')     renderNFs();
   if(t==='ia'){     gerarResumo(); ensureIAIntro(); }
-  if(t==='insumos') renderSetor('insumos','ins-c');
+  if(t==='insumos') { renderSetor('insumos','ins-c'); renderApoio(); }
   if(t==='apoio')   renderApoio();
 }
 
@@ -1688,7 +1687,7 @@ async function renderTirz(){
       +'<div class="mc"><div class="col-lbl">Status</div>'+bdg(t.validade)+'</div>'
       +'<div class="mc ctr"><div class="col-lbl">Disponível</div><div class="nb" style="'+(t.ampolas_disp<=0?'color:var(--Rm)':'')+'">'+fNum(t.ampolas_disp)+'</div><div class="lt">ampolas</div></div>'
       +'<div class="mc"><div class="col-lbl">Preço/Amp</div><div class="nm">'+(t.preco_por_amp>0?fBRL(t.preco_por_amp):'—')+'</div></div>'
-      +'<div class="mc mactions"><button class="btn btn-rd btn-sm btn-block" onclick="abrirRet(\'tirz\',\''+t.id+'\',\'Tirzepatida '+t.mg+'mg\','+t.ampolas_disp+',\'amp\','+t.ampolas_usadas+','+t.ampolas_total+')">Retirar</button></div>'
+      +'<div class="mc mactions"><button class="btn btn-tl btn-sm btn-block" onclick="adjTirz(\''+t.id+'\','+t.ampolas_total+','+t.ampolas_usadas+',1)">Adicionar</button><button class="btn btn-rd btn-sm btn-block" onclick="abrirRet(\'tirz\',\''+t.id+'\',\'Tirzepatida '+t.mg+'mg\','+t.ampolas_disp+',\'amp\','+t.ampolas_usadas+','+t.ampolas_total+')">Retirar</button></div>'
     +'</div>'
     +'<div class="xrow bot">'
       +'<div class="mc mstock-cell"><div class="col-lbl">Estoque</div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px"><span class="nb">'+fNum(t.ampolas_disp)+'</span><span style="font-size:11px;color:var(--c4)">amp disponíveis</span>'+((t.estoque_min_ampolas||0)>0&&t.ampolas_disp<=(t.estoque_min_ampolas||0)?'<span class="badge bd" style="font-size:7px">Mínimo</span>':'')+'</div><div class="lt">Mín: '+fNum(t.estoque_min_ampolas||0)+' · Total: '+fNum(t.ampolas_total)+'</div></div>'
@@ -1716,7 +1715,7 @@ function renderTirzDrawer(){
         +'<div class="mdw-card"><div class="col-lbl">Lote</div><div class="mdw-val">'+esc(t.numero_lote||'—')+'</div></div>'
         +'<div class="mdw-card"><div class="col-lbl">Observação</div><div class="mdw-val">'+esc(t.observacoes||'—')+'</div></div>'
       +'</div>'
-      +'<div class="mdw-actions"><button class="btn btn-rd btn-sm" onclick="abrirRet(\'tirz\',\''+t.id+'\',\'Tirzepatida '+t.mg+'mg\','+t.ampolas_disp+',\'amp\','+t.ampolas_usadas+','+t.ampolas_total+')">Retirar</button>'+(isAdmin()?'<button class="btn btn-edit btn-sm" onclick="fecharTirzDrawer();abrirEditarTirz(\''+t.id+'\')">Editar</button><button class="btn btn-del btn-sm" onclick="rmTirz(\''+t.id+'\')">Excluir</button>':'')+'</div>'
+      +'<div class="mdw-actions"><button class="btn btn-tl btn-sm" onclick="adjTirz(\''+t.id+'\','+t.ampolas_total+','+t.ampolas_usadas+',1)">Adicionar</button><button class="btn btn-rd btn-sm" onclick="abrirRet(\'tirz\',\''+t.id+'\',\'Tirzepatida '+t.mg+'mg\','+t.ampolas_disp+',\'amp\','+t.ampolas_usadas+','+t.ampolas_total+')">Retirar</button>'+(isAdmin()?'<button class="btn btn-edit btn-sm" onclick="fecharTirzDrawer();abrirEditarTirz(\''+t.id+'\')">Editar</button><button class="btn btn-del btn-sm" onclick="rmTirz(\''+t.id+'\')">Excluir</button>':'')+'</div>'
     +'</div>';
     var wrap=document.getElementById('modal-tirz-drawer');
     if(!wrap){wrap=document.createElement('div');wrap.id='modal-tirz-drawer';wrap.className='drawer-wrap';document.body.appendChild(wrap);}
@@ -1969,27 +1968,33 @@ async function adjIns(id,setor,cid,delta){
 }
 async function rmIns(id,setor,cid){var r=await db.from('itens').update({ativo:false}).eq('id',id);if(!okResp(r,'Erro ao excluir item'))return;flash();renderSetor(setor,cid);scheduleRefresh(true);}
 
-// ── NOTAS FISCAIS ────────────────────────────────────────────────────
+// ── COMPRAS E FLUXO ───────────────────────────────────────────────────
 async function renderNFs(){
   var {data:pend}=await db.from('lotes').select('*,itens(nome),fornecedores(nome)').eq('status','pendente').order('criado_em',{ascending:false});
   var el=document.getElementById('nfs-pendentes');
-  if(!pend||!pend.length){el.innerHTML='<div class="empty"><div class="es">Nenhuma NF pendente</div></div>';return;}
-  el.innerHTML='<div class="hlist">'+pend.map(function(l){
+  if(!pend||!pend.length){el.innerHTML='<div class="empty"><div class="es">Nenhuma compra em orçamento pendente</div></div>';}
+  else el.innerHTML='<div class="hlist">'+pend.map(function(l){
     return'<div class="hi"><div>'
-      +'<div class="hn">'+l.itens.nome+' <span class="badge lote-pendente" style="font-size:7px">Pendente</span></div>'
-      +'<div class="hd">'+(l.fornecedores?l.fornecedores.nome:'—')+' · '+l.quantidade_cx+' cx × '+l.amp_por_caixa+' amp · Val: '+fd(l.validade)+' · Enviado: '+fdt(l.criado_em)+'</div>'
-      +(l.preco_total>0?'<div class="hd">'+fBRL(l.preco_total)+' total · '+fBRL(l.preco_por_cx)+'/cx</div>':'')
+      +'<div class="hn">'+l.itens.nome+' <span class="badge lote-pendente" style="font-size:7px">Orçamento pendente</span></div>'
+      +'<div class="hd">'+(l.fornecedores?l.fornecedores.nome:'—')+' · '+l.quantidade_cx+' cx x '+l.amp_por_caixa+' amp · Val: '+fd(l.validade)+' · Solicitado: '+fdt(l.criado_em)+'</div>'
+      +(l.preco_total>0?'<div class="hd">'+fBRL(l.preco_total)+' total · '+fBRL(l.preco_por_cx)+'/cx</div>':'<div class="hd">Valor ainda não informado</div>')
     +'</div><div class="hr btn-stack" style="align-items:flex-end">'
       +(isAdminOrCompras()?'<button class="btn btn-ok btn-sm" onclick="aprovarLote(\''+l.id+'\')">Aprovar</button><button class="btn btn-del btn-sm" onclick="rejeitarLote(\''+l.id+'\')">Rejeitar</button>':'<span style="font-size:10px;color:var(--c4)">Aguarda aprovação</span>')
     +'</div></div>';
   }).join('')+'</div>';
-  var {data:hist}=await db.from('lotes').select('*,itens(nome),fornecedores(nome)').in('status',['aprovado','rejeitado']).order('criado_em',{ascending:false}).limit(20);
+  var {data:hist}=await db.from('lotes').select('*,itens(nome),fornecedores(nome)').in('status',['aprovado','rejeitado']).order('criado_em',{ascending:false}).limit(25);
   var eh=document.getElementById('nfs-historico');
-  if(!hist||!hist.length){eh.innerHTML='<div class="empty"><div class="es">Nenhum histórico</div></div>';return;}
+  if(!hist||!hist.length){eh.innerHTML='<div class="empty"><div class="es">Nenhuma compra em trânsito/recebida</div></div>';}
+  else
   eh.innerHTML='<div class="hlist">'+hist.map(function(l){
     var sc=l.status==='aprovado'?'lote-aprovado':'lote-rejeitado';
-    return'<div class="hi"><div><div class="hn">'+l.itens.nome+' <span class="badge '+sc+'" style="font-size:7px">'+l.status.toUpperCase()+'</span></div><div class="hd">'+(l.fornecedores?l.fornecedores.nome:'—')+' · '+fd(l.validade)+' · '+fdt(l.criado_em)+'</div></div><div class="hr"><div class="ha" style="color:var(--Gm)">'+(l.preco_total>0?fBRL(l.preco_total):'—')+'</div></div></div>';
+    var stxt=l.status==='aprovado'?'Em trânsito / recebido':'Rejeitado';
+    return'<div class="hi"><div><div class="hn">'+l.itens.nome+' <span class="badge '+sc+'" style="font-size:7px">'+stxt.toUpperCase()+'</span></div><div class="hd">'+(l.fornecedores?l.fornecedores.nome:'—')+' · '+fd(l.validade)+' · '+fdt(l.criado_em)+'</div></div><div class="hr"><div class="ha" style="color:'+(l.status==='aprovado'?'var(--Gm)':'var(--Rm)')+'">'+(l.preco_total>0?fBRL(l.preco_total):'—')+'</div></div></div>';
   }).join('')+'</div>';
+  var {data:comp}=await db.from('comparativo_fornecedores').select('*').order('item_nome');
+  var ec=document.getElementById('nfs-comparativo');
+  if(!comp||!comp.length){ec.innerHTML='<div class="empty"><div class="es">Sem comparativo disponível por enquanto</div></div>';return;}
+  ec.innerHTML='<div style="background:#fff;border:1px solid var(--c6);border-radius:var(--rad);overflow:hidden;box-shadow:var(--sh1)"><table class="ftbl"><thead><tr><th>Item</th><th>Fornecedor</th><th>Compras</th><th>Preço Médio/Cx</th><th>Menor Preço</th></tr></thead><tbody>'+comp.map(function(c){return '<tr><td style="font-weight:700">'+c.item_nome+'</td><td>'+c.fornecedor+'</td><td style="text-align:center">'+c.total_compras+'</td><td>'+(c.preco_medio_cx?fBRL(c.preco_medio_cx):'—')+'</td><td style="color:var(--Gm);font-weight:700">'+(c.menor_preco?fBRL(c.menor_preco):'—')+'</td></tr>';}).join('')+'</tbody></table></div>';
 }
 
 // ── PEDIDOS ──────────────────────────────────────────────────────────
@@ -2368,12 +2373,12 @@ async function renderImpl(){
     var div=document.createElement('div');
     div.className='xcard '+cls;
     div.innerHTML='<div class="xrow">'
-      +'<div class="mc"><div class="col-lbl">Implante</div><div class="xmain-title">'+esc(obs)+'</div><div class="xmain-sub">'+esc(t.fornecedores&&t.fornecedores.nome?t.fornecedores.nome:'Fornecedor não informado')+' · '+esc(t.numero_lote?('Lote: '+t.numero_lote):'Sem lote')+'</div></div>'
+      +'<div class="mc"><div class="col-lbl">Frasco</div><div class="xmain-title">'+esc(obs)+'</div><div class="xmain-sub">'+esc(t.fornecedores&&t.fornecedores.nome?t.fornecedores.nome:'Fornecedor não informado')+' · '+esc(t.numero_lote?('Lote: '+t.numero_lote):'Sem lote')+'</div></div>'
       +'<div class="mc"><div class="col-lbl">Vencimento</div><div style="font-size:12px">'+fd(t.validade)+'</div></div>'
       +'<div class="mc"><div class="col-lbl">Status</div>'+bdg(t.validade)+'</div>'
       +'<div class="mc ctr"><div class="col-lbl">Disponível</div><div class="nb" style="'+(tdisp<=0?'color:var(--Rm)':'')+'">'+fNum(tdisp)+'</div><div class="lt">unidades</div></div>'
-      +'<div class="mc"><div class="col-lbl">Preço/Un</div><div class="nm">'+(t.preco_por_amp>0?fBRL(t.preco_por_amp):'—')+'</div></div>'
-      +'<div class="mc mactions"><button class="btn btn-rd btn-sm btn-block" onclick="abrirRet(\'impl\',\''+tid+'\',\''+nomeEsc+'\','+tdisp+',\'un\','+tus+','+t.ampolas_total+')">Retirar</button></div>'
+      +'<div class="mc"><div class="col-lbl">Preço/Amp</div><div class="nm">'+(t.preco_por_amp>0?fBRL(t.preco_por_amp):'—')+'</div></div>'
+      +'<div class="mc mactions"><button class="btn btn-pm btn-sm btn-block" onclick="adjImpl(\''+tid+'\','+t.ampolas_total+','+tus+',1)">Adicionar</button><button class="btn btn-rd btn-sm btn-block" onclick="abrirRet(\'impl\',\''+tid+'\',\''+nomeEsc+'\','+tdisp+',\'un\','+tus+','+t.ampolas_total+')">Retirar</button></div>'
     +'</div>'
     +'<div class="xrow bot">'
       +'<div class="mc mstock-cell"><div class="xdrawer-split"><div><div class="col-lbl">Disponibilidade</div><div class="xstock-meta"><span class="nb">'+fNum(tdisp)+'</span><span style="font-size:11px;color:var(--c4)">un disponíveis</span>'+((t.estoque_min_ampolas||0)>0&&tdisp<=(t.estoque_min_ampolas||0)?'<span class="badge bd" style="font-size:7px">Mínimo</span>':'')+'</div><div class="xstock-line"><div class="prog-track"><div class="prog-fill" style="width:'+pct+'%;background:'+(tdisp<=(t.estoque_min_ampolas||0)&&n(t.estoque_min_ampolas||0)>0?'var(--Rm)':'var(--Pm)')+'"></div></div><span class="prog-pct">'+pct+'%</span></div><div class="lt">Mín: '+fNum(t.estoque_min_ampolas||0)+' · Ideal: '+fNum(t.estoque_ideal_ampolas||0)+' · Total: '+fNum(t.ampolas_total||0)+'</div></div><button class="btn btn-gh btn-xs" onclick="abrirImplDrawer(\''+tid+'\')">Detalhes</button></div></div>'
@@ -2400,7 +2405,7 @@ function renderImplDrawer(){
         +'<div class="mdw-card"><div class="col-lbl">Lote</div><div class="mdw-val">'+esc(t.numero_lote||'—')+'</div></div>'
         +'<div class="mdw-card"><div class="col-lbl">Fornecedor</div><div class="mdw-val">'+esc(t.fornecedores&&t.fornecedores.nome?t.fornecedores.nome:'—')+'</div></div>'
       +'</div>'
-      +'<div class="mdw-actions"><button class="btn btn-rd btn-sm" onclick="abrirRet(\'impl\',\''+t.id+'\',\''+esc(obs).replace(/'/g,"\\'")+'\','+t.ampolas_disp+',\'un\','+t.ampolas_usadas+','+t.ampolas_total+')">Retirar</button>'+(isAdmin()?'<button class="btn btn-edit btn-sm" onclick="fecharImplDrawer();abrirEditarImpl(\''+t.id+'\')">Editar</button><button class="btn btn-del btn-sm" onclick="rmImpl(\''+t.id+'\')">Excluir</button>':'')+'</div>'
+      +'<div class="mdw-actions"><button class="btn btn-pm btn-sm" onclick="adjImpl(\''+t.id+'\','+t.ampolas_total+','+t.ampolas_usadas+',1)">Adicionar</button><button class="btn btn-rd btn-sm" onclick="abrirRet(\'impl\',\''+t.id+'\',\''+esc(obs).replace(/'/g,"\\'")+'\','+t.ampolas_disp+',\'un\','+t.ampolas_usadas+','+t.ampolas_total+')">Retirar</button>'+(isAdmin()?'<button class="btn btn-edit btn-sm" onclick="fecharImplDrawer();abrirEditarImpl(\''+t.id+'\')">Editar</button><button class="btn btn-del btn-sm" onclick="rmImpl(\''+t.id+'\')">Excluir</button>':'')+'</div>'
     +'</div>';
     var wrap=document.getElementById('modal-impl-drawer');
     if(!wrap){wrap=document.createElement('div');wrap.id='modal-impl-drawer';wrap.className='drawer-wrap';document.body.appendChild(wrap);}
