@@ -482,6 +482,7 @@ body.iframe-mode #login-wrap{display:none!important}
         <div class="dre-head">
           <span style="font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--tl)">Demonstração do resultado — <span id="dre-mes">—</span></span>
           <div style="display:flex;gap:8px;align-items:center">
+            <select id="dre-mes-sel" class="filtro-select" style="min-width:180px" onchange="setDreMes(this.value)"></select>
             <span style="font-size:10px;color:var(--tl)" id="dre-data"></span>
             <button class="btn btn-sm" onclick="exportarDRE()">Exportar PDF</button>
           </div>
@@ -813,6 +814,7 @@ let PACIENTES_DB=[];
 let TIPO='receita', PAY='pix';
 let DET_ID=null, QUIT_ID=null, QUIT_ORIGEM=null, QUIT_SALDO=0;
 let INAD_FILTRO='todos', DASH_FILTRO='', DASH_MES='';
+let DRE_MES='';
 let INAD_LISTA=[];
 let INAD_EDIT_ID=null;
 let IMPORT_FIN=null;
@@ -2044,7 +2046,16 @@ async function removerLanc(){
 
 // ── DRE ───────────────────────────────────────────────────────
 function renderDRE(){
-  const mes=mesAtual();
+  const sel=S('dre-mes-sel');
+  if(sel){
+    const meses=[...new Set(LANCS.filter(l=>l.data).map(l=>String(l.data).slice(0,7)))];
+    if(!meses.includes(mesAtual()))meses.push(mesAtual());
+    meses.sort().reverse();
+    const atual=sel.value||DRE_MES||mesAtual();
+    sel.innerHTML=meses.map(m=>`<option value="${m}" ${m===atual?'selected':''}>${fmtMes(m)}</option>`).join('');
+    DRE_MES=sel.value||atual;
+  }
+  const mes=DRE_MES||mesAtual();
   setSafe('dre-mes',fmtMes(mes));
   setSafe('dre-data',new Date().toLocaleDateString('pt-BR'));
   const get=(cod)=>LANCS.filter(l=>l.data?.startsWith(mes)&&l.categoria_dre?.startsWith(cod))
@@ -2092,6 +2103,11 @@ function renderDRE(){
     g('6. Despesas financeiras')+
     row('(−) Empréstimo bancário',emp,true)+row('(−) Tarifas Sicoob',tar,true)+
     res('Resultado do mês',resultado);
+}
+
+function setDreMes(mes){
+  DRE_MES=mes||mesAtual();
+  renderDRE();
 }
 
 function exportarDRE(){
