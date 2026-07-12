@@ -41,7 +41,14 @@ begin
     ('alertas_validade','estoque'),('comparativo_fornecedores','estoque')
   ) as x(table_name,module_name)
   loop
-    if to_regclass('public.'||rec.table_name) is not null then
+    if exists (
+      select 1
+      from pg_catalog.pg_class c
+      join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+      where n.nspname = 'public'
+        and c.relname = rec.table_name
+        and c.relkind in ('r', 'p')
+    ) then
       module_name := rec.module_name;
       execute format('alter table public.%I enable row level security',rec.table_name);
       execute format('drop policy if exists %I on public.%I',rec.table_name||'_select_authenticated',rec.table_name);
