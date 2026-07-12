@@ -28,26 +28,26 @@ create policy "precificador_state_select_authenticated"
 on public.precificador_state
 for select
 to authenticated
-using (true);
+using (public.can_access_module('precificador'));
 
 create policy "precificador_state_insert_authenticated"
 on public.precificador_state
 for insert
 to authenticated
-with check (true);
+with check (public.can_access_module('precificador'));
 
 create policy "precificador_state_update_authenticated"
 on public.precificador_state
 for update
 to authenticated
-using (true)
-with check (true);
+using (public.can_access_module('precificador'))
+with check (public.can_access_module('precificador'));
 
 create policy "precificador_state_delete_authenticated"
 on public.precificador_state
 for delete
 to authenticated
-using (true);
+using (public.can_access_module('precificador'));
 
 insert into public.precificador_state (id, state)
 values (1, '{}'::jsonb)
@@ -96,26 +96,26 @@ create policy "protocolos_select_authenticated"
 on public.protocolos
 for select
 to authenticated
-using (true);
+using (public.can_access_module('precificador'));
 
 create policy "protocolos_insert_authenticated"
 on public.protocolos
 for insert
 to authenticated
-with check (true);
+with check (public.can_access_module('precificador'));
 
 create policy "protocolos_update_authenticated"
 on public.protocolos
 for update
 to authenticated
-using (true)
-with check (true);
+using (public.can_access_module('precificador'))
+with check (public.can_access_module('precificador'));
 
 create policy "protocolos_delete_authenticated"
 on public.protocolos
 for delete
 to authenticated
-using (true);
+using (public.can_access_module('precificador'));
 
 -- Garante as colunas usadas pelo formulario publico de cadastro.
 create table if not exists public.pacientes (
@@ -220,20 +220,20 @@ create policy "pacientes_fotos_insert_authenticated"
 on storage.objects
 for insert
 to authenticated
-with check (bucket_id = 'pacientes-fotos');
+with check (bucket_id = 'pacientes-fotos' and public.can_access_module('pacientes'));
 
 create policy "pacientes_fotos_update_authenticated"
 on storage.objects
 for update
 to authenticated
-using (bucket_id = 'pacientes-fotos')
-with check (bucket_id = 'pacientes-fotos');
+using (bucket_id = 'pacientes-fotos' and public.can_access_module('pacientes'))
+with check (bucket_id = 'pacientes-fotos' and public.can_access_module('pacientes'));
 
 create policy "pacientes_fotos_delete_authenticated"
 on storage.objects
 for delete
 to authenticated
-using (bucket_id = 'pacientes-fotos');
+using (bucket_id = 'pacientes-fotos' and public.can_access_module('pacientes'));
 
 create policy "pacientes_fotos_public_insert_cadastro"
 on storage.objects

@@ -700,6 +700,7 @@ function allItems(){const r=[];Object.entries(CATS_MAP).forEach(([c,ns])=>ns.for
 function getCat(n){for(const[c,ns]of Object.entries(CATS_MAP))if(ns.includes(n))return c;return'Outros';}
 function fmt(v){return'R$\u00a0'+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function esc(s){return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
+function escHtml(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function getNome(){return document.getElementById('nome-livre').value||(activePacIdx!==null&&pacientes[activePacIdx]?pacientes[activePacIdx].nome:'');}
 function getMesesAtivos(){return duracao===0?Math.max(1,Number(document.getElementById('dur-livre-meses')?.value)||1):duracao;}
 function getWeekCount(){return Math.max(1,getMesesAtivos()*4);}
@@ -943,7 +944,7 @@ async function salvarProtocoloLocal(){
 function renderPacSelect(){
   const sel=document.getElementById('sel-pac');
   const curNome=activePacIdx!==null&&pacientes[activePacIdx]?pacientes[activePacIdx].nome:getNome();
-  sel.innerHTML='<option value="">— Selecionar paciente —</option>'+pacientes.map((p,i)=>`<option value="${i}">${p.nome}</option>`).join('');
+  sel.innerHTML='<option value="">— Selecionar paciente —</option>'+pacientes.map((p,i)=>`<option value="${i}">${escHtml(p.nome)}</option>`).join('');
   const idx=pacientes.findIndex(p=>normalizarNome(p.nome)===normalizarNome(curNome));
   sel.value=idx>=0?String(idx):'';
   activePacIdx=idx>=0?idx:null;

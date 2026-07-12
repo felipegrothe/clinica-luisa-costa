@@ -35,37 +35,30 @@ alter table public.protocolos add column if not exists updated_at timestamptz de
 
 do $$
 declare
-  t text;
-  tables text[] := array[
-    'pacientes',
-    'protocolos',
-    'fin_lancamentos',
-    'fin_inadimplentes',
-    'itens',
-    'lotes',
-    'movimentacoes',
-    'tirzepatida_frascos',
-    'tirzepatida_movimentacoes',
-    'fornecedores',
-    'setores',
-    'auditoria',
-    'audit_logs'
-  ];
+  rec record;
 begin
-  foreach t in array tables loop
-    if to_regclass('public.' || t) is not null then
-      execute format('alter table public.%I enable row level security', t);
-      execute format('grant select, insert, update, delete on public.%I to authenticated', t);
+  for rec in select * from (values
+    ('pacientes','pacientes'),('protocolos','precificador'),
+    ('fin_lancamentos','financeiro'),('fin_inadimplentes','financeiro'),
+    ('itens','estoque'),('lotes','estoque'),('movimentacoes','estoque'),
+    ('tirzepatida_frascos','estoque'),('tirzepatida_movimentacoes','estoque'),
+    ('fornecedores','estoque'),('setores','estoque'),('auditoria','estoque')
+  ) as x(table_name,module_name)
+  loop
+    if to_regclass('public.' || rec.table_name) is not null then
+      execute format('alter table public.%I enable row level security', rec.table_name);
+      execute format('grant select, insert, update, delete on public.%I to authenticated', rec.table_name);
 
-      execute format('drop policy if exists %I on public.%I', t || '_select_authenticated', t);
-      execute format('drop policy if exists %I on public.%I', t || '_insert_authenticated', t);
-      execute format('drop policy if exists %I on public.%I', t || '_update_authenticated', t);
-      execute format('drop policy if exists %I on public.%I', t || '_delete_authenticated', t);
+      execute format('drop policy if exists %I on public.%I', rec.table_name || '_select_authenticated', rec.table_name);
+      execute format('drop policy if exists %I on public.%I', rec.table_name || '_insert_authenticated', rec.table_name);
+      execute format('drop policy if exists %I on public.%I', rec.table_name || '_update_authenticated', rec.table_name);
+      execute format('drop policy if exists %I on public.%I', rec.table_name || '_delete_authenticated', rec.table_name);
+      execute format('drop policy if exists %I on public.%I', rec.table_name || '_module_access', rec.table_name);
 
-      execute format('create policy %I on public.%I for select to authenticated using (true)', t || '_select_authenticated', t);
-      execute format('create policy %I on public.%I for insert to authenticated with check (true)', t || '_insert_authenticated', t);
-      execute format('create policy %I on public.%I for update to authenticated using (true) with check (true)', t || '_update_authenticated', t);
-      execute format('create policy %I on public.%I for delete to authenticated using (true)', t || '_delete_authenticated', t);
+      execute format(
+        'create policy %I on public.%I for all to authenticated using (public.can_access_module(%L)) with check (public.can_access_module(%L))',
+        rec.table_name || '_module_access', rec.table_name, rec.module_name, rec.module_name
+      );
     end if;
   end loop;
 end $$;

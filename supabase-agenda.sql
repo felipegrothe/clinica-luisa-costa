@@ -48,51 +48,51 @@ create policy "agenda_select_authenticated"
 on public.agenda_eventos
 for select
 to authenticated
-using (true);
+using (public.can_access_module('agenda'));
 
 create policy "agenda_insert_authenticated"
 on public.agenda_eventos
 for insert
 to authenticated
-with check (true);
+with check (public.can_access_module('agenda'));
 
 create policy "agenda_update_authenticated"
 on public.agenda_eventos
 for update
 to authenticated
-using (true)
-with check (true);
+using (public.can_access_module('agenda'))
+with check (public.can_access_module('agenda'));
 
 create policy "agenda_delete_authenticated"
 on public.agenda_eventos
 for delete
 to authenticated
-using (true);
+using (public.can_access_module('agenda'));
 
 create policy "agenda_config_select_authenticated"
 on public.agenda_configuracoes
 for select
 to authenticated
-using (true);
+using (public.can_access_module('agenda'));
 
 create policy "agenda_config_insert_authenticated"
 on public.agenda_configuracoes
 for insert
 to authenticated
-with check (true);
+with check (public.can_access_module('agenda'));
 
 create policy "agenda_config_update_authenticated"
 on public.agenda_configuracoes
 for update
 to authenticated
-using (true)
-with check (true);
+using (public.can_access_module('agenda'))
+with check (public.can_access_module('agenda'));
 
 create policy "agenda_config_delete_authenticated"
 on public.agenda_configuracoes
 for delete
 to authenticated
-using (true);
+using (public.can_access_module('agenda'));
 
 create index if not exists agenda_eventos_data_idx on public.agenda_eventos(data);
 create index if not exists agenda_eventos_profissional_idx on public.agenda_eventos(profissional);

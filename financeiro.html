@@ -886,7 +886,12 @@ function loadCatsLocal(){
 }
 loadCatsLocal();
 function labelCategoria(lista,cod){
-  return lista.find(c=>cod&&cod.startsWith(c.cod))?.label||cod||'—';
+  return lista.find(c=>cod&&String(cod)===String(c.cod))?.label||cod||'—';
+}
+function categoriaNoGrupo(categoria,codigo){
+  const cat=String(categoria||''),cod=String(codigo||'');
+  if(!cat||!cod)return false;
+  return cod.endsWith('.')?cat.startsWith(cod):cat===cod;
 }
 function dataNoIntervalo(data,de,ate){
   if(!data)return false;
@@ -906,7 +911,7 @@ function normalizarTextoPdf(txt){
   return String(txt||'').replace(/\s+/g,' ').trim();
 }
 function sugerirValorPdf(txt){
-  const match=[...String(txt||'').matchAll(/(?:R\$\s*)?(\d{1,3}(?:\.\d{3})*,\d{2})/g)].map(m=>m[1]);
+  const match=[...String(txt||'').matchAll(/(?:R\$\s*)?(\d{1,3}(?:\.\d{3})+,\d{2}|\d+,\d{2})/g)].map(m=>m[1]);
   if(!match.length)return '';
   const bruto=match.sort((a,b)=>{
     const va=Number(a.replace(/\./g,'').replace(',','.'));
@@ -927,19 +932,25 @@ function sugerirEntidadePdf(txt){
 function setImportCategorias(tipo){
   const sel=S('imp-cat'); if(!sel)return;
   const lista=tipo==='receita'?CATS_REC:CATS_DES;
-  sel.innerHTML=lista.map(c=>`<option value="${c.cod}">${c.label}</option>`).join('');
+  sel.innerHTML=lista.map(c=>`<option value="${esc(c.cod)}">${esc(c.label)}</option>`).join('');
 }
 
 // ── UTILS ──────────────────────────────────────────────────────
-const fmt=(v)=>'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
-const hoje=()=>new Date().toISOString().slice(0,10);
-const mesAtual=()=>new Date().toISOString().slice(0,7);
+const fmt=(v)=>'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const isoLocal=(d=new Date())=>{
+  const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),dia=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${dia}`;
+};
+const hoje=()=>isoLocal();
+const mesAtual=()=>isoLocal().slice(0,7);
 const fmtData=(d)=>d?new Date(d+'T12:00').toLocaleDateString('pt-BR'):'—';
 const fmtMes=(m)=>{if(!m)return'';const d=new Date(m+'-01');return d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});};
 const isAdmin=()=>NIVEL==='admin'||NIVEL==='administrador'||NIVEL==='Administrador';
+const canManageFinance=()=>isAdmin()||String(NIVEL||'').toLowerCase()==='financeiro';
 const S=(id)=>document.getElementById(id);
 const setSafe=(id,v)=>{const e=S(id);if(e)e.textContent=v;};
 const esc=(s)=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const escJs=(s)=>String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/[\r\n]/g,' ');
 function normalizePacienteNome(nome){
   return String(nome||'')
     .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
@@ -1009,8 +1020,33 @@ async function iniciar(user){
   USER=user;
   let perfil=null;
   try{const{data}=await db.from('perfis').select('*').eq('id',user.id).single();perfil=data;}catch(e){}
+  if(!perfil){
+    S('login-err').textContent='Usuário sem perfil financeiro. Contate o administrador.';
+    await db.auth.signOut();
+    S('login-wrap').style.display='flex';
+    return;
+  }
+  if(perfil.ativo===false){
+    S('login-err').textContent='Acesso desativado. Contate o administrador.';
+    await db.auth.signOut();
+    S('login-wrap').style.display='flex';
+    return;
+  }
   PERFIL=perfil;
-  NIVEL=perfil?.nivel||'administrador';
+  NIVEL=String(perfil.nivel||'colaborador').toLowerCase();
+  let permitido=isAdmin()||NIVEL==='financeiro';
+  if(!permitido){
+    try{
+      const{data}=await db.from('permissoes_modulos').select('pode_acessar').eq('nivel',NIVEL).eq('modulo','financeiro').single();
+      permitido=!!data?.pode_acessar;
+    }catch(_){permitido=false;}
+  }
+  if(!permitido){
+    S('login-err').textContent='Seu perfil não possui acesso ao Financeiro.';
+    await db.auth.signOut();
+    S('login-wrap').style.display='flex';
+    return;
+  }
   const nome=perfil?.nome||user.email;
   setSafe('tb-user',nome);
   S('login-wrap').style.display='none';
@@ -1020,7 +1056,7 @@ async function iniciar(user){
   await carregar();
   renderDash();
   gerarResumo();
-  agendarMatchLancamentos();
+  // Correspondências por IA exigem revisão humana e não são executadas automaticamente.
 }
 
 async function fazerLogout(){
@@ -1188,7 +1224,7 @@ function setDashFiltro(t){
 }
 
 function renderDash(){
-  const mes=mesAtual(), hj=hoje();
+  const mes=S('fd-mes')?.value||mesAtual(), hj=hoje();
   const rec=LANCS.filter(l=>l.tipo==='receita'&&l.data?.startsWith(mes));
   const des=LANCS.filter(l=>l.tipo==='despesa'&&l.data?.startsWith(mes));
   const tRec=rec.reduce((s,l)=>s+Number(l.valor||0),0);
@@ -1217,11 +1253,12 @@ function renderDash(){
   } else {
     tb.innerHTML=lista.map(l=>{
       const pos=l.tipo==='receita';
-      const pay=l.forma_pagamento?`<span class="badge ${l.forma_pagamento}">${l.forma_pagamento.toUpperCase()}</span>`:'—';
-      return `<tr style="cursor:pointer" onclick="abrirDet('${l.id}')">
+      const forma=String(l.forma_pagamento||'').toLowerCase();
+      const pay=forma?`<span class="badge ${esc(forma)}">${esc(forma.toUpperCase())}</span>`:'—';
+      return `<tr style="cursor:pointer" onclick="abrirDet('${escJs(l.id)}')">
         <td style="white-space:nowrap;color:var(--tl)">${fmtData(l.data)}</td>
-        <td>${l.descricao||'—'}</td>
-        <td style="color:var(--tl)">${l.paciente||'—'}</td>
+        <td>${esc(l.descricao||'—')}</td>
+        <td style="color:var(--tl)">${esc(l.paciente||'—')}</td>
         <td>${pay}</td>
         <td style="text-align:right" class="${pos?'val-pos':'val-neg'}">${pos?'+':'−'} ${fmt(l.valor)}</td>
       </tr>`;
@@ -1230,14 +1267,14 @@ function renderDash(){
 
   // Vencimentos próximos
   const em7=new Date(); em7.setDate(em7.getDate()+7);
-  const em7s=em7.toISOString().slice(0,10);
+  const em7s=isoLocal(em7);
   const prox=LANCS.filter(l=>l.tipo==='despesa'&&l.vencimento&&l.vencimento<=em7s&&!l.pago)
     .sort((a,b)=>a.vencimento.localeCompare(b.vencimento)).slice(0,5);
   const vl=S('dash-venc-lista');
   if(vl) vl.innerHTML=!prox.length
     ?'<div style="color:var(--tl);font-size:11px">Nenhuma conta pendente.</div>'
     :prox.map(l=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--bg3);font-size:11px">
-      <span style="color:var(--tm)">${l.descricao||'—'}</span>
+      <span style="color:var(--tm)">${esc(l.descricao||'—')}</span>
       <span style="color:${l.vencimento<hj?'var(--red)':'var(--tm)'};font-weight:500">${fmtData(l.vencimento)}</span>
     </div>`).join('');
 
@@ -1262,7 +1299,7 @@ function popularFiltrosRec(){
   const fc=S('fr-cat'); if(fc){
     const v=fc.value;
     fc.innerHTML='<option value="">Todas as categorias</option>'+
-      cats.map(c=>`<option value="${c.cod}"${c.cod===v?' selected':''}>${c.label}</option>`).join('');
+      cats.map(c=>`<option value="${esc(c.cod)}"${c.cod===v?' selected':''}>${esc(c.label)}</option>`).join('');
   }
   const meses=[...new Set(LANCS.filter(l=>l.tipo==='receita'&&l.data).map(l=>l.data.slice(0,7)))].sort().reverse();
   const fm=S('fr-mes'); if(fm){
@@ -1294,12 +1331,13 @@ function renderReceitas(){
 
 function renderRowRec(l){
   const cat=labelCategoria(CATS_REC,l.categoria_dre);
-  const pay=l.forma_pagamento?`<span class="badge ${l.forma_pagamento}">${l.forma_pagamento.toUpperCase()}</span>`:'—';
-  return `<tr style="cursor:pointer" onclick="abrirDet('${l.id}')">
+  const forma=String(l.forma_pagamento||'').toLowerCase();
+  const pay=forma?`<span class="badge ${esc(forma)}">${esc(forma.toUpperCase())}</span>`:'—';
+  return `<tr style="cursor:pointer" onclick="abrirDet('${escJs(l.id)}')">
     <td style="white-space:nowrap;color:var(--tl)">${fmtData(l.data)}</td>
-    <td>${l.descricao||'—'}</td>
-    <td style="color:var(--tl);font-size:11px">${cat}</td>
-    <td style="color:var(--tl)">${l.paciente||'—'}</td>
+    <td>${esc(l.descricao||'—')}</td>
+    <td style="color:var(--tl);font-size:11px">${esc(cat)}</td>
+    <td style="color:var(--tl)">${esc(l.paciente||'—')}</td>
     <td>${pay}</td>
     <td style="text-align:right" class="val-pos">+ ${fmt(l.valor)}</td>
     <td style="text-align:center">${isAdmin()?`<button onclick="event.stopPropagation();abrirDet('${l.id}')" style="border:none;background:none;color:var(--tl);cursor:pointer;font-size:11px;padding:2px 6px;border:1px solid var(--bd2);border-radius:var(--r)">Ver</button>`:'—'}</td>
@@ -1319,7 +1357,7 @@ function popularFiltrosDes(){
   const fc=S('fd2-cat'); if(fc){
     const v=fc.value;
     fc.innerHTML='<option value="">Todas as categorias</option>'+
-      cats.map(c=>`<option value="${c.cod}"${c.cod===v?' selected':''}>${c.label}</option>`).join('');
+      cats.map(c=>`<option value="${esc(c.cod)}"${c.cod===v?' selected':''}>${esc(c.label)}</option>`).join('');
   }
   const meses=[...new Set(LANCS.filter(l=>l.tipo==='despesa'&&l.data).map(l=>l.data.slice(0,7)))].sort().reverse();
   const fm=S('fd2-mes'); if(fm){
@@ -1350,10 +1388,10 @@ function renderRowDes(l){
   const status=l.pago?'<span class="badge quitado">Pago</span>':
     (l.vencimento&&l.vencimento<hj?'<span class="badge" style="background:var(--red-l);color:var(--red)">Vencida</span>':
     '<span class="badge" style="background:var(--bg3);color:var(--tm)">Pendente</span>');
-  return `<tr style="cursor:pointer" onclick="abrirDet('${l.id}')">
+  return `<tr style="cursor:pointer" onclick="abrirDet('${escJs(l.id)}')">
     <td style="white-space:nowrap;color:var(--tl)">${fmtData(l.data)}</td>
-    <td>${l.descricao||'—'}</td>
-    <td style="color:var(--tl);font-size:11px">${labelCategoria(CATS_DES,l.categoria_dre)}</td>
+    <td>${esc(l.descricao||'—')}</td>
+    <td style="color:var(--tl);font-size:11px">${esc(labelCategoria(CATS_DES,l.categoria_dre))}</td>
     <td style="${vencCor};white-space:nowrap">${venc}</td>
     <td>${status}</td>
     <td style="text-align:right" class="val-neg">− ${fmt(l.valor)}</td>
@@ -1371,6 +1409,7 @@ function renderTblPag(tbodyId,pagId,lista,pg,setPg,rowFn){
   const tbody=S(tbodyId), pagEl=S(pagId); if(!tbody)return;
   if(!lista.length){tbody.innerHTML=`<tr><td colspan="9" class="tbl-empty">Nenhum registro encontrado.</td></tr>`;if(pagEl)pagEl.innerHTML='';return;}
   const total=Math.ceil(lista.length/PG_SIZE);
+  pg=Math.min(Math.max(0,pg),total-1);
   const slice=lista.slice(pg*PG_SIZE,(pg+1)*PG_SIZE);
   tbody.innerHTML=slice.map(rowFn).join('');
   if(pagEl){
@@ -1385,7 +1424,7 @@ function renderTblPag(tbodyId,pagId,lista,pg,setPg,rowFn){
 // ── CONTAS A PAGAR ─────────────────────────────────────────────
 function renderContas(){
   const hj=hoje();
-  const em7=new Date(); em7.setDate(em7.getDate()+7); const em7s=em7.toISOString().slice(0,10);
+  const em7=new Date(); em7.setDate(em7.getDate()+7); const em7s=isoLocal(em7);
   const contas=LANCS.filter(l=>l.tipo==='despesa'&&l.vencimento);
   const vencidas=contas.filter(l=>l.vencimento<hj&&!l.pago).length;
   const prox=contas.filter(l=>l.vencimento>=hj&&l.vencimento<=em7s&&!l.pago).length;
@@ -1402,8 +1441,8 @@ function renderContas(){
     const status=venc<hj?'<span class="badge" style="background:var(--red-l);color:var(--red)">Vencida</span>':'<span class="badge manual">Pendente</span>';
     return `<tr>
       <td style="${cor};white-space:nowrap;font-weight:500">${fmtData(venc)}</td>
-      <td>${l.descricao||'—'}</td>
-      <td style="color:var(--tl);font-size:11px">${labelCategoria(CATS_DES,l.categoria_dre)}</td>
+      <td>${esc(l.descricao||'—')}</td>
+      <td style="color:var(--tl);font-size:11px">${esc(labelCategoria(CATS_DES,l.categoria_dre))}</td>
       <td>${status}</td>
       <td style="text-align:right" class="val-neg">− ${fmt(l.valor)}</td>
       <td style="text-align:center">
@@ -1414,6 +1453,7 @@ function renderContas(){
 }
 
 async function marcarPago(id){
+  if(!canManageFinance()){showToast('Acesso negado','err');return;}
   try{
     const{error}=await db.from('fin_lancamentos').update({pago:true}).eq('id',id);
     if(error)throw error;
@@ -1424,7 +1464,7 @@ async function marcarPago(id){
 }
 
 async function marcarRecebidoBoleto(id){
-  if(!isAdmin()){showToast('Apenas administradores podem atualizar','err');return;}
+  if(!canManageFinance()){showToast('Acesso negado','err');return;}
   try{
     const{error}=await db.from('fin_lancamentos').update({pago:true}).eq('id',id);
     if(error)throw error;
@@ -1511,10 +1551,11 @@ function renderInadTabela(){
     const editarBtn=i.origem==='manual'&&isAdmin()?`<button onclick="abrirEditarInad('${i.id}')" style="font-size:9px;padding:3px 8px;border:1px solid var(--bd2);border-radius:var(--r);background:none;color:var(--tl);cursor:pointer">Editar</button>`:'';
     const removerBtn=i.origem==='manual'&&isAdmin()?`<button onclick="removerInad('${i.id}')" style="font-size:9px;padding:3px 6px;border:1px solid var(--bd2);border-radius:var(--r);background:none;color:var(--tl);cursor:pointer">Remover</button>`:'';
     const receberBoletoBtn=i.origem==='boleto'&&!i.quitado&&isAdmin()?`<button onclick="marcarRecebidoBoleto('${i.lancamento_id}')" style="font-size:9px;padding:3px 8px;border:1px solid var(--verde);border-radius:var(--r);background:var(--verde-l);color:var(--verde);cursor:pointer;font-weight:600;white-space:nowrap">Receber</button>`:'';
+    const quitarBtn=i.origem==='boleto'?'':`<button onclick="abrirQuit(${idx})" style="font-size:9px;padding:3px 8px;border:1px solid var(--verde);border-radius:var(--r);background:var(--verde-l);color:var(--verde);cursor:pointer;font-weight:600;white-space:nowrap">Quitar</button>`;
     const acoes=i.quitado
       ?`${editarBtn||removerBtn?`<div style="display:flex;gap:4px;justify-content:center">${editarBtn}${removerBtn}</div>`:'—'}`
       :`<div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap">
-          <button onclick="abrirQuit(${idx})" style="font-size:9px;padding:3px 8px;border:1px solid var(--verde);border-radius:var(--r);background:var(--verde-l);color:var(--verde);cursor:pointer;font-weight:600;white-space:nowrap">Quitar</button>
+          ${quitarBtn}
           ${receberBoletoBtn}
           ${editarBtn}
           ${removerBtn}
@@ -1523,10 +1564,10 @@ function renderInadTabela(){
       <td>
         <div style="display:flex;align-items:center;gap:8px">
           <div class="avatar" style="background:${cor}22;color:${cor};font-size:11px">${ini}</div>
-          <span style="font-weight:500">${nome}</span>
+          <span style="font-weight:500">${esc(nome)}</span>
         </div>
       </td>
-      <td style="color:var(--tl);font-size:11px">${i.titulo||i.descricao||'—'}${i.previsao_pagamento?`<br><span style="color:var(--tm)">Previsto para ${fmtData(i.previsao_pagamento)}</span>`:''}</td>
+      <td style="color:var(--tl);font-size:11px">${esc(i.titulo||i.descricao||'—')}${i.previsao_pagamento?`<br><span style="color:var(--tm)">Previsto para ${fmtData(i.previsao_pagamento)}</span>`:''}</td>
       <td>${origemBadge}</td>
       <td style="text-align:right;font-weight:500">${fmt(total)}</td>
       <td style="text-align:right;color:var(--verde)">${fmt(pago)}</td>
@@ -1610,7 +1651,7 @@ async function salvarImportacaoFinanceira(){
   const forma=S('imp-forma')?.value||null;
   const categoria=S('imp-cat')?.value||'';
   const obs=S('imp-obs')?.value.trim()||'';
-  if(!valor){showToast('Informe o valor antes de salvar','err');return;}
+  if(!Number.isFinite(valor)||valor<=0){showToast('Informe um valor positivo antes de salvar','err');return;}
   try{
     if(tipo==='despesa'){
       const payload={tipo:'despesa',descricao,categoria_dre:categoria,valor,data:hoje(),vencimento:venc,paciente:entidade||null,paciente_id:resolvePacienteIdByNome(entidade),obs:`Importado de PDF${obs?` | ${obs}`:''}`,pago:false,user_id:USER?.id||null};
@@ -1671,7 +1712,9 @@ async function salvarInad(){
   const obsBase=S('inad-obs')?.value.trim()||'';
   const obs=[obsBase,prev?`[prev:${prev}]`:'',formaPrev?`[forma:${formaPrev}]`:'' ].filter(Boolean).join(' ');
   if(!pac){showToast('Informe o paciente','err');return;}
-  if(!total){showToast('Informe o valor total','err');return;}
+  if(!Number.isFinite(total)||total<=0){showToast('Informe um valor total positivo','err');return;}
+  if(!Number.isFinite(pago)||pago<0){showToast('O valor pago não pode ser negativo','err');return;}
+  if(pago>total){showToast('O valor pago não pode superar o valor total','err');return;}
   const saldo=Math.max(0,total-pago);
   const payload={paciente:pac,descricao:desc,valor_total:total,valor_pago:pago,
     saldo_devedor:saldo,obs,quitado:saldo<0.01,user_id:USER?.id||null};
@@ -1689,8 +1732,9 @@ async function salvarInad(){
 }
 
 async function removerInad(id){
+  if(!isAdmin()){showToast('Acesso negado','err');return;}
   if(!confirm('Remover este registro?'))return;
-  try{await db.from('fin_inadimplentes').delete().eq('id',id);showToast('Removido.');}catch(e){showToast('Erro','err');}
+  try{const{error}=await db.from('fin_inadimplentes').delete().eq('id',id);if(error)throw error;showToast('Removido.');}catch(e){showToast('Erro ao remover','err');}
   await carregar(); renderInad();
 }
 
@@ -1728,34 +1772,32 @@ async function confirmarQuit(){
   const pac=S('quit-pac')?.textContent||'';
   const desc=S('quit-desc')?.textContent||'';
   if(!valor||valor<=0){showToast('Informe o valor','err');return;}
+  if(valor>QUIT_SALDO+0.009){showToast('O pagamento não pode superar o saldo em aberto','err');return;}
+  if(!canManageFinance()){showToast('Acesso negado','err');return;}
 
-  // 1. Criar lançamento de receita
-  const quitacaoPaga=forma!=='boleto';
-  const lancPayload={tipo:'receita',descricao:'Quitação — '+pac,categoria_dre:'1.4',
-    valor,data,forma_pagamento:forma,paciente:pac,paciente_id:resolvePacienteIdByNome(pac),obs:obs+' | Ref: '+desc,pago:quitacaoPaga,user_id:USER?.id||null};
-  try{
-    const{data:row,error}=await db.from('fin_lancamentos').insert(lancPayload).select().single();
-    if(error)throw error;
-    LANCS.unshift(row);
-  }catch(e){showToast('Erro ao criar lançamento','err');return;}
-
-  // 2. Atualizar inadimplente manual
-  if(QUIT_ORIGEM==='manual'){
-    const reg=INAD_MANUAIS.find(i=>String(i.id)===QUIT_ID);
-    if(reg){
-      const novoPago=Number(reg.valor_pago||0)+valor;
-      const novoSaldo=Math.max(0,Number(reg.valor_total||0)-novoPago);
-      const quitado=novoSaldo<0.01;
-      // Persistir no Supabase
-      try{
-        const{error:ue}=await db.from('fin_inadimplentes')
-          .update({valor_pago:novoPago,saldo_devedor:novoSaldo,quitado})
-          .eq('id',QUIT_ID);
-        if(ue)throw ue;
-        reg.valor_pago=novoPago; reg.saldo_devedor=novoSaldo; reg.quitado=quitado;
-      }catch(e){showToast('Quitação criada, mas saldo do inadimplente não atualizou no Supabase.','err');console.warn('Erro ao persistir quitação',e);}
-    }
+  if(QUIT_ORIGEM==='boleto'){
+    if(Math.abs(valor-QUIT_SALDO)>0.009){showToast('Boletos devem ser recebidos pelo valor total','err');return;}
+    const lancamentoId=QUIT_ID.replace(/^boleto_/,'');
+    await marcarRecebidoBoleto(lancamentoId);
+    fecharQuit();
+    return;
   }
+
+  try{
+    const{data:result,error}=await db.rpc('registrar_quitacao_financeira',{
+      p_origem:QUIT_ORIGEM,
+      p_registro_id:QUIT_ID,
+      p_valor:valor,
+      p_data:data,
+      p_forma:forma,
+      p_paciente:pac,
+      p_paciente_id:resolvePacienteIdByNome(pac),
+      p_descricao:desc,
+      p_observacao:obs
+    });
+    if(error)throw error;
+    if(!result)throw new Error('Quitação sem confirmação do banco.');
+  }catch(e){showToast('Erro ao registrar quitação: '+(e.message||'verifique o banco'),'err');return;}
 
   showToast('Quitação registrada! Lançamento criado.');
   fecharQuit();
@@ -1797,7 +1839,7 @@ function setTipo(t){
 function popularCats(){
   const sel=S('m-cat'); if(!sel)return;
   const lista=TIPO==='receita'?CATS_REC:CATS_DES;
-  sel.innerHTML=lista.map(c=>`<option value="${c.cod}">${c.label}</option>`).join('');
+  sel.innerHTML=lista.map(c=>`<option value="${esc(c.cod)}">${esc(c.label)}</option>`).join('');
 }
 
 function setPay(p){
@@ -1822,7 +1864,7 @@ function calcTroco(){
 
 function renderFavs(){
   const el=S('m-favs'); if(!el)return;
-  el.innerHTML=FAVS.map(f=>`<div class="fav" onclick="aplicarFav(${f.id})">${f.label}</div>`).join('')+
+  el.innerHTML=FAVS.map(f=>`<div class="fav" onclick="aplicarFav(${Number(f.id)||0})">${esc(f.label)}</div>`).join('')+
     `<div class="fav add" onclick="criarFav()">+ Criar favorito</div>`;
 }
 
@@ -1856,7 +1898,7 @@ async function salvar(){
   const lembrete=TIPO==='despesa'&&(S('m-lembrete')?.checked!==false);
 
   if(!desc){showToast('Informe a descrição','err');return;}
-  if(!valor){showToast('Informe o valor','err');return;}
+  if(!Number.isFinite(valor)||valor<=0){showToast('Informe um valor positivo','err');return;}
   if(!data){showToast('Informe a data','err');return;}
 
   let extras={};
@@ -1900,10 +1942,10 @@ function buscarPac(q,inputId='m-paciente',dropId='m-pac-drop'){
   const matches=PACS_CACHE.filter(p=>p.nome?.toLowerCase().includes(q.toLowerCase())).slice(0,8);
   if(!matches.length){drop.style.display='none';return;}
   drop.innerHTML=matches.map(p=>`
-    <div onclick="selPac('${p.nome.replace(/'/g,"\\'")}','${inputId}','${dropId}')"
+    <div onclick="selPac('${escJs(p.nome)}','${escJs(inputId)}','${escJs(dropId)}')"
       style="padding:9px 12px;cursor:pointer;font-size:12px;border-bottom:1px solid var(--bg3)"
       onmouseover="this.style.background='var(--terra-xl)'" onmouseout="this.style.background=''">
-      ${p.nome}
+      ${esc(p.nome)}
     </div>`).join('');
   drop.style.display='block';
 }
@@ -1945,7 +1987,7 @@ function abrirDet(id){
   S('det-body').innerHTML=`<div style="display:flex;flex-direction:column">`+
     rows.map(r=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--bg3)">
       <span style="font-size:12px;color:var(--tl)">${r.k}</span>
-      <span style="font-size:12px;font-weight:${r.k==='Valor'?500:400};color:${r.c||'var(--tx)'}">${r.v}</span>
+      <span style="font-size:12px;font-weight:${r.k==='Valor'?500:400};color:${r.c||'var(--tx)'}">${esc(r.v)}</span>
     </div>`).join('')+'</div>';
   const ab=S('det-admin-btns'); if(ab)ab.style.display=isAdmin()?'flex':'none';
   modoDetalhe();
@@ -1963,7 +2005,7 @@ function modoEditar(){
   S('ed-motivo').value='';
   const sel=S('ed-cat');
   const lista=l.tipo==='receita'?CATS_REC:CATS_DES;
-  sel.innerHTML=lista.map(c=>`<option value="${c.cod}"${l.categoria_dre===c.cod?' selected':''}>${c.label}</option>`).join('');
+  sel.innerHTML=lista.map(c=>`<option value="${esc(c.cod)}"${l.categoria_dre===c.cod?' selected':''}>${esc(c.label)}</option>`).join('');
   S('det-view').style.display='none';
   S('det-edit').style.display='block';
 }
@@ -1979,9 +2021,11 @@ async function salvarEdicao(){
   const pacienteIdEditado=resolvePacienteIdByNome(pacienteEditado);
   const obsEditada=[baseObsLimpa,'[EDITADO '+new Date().toLocaleDateString('pt-BR')+' por '+(PERFIL?.nome||'admin')+']: '+motivo].filter(Boolean).join(' | ');
 
+  const novoValor=parseFloat(S('ed-valor')?.value);
+  if(!Number.isFinite(novoValor)||novoValor<=0){showToast('Informe um valor positivo','err');return;}
   const novoPayload={
     descricao:S('ed-desc')?.value.trim()||l.descricao,
-    valor:parseFloat(S('ed-valor')?.value)||l.valor,
+    valor:novoValor,
     data:S('ed-data')?.value||l.data,
     categoria_dre:S('ed-cat')?.value||l.categoria_dre,
     paciente:pacienteEditado,
@@ -2058,7 +2102,7 @@ function renderDRE(){
   const mes=DRE_MES||mesAtual();
   setSafe('dre-mes',fmtMes(mes));
   setSafe('dre-data',new Date().toLocaleDateString('pt-BR'));
-  const get=(cod)=>LANCS.filter(l=>l.data?.startsWith(mes)&&l.categoria_dre?.startsWith(cod))
+  const get=(cod)=>LANCS.filter(l=>l.data?.startsWith(mes)&&categoriaNoGrupo(l.categoria_dre,cod))
     .reduce((s,l)=>s+Number(l.valor||0),0);
   const col=(v,neg=false)=>{
     const isNeg=neg?v>0:v<0;
@@ -2067,7 +2111,7 @@ function renderDRE(){
   const r11=get('1.1'),r12=get('1.2'),r13=get('1.3'),r14=get('1.4'),r15=get('1.5'),r16=get('1.6');
   const recBruta=r11+r12+r13+r14+r15+r16;
   const imp=get('2.1'),est=get('2.2');
-  const recLiq=recBruta-imp+est;
+  const recLiq=recBruta-imp-est;
   const med=get('3.1'),ins=get('3.2');
   const lucroBruto=recLiq-med-ins;
   const sal=get('4.1'),pro1=get('4.2'),pro2=get('4.3'),enc=get('4.4'),repNut=get('4.5'),repDerm=get('4.6');
@@ -2087,6 +2131,7 @@ function renderDRE(){
     tot('Receita bruta total',recBruta)+
     g('2. Deduções')+
     row('(−) Impostos sobre receita',imp,true)+
+    row('(−) Estornos e devoluções',est,true)+
     tot('Receita líquida',recLiq)+
     g('3. Custo dos serviços')+
     row('(−) Medicamentos',med,true)+row('(−) Insumos clínicos',ins,true)+
@@ -2174,7 +2219,7 @@ function exportarDRE(){
 // ── IA ─────────────────────────────────────────────────────────
 let IA_HIST=[];
 function dreContexto(mes=mesAtual()){
-  const get=(cod)=>LANCS.filter(l=>l.data?.startsWith(mes)&&l.categoria_dre?.startsWith(cod))
+  const get=(cod)=>LANCS.filter(l=>l.data?.startsWith(mes)&&categoriaNoGrupo(l.categoria_dre,cod))
     .reduce((s,l)=>s+Number(l.valor||0),0);
   const recBruta=get('1.');
   const ded=get('2.');
@@ -2258,8 +2303,8 @@ function renderCatList(elId,lista,tipo){
   if(!lista.length){el.innerHTML='<div style="padding:12px 14px;color:var(--tl);font-size:12px">Nenhuma categoria.</div>';return;}
   el.innerHTML=lista.map((c,i)=>`
     <div class="config-cat-row">
-      <div class="config-cat-cod">${c.cod}</div>
-      <div class="config-cat-lbl">${c.label.replace(c.cod+' — ','')}</div>
+      <div class="config-cat-cod">${esc(c.cod)}</div>
+      <div class="config-cat-lbl">${esc(c.label.replace(c.cod+' — ',''))}</div>
       <button onclick="editarCat('${tipo}',${i})" style="font-size:9px;padding:2px 8px;border:1px solid var(--bd2);border-radius:var(--r);background:none;color:var(--tm);cursor:pointer">Editar</button>
       <button onclick="removerCat('${tipo}',${i})" style="font-size:9px;padding:2px 8px;border:1px solid var(--bd2);border-radius:var(--r);background:none;color:var(--tl);cursor:pointer">Remover</button>
     </div>`).join('');

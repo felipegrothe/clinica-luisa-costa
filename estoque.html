@@ -846,11 +846,11 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
   <div class="frow"><label>Observação</label><input type="text" id="lobs" placeholder="Opcional"></div>
   <div class="frow">
     <label>Nota Fiscal (PDF) — opcional</label>
-    <div style="border:1.5px dashed var(--c5);border-radius:var(--rad);padding:12px;text-align:center;cursor:pointer;background:var(--c8);transition:.2s" onclick="document.getElementById('nf-upload').click()" id="nf-drop-area">
+    <div style="border:1.5px dashed var(--c5);border-radius:var(--rad);padding:12px;text-align:center;cursor:pointer;background:var(--c8);transition:.2s" onclick="document.getElementById('lote-nf-upload').click()" id="lote-nf-drop-area">
       <div style="font-size:11px;color:var(--c4);margin-bottom:4px">Clique para anexar o PDF da NF</div>
-      <div style="font-size:10px;color:var(--c5)" id="nf-file-name">Nenhum arquivo selecionado</div>
+      <div style="font-size:10px;color:var(--c5)" id="lote-nf-file-name">Nenhum arquivo selecionado</div>
     </div>
-    <input type="file" id="nf-upload" accept=".pdf,image/*" style="display:none" onchange="onNFUpload(this)">
+    <input type="file" id="lote-nf-upload" accept=".pdf,image/*" style="display:none" onchange="onNFUpload(this,'lote-nf')">
   </div>
   <div id="lote-aprov-warn" style="background:var(--Wbg);border:1px solid var(--Wbr);border-radius:var(--rad);padding:10px 14px;font-size:11px;color:var(--W);margin-bottom:4px">
     Atenção: este lote ficará <strong>pendente de aprovação</strong> pelo administrador antes de entrar no estoque.
@@ -1865,12 +1865,14 @@ async function salvarNF(){
   document.getElementById('nf-lcx').value=1;
   document.getElementById('nf-file-name').textContent='Nenhum arquivo selecionado';
 }
-function onNFUpload(input){
+function onNFUpload(input,prefix){
   var f=input.files[0];
   if(!f) return;
-  document.getElementById('nf-file-name').textContent=f.name;
-  document.getElementById('nf-drop-area').style.borderColor='var(--gold)';
-  document.getElementById('nf-drop-area').style.background='var(--gold3)';
+  prefix=prefix||'nf';
+  var fileName=document.getElementById(prefix+'-file-name');
+  var dropArea=document.getElementById(prefix+'-drop-area');
+  if(fileName)fileName.textContent=f.name;
+  if(dropArea){dropArea.style.borderColor='var(--gold)';dropArea.style.background='var(--gold3)';}
 }
 
 // ── INSUMOS ──────────────────────────────────────────────────────────
@@ -2636,7 +2638,7 @@ async function salvarIns(){
       <div style="font-size:11px;color:var(--c4)">Clique para anexar o PDF ou imagem da NF</div>
       <div style="font-size:10px;color:var(--gold);font-weight:700;margin-top:4px" id="nf-file-name">Nenhum arquivo selecionado</div>
     </div>
-    <input type="file" id="nf-upload" accept=".pdf,image/*" style="display:none" onchange="onNFUpload(this)">
+    <input type="file" id="nf-upload" accept=".pdf,image/*" style="display:none" onchange="onNFUpload(this,'nf')">
   </div>
   <div style="background:var(--Wbg);border:1px solid var(--Wbr);border-radius:var(--rad);padding:10px 14px;font-size:11px;color:var(--W);margin-bottom:4px">Atenção: este lote ficará <strong>pendente de aprovação</strong> pelo administrador antes de entrar no estoque.</div>
   <div class="ma"><button class="btn btn-gh" onclick="fechar('madnf')">Cancelar</button><button class="btn btn-gd" onclick="salvarNF()">Enviar para Aprovação</button></div>

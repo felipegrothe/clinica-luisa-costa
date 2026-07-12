@@ -10,7 +10,19 @@ set search_path = public
 as $$
 declare
   novo_id uuid;
+  nome_normalizado text := trim(coalesce(payload->>'nome',''));
+  telefone_normalizado text := regexp_replace(coalesce(payload->>'telefone',''), '\\D', '', 'g');
 begin
+  if char_length(nome_normalizado) < 3 or char_length(nome_normalizado) > 160 then
+    raise exception 'Nome inválido';
+  end if;
+  if char_length(telefone_normalizado) < 10 or char_length(telefone_normalizado) > 11 then
+    raise exception 'Telefone inválido';
+  end if;
+  if octet_length(convert_to(payload::text,'UTF8')) > 20000 then
+    raise exception 'Cadastro excede o tamanho permitido';
+  end if;
+
   insert into public.pacientes (
     nome,
     cpf,
@@ -42,7 +54,7 @@ begin
     protocolos
   )
   values (
-    nullif(payload->>'nome',''),
+    nome_normalizado,
     nullif(payload->>'cpf',''),
     nullif(payload->>'telefone',''),
     nullif(payload->>'email',''),

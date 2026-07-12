@@ -284,7 +284,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .hist-form{border-top:1px solid var(--border);padding-top:12px;margin-top:2px}
 
 /* IA */
-#ia-out{background:linear-gradient(135deg,#1A1714,#2C2420);border-radius:var(--r);padding:14px 16px;color:#F8F5F0;font-size:13px;line-height:1.75;min-height:80px;white-space:pre-wrap}
+#ia-global-out,#ia-paciente-out{background:linear-gradient(135deg,#1A1714,#2C2420);border-radius:var(--r);padding:14px 16px;color:#F8F5F0;font-size:13px;line-height:1.75;min-height:80px;white-space:pre-wrap}
 .ia-dots{display:flex;gap:5px;align-items:center}
 .iad{width:6px;height:6px;border-radius:50%;background:var(--terra);animation:p 1.2s ease-in-out infinite}
 .iad:nth-child(2){animation-delay:.2s}.iad:nth-child(3){animation-delay:.4s}
@@ -292,9 +292,9 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .ia-qrow{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
 .ia-q{padding:5px 10px;border:1px solid var(--border);border-radius:var(--r);background:none;font-size:10px;color:var(--muted);cursor:pointer;transition:all .2s;letter-spacing:.5px}
 .ia-q:hover{border-color:var(--terra);color:var(--terra)}
-#ia-row{display:flex;gap:8px;margin-top:8px}
-#ia-inp{flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;background:var(--bg);color:var(--text);outline:none}
-#ia-inp:focus{border-color:var(--terra)}
+#ia-global-row,#ia-paciente-row{display:flex;gap:8px;margin-top:8px}
+#ia-global-inp,#ia-paciente-inp{flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;background:var(--bg);color:var(--text);outline:none}
+#ia-global-inp:focus,#ia-paciente-inp:focus{border-color:var(--terra)}
 
 /* MÉTRICAS */
 .mg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
@@ -623,6 +623,15 @@ let financeiroPacienteCache={};
 let financeiroMatchRunning=false;
 const FIN_MATCH_REVIEW_TAG='[revisao_paciente_financeiro]';
 
+function safePhotoUrl(value){
+  const raw=String(value||'').trim();
+  if(!raw)return '';
+  try{
+    const url=new URL(raw,location.origin);
+    return url.protocol==='https:'||url.origin===location.origin?url.href:'';
+  }catch(_){return '';}
+}
+
 function initCatPills(){}
 
 function iconUser(size=22){
@@ -748,7 +757,7 @@ async function carregarAgendaFuturaPacientes(){
     const limite=new Date(hoje);
     limite.setDate(limite.getDate()+90);
     const {data,error}=await db.from('agenda_eventos')
-      .select('id,paciente_id,paciente_nome,status,data,data_inicio,inicio,start_at')
+      .select('id,paciente_id,paciente_nome,status,data')
       .limit(8000);
     if(error)throw error;
     agendaEventosFuturos=(data||[]).filter(ev=>{
@@ -1108,7 +1117,7 @@ function renderPacienteCard(item){
     ? '<span class="pi-origin proto">Ativo</span>'
     : '';
   const iniciais=(p.nome||'').split(' ').filter(Boolean).slice(0,2).map(n=>n[0]).join('').toUpperCase()||'?';
-  const foto=p.foto_url?`<img src="${p.foto_url}" alt=""/>`:iniciais;
+  const foto=safePhotoUrl(p.foto_url)?`<img src="${esc(safePhotoUrl(p.foto_url))}" alt=""/>`:iniciais;
   const iaTexto=esc(p.followup_sugestao_ia||'');
   const iaBox=meta.follow?`<div class="pi-ia-box" id="pi-ia-${p.id}" style="display:none">
   <div class="pi-ia-tag">Sugestão da IA</div>
@@ -1325,7 +1334,7 @@ function updHeader(){
   const idade=p.nascimento?calcIdade(p.nascimento)+' anos · ':'';
   document.getElementById('fh-sub').textContent=idade+(p.email||p.telefone||'');
   const fe=document.getElementById('foto-el');
-  fe.innerHTML=p.foto_url?`<img src="${p.foto_url}" alt=""/>`:iconUser(26);
+  fe.innerHTML=safePhotoUrl(p.foto_url)?`<img src="${esc(safePhotoUrl(p.foto_url))}" alt=""/>`:iconUser(26);
   const inds=pacientes.filter(x=>(x.origem_indicador_nome||'').toLowerCase().trim()===p.nome.toLowerCase().trim()).length;
   const indEl=document.getElementById('fh-ind');
   if(inds>0){indEl.style.display='inline-flex';indEl.className='ind-count';indEl.textContent=`${inds} indicaç${inds>1?'ões':'ão'}`;}
@@ -1473,7 +1482,7 @@ function viewItem(label,value,extra=''){
 }
 
 function recordHead(p,title,ativo,action,label){
-  const foto=p.foto_url?`<img src="${p.foto_url}" alt=""/>`:iconUser(30);
+  const foto=safePhotoUrl(p.foto_url)?`<img src="${esc(safePhotoUrl(p.foto_url))}" alt=""/>`:iconUser(30);
   const idade=p.nascimento?calcIdade(p.nascimento)+' anos':'Idade não informada';
   const local=isLocalPaciente(p);
   const review=aguardandoRevisao(p);
@@ -1511,7 +1520,7 @@ function dossierSide(p){
   const r=p.relacionamento||{};
   const ps=getProtocolos(p);
   const ativo=ps.find(x=>x.ativo);
-  const foto=p.foto_url?`<img src="${p.foto_url}" alt=""/>`:iconUser(34);
+  const foto=safePhotoUrl(p.foto_url)?`<img src="${esc(safePhotoUrl(p.foto_url))}" alt=""/>`:iconUser(34);
   const contato=p.telefone||p.email||'Não informado';
   const idade=p.nascimento?calcIdade(p.nascimento)+' anos':'Idade não informada';
   return `<aside class="dossier-side">
@@ -1936,9 +1945,9 @@ function rIAGlobal(c){
       <button class="ia-q" onclick="iaCarteiraQ('Resuma oportunidades de renovação e relacionamento da base.')">Renovação e relacionamento</button>
       ${pAtual?`<button class="ia-q" onclick="iaQ('Faça um briefing completo deste paciente para a consulta de hoje.')">Briefing do paciente selecionado</button>`:''}
     </div>
-    <div id="ia-out"><span style="color:var(--muted);font-size:12px">Faça uma pergunta sobre a carteira ou use o paciente selecionado como contexto.</span></div>
-    <div id="ia-row">
-      <input type="text" id="ia-inp" placeholder="Pergunte algo sobre pacientes, alertas ou carteira…" onkeydown="if(event.key==='Enter')iaEnvGlobal()"/>
+    <div id="ia-global-out"><span style="color:var(--muted);font-size:12px">Faça uma pergunta sobre a carteira ou use o paciente selecionado como contexto.</span></div>
+    <div id="ia-global-row">
+      <input type="text" id="ia-global-inp" placeholder="Pergunte algo sobre pacientes, alertas ou carteira…" onkeydown="if(event.key==='Enter')iaEnvGlobal()"/>
       <button class="btn-p" onclick="iaEnvGlobal()">Enviar</button>
     </div>
   </div></div>`;
@@ -1954,9 +1963,9 @@ function rIA(c){
       <button class="ia-q" onclick="iaQ('Crie uma mensagem personalizada de aniversário para este paciente.')">Mensagem aniversário</button>
       <button class="ia-q" onclick="iaQ('Com base nos objetivos e perfil, quais protocolos seriam mais indicados?')">Sugestão de protocolo</button>
     </div>
-    <div id="ia-out"><span style="color:var(--muted);font-size:12px">Selecione uma ação ou faça uma pergunta livre sobre este paciente.</span></div>
-    <div id="ia-row">
-      <input type="text" id="ia-inp" placeholder="Pergunte algo sobre este paciente…" onkeydown="if(event.key==='Enter')iaEnv()"/>
+    <div id="ia-paciente-out"><span style="color:var(--muted);font-size:12px">Selecione uma ação ou faça uma pergunta livre sobre este paciente.</span></div>
+    <div id="ia-paciente-row">
+      <input type="text" id="ia-paciente-inp" placeholder="Pergunte algo sobre este paciente…" onkeydown="if(event.key==='Enter')iaEnv()"/>
       <button class="btn-p" onclick="iaEnv()">Enviar</button>
     </div>
   </div></div>`;
@@ -1964,7 +1973,7 @@ function rIA(c){
 
 async function iaQ(prompt){
   if(!pAtual)return;
-  const out=document.getElementById('ia-out');
+  const out=document.getElementById('ia-paciente-out');
   out.innerHTML=`<div class="ia-dots"><div class="iad"></div><div class="iad"></div><div class="iad"></div><span style="font-size:11px;color:var(--muted);margin-left:6px">Analisando…</span></div>`;
   const ctx=`Você é assistente médico da Clínica Luisa Costa, clínica de alto padrão focada em emagrecimento, longevidade e bem-estar.
 Dados do paciente:
@@ -1991,7 +2000,7 @@ Responda em português, de forma profissional, empática e objetiva. Máximo 3 p
 }
 
 async function iaCarteiraQ(prompt){
-  const out=document.getElementById('ia-out');
+  const out=document.getElementById('ia-global-out');
   out.innerHTML=`<div class="ia-dots"><div class="iad"></div><div class="iad"></div><div class="iad"></div><span style="font-size:11px;color:var(--muted);margin-left:6px">Analisando...</span></div>`;
   const resumo=pacientes.slice(0,80).map(p=>{
     const al=calcAl(p).map(a=>a.titulo).join(', ')||'sem alertas';
@@ -2010,8 +2019,8 @@ async function iaCarteiraQ(prompt){
   }catch(e){out.innerHTML=`<span style="color:var(--danger)">Erro: ${e.message}</span>`;}
 }
 
-function iaEnv(){const i=document.getElementById('ia-inp');const q=i.value.trim();if(!q)return;i.value='';iaQ(q);}
-function iaEnvGlobal(){const i=document.getElementById('ia-inp');const q=i.value.trim();if(!q)return;i.value='';iaCarteiraQ(q);}
+function iaEnv(){const i=document.getElementById('ia-paciente-inp');const q=i?.value.trim();if(!q)return;i.value='';iaQ(q);}
+function iaEnvGlobal(){const i=document.getElementById('ia-global-inp');const q=i?.value.trim();if(!q)return;i.value='';iaCarteiraQ(q);}
 
 // ── MÉTRICAS ──────────────────────────────────────────────
 function rMet(c){
