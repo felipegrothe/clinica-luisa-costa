@@ -126,6 +126,26 @@ body.iframe-mode #login-wrap{display:none!important}
 .filtro-total{font-size:11px;color:var(--tl);margin-left:4px}
 .btn-limpar{padding:7px 12px;border:1px solid var(--bd2);border-radius:var(--r);background:none;font-size:11px;color:var(--tl);cursor:pointer}
 .btn-limpar:hover{background:var(--bg2)}
+.filter-panel{border-bottom:1px solid var(--bd);background:linear-gradient(180deg,var(--bg3),var(--bg2));padding:14px 16px 12px}
+.filter-panel-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.filter-panel-title{display:flex;align-items:center;gap:8px;min-width:150px}
+.filter-panel-icon{width:28px;height:28px;border-radius:8px;background:var(--terra-xl);color:var(--terra-d);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+.filter-panel-name{font-size:11px;font-weight:700;color:var(--tx)}
+.filter-panel-hint{font-size:9px;color:var(--tl);margin-top:1px}
+.period-chips{display:flex;gap:5px;flex-wrap:wrap}
+.period-chip{padding:6px 10px;border:1px solid var(--bd2);border-radius:18px;background:var(--bg2);font-size:10px;color:var(--tm);cursor:pointer;transition:all .15s}
+.period-chip:hover{border-color:var(--terra-l);color:var(--terra-d)}
+.period-chip.on{border-color:var(--terra);background:var(--terra-xl);color:var(--terra-d);font-weight:700}
+.filter-panel-total{margin-left:auto;padding:7px 11px;border-radius:8px;background:var(--bg);border:1px solid var(--bd);font-size:10px;color:var(--tm);white-space:nowrap}
+.filter-fields{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:8px;align-items:end}
+.filter-field{grid-column:span 2;min-width:0}
+.filter-field.wide{grid-column:span 3}.filter-field.narrow{grid-column:span 1}
+.filter-field label{display:block;font-size:8px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--tl);margin:0 0 4px 2px}
+.filter-field .filtro-select,.filter-field .filtro-input{width:100%;min-width:0;height:34px;background:var(--bg)}
+.filter-actions{display:flex;justify-content:flex-end;align-items:end;grid-column:span 1}
+.filter-actions .btn-limpar{height:34px;background:var(--bg2)}
+@media(max-width:900px){.filter-field,.filter-field.wide{grid-column:span 4}.filter-field.narrow,.filter-actions{grid-column:span 2}.filter-panel-total{margin-left:0}}
+@media(max-width:620px){.filter-fields{grid-template-columns:1fr 1fr}.filter-field,.filter-field.wide,.filter-field.narrow,.filter-actions{grid-column:span 1}.filter-field.wide{grid-column:span 2}.filter-panel-top{align-items:flex-start}.filter-panel-total{width:100%;text-align:center}}
 
 /* ── BOTÕES ────────────────────────────────────────────────── */
 .btn{padding:7px 16px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--bg2);font-size:11px;font-weight:600;color:var(--tx);cursor:pointer;transition:all .15s}
@@ -373,21 +393,26 @@ body.iframe-mode #login-wrap{display:none!important}
           <span class="card-title">Todas as receitas</span>
           <button class="btn btn-sm btn-terra" onclick="abrirModal('receita')">+ Nova receita</button>
         </div>
-        <div class="filtros">
-          <select class="filtro-select" id="fr-cat" onchange="renderReceitas()"><option value="">Todas as categorias</option></select>
-          <select class="filtro-select" id="fr-pay" onchange="renderReceitas()">
-            <option value="">Todas as formas</option>
-            <option value="pix">PIX</option>
-            <option value="cartao">Cartão</option>
-            <option value="dinheiro">Dinheiro</option>
-            <option value="boleto">Boleto</option>
-          </select>
-          <input class="filtro-input" id="fr-pac" type="text" placeholder="Buscar paciente..." oninput="renderReceitas()">
-          <select class="filtro-select" id="fr-mes" onchange="renderReceitas()"><option value="">Todos os meses</option></select>
-          <input class="filtro-input" id="fr-de" type="date" onchange="renderReceitas()" title="De">
-          <input class="filtro-input" id="fr-ate" type="date" onchange="renderReceitas()" title="Até">
-          <button class="btn-limpar" onclick="limparFiltrosRec()">Limpar</button>
-          <span class="filtro-total" id="fr-total"></span>
+        <div class="filter-panel">
+          <div class="filter-panel-top">
+            <div class="filter-panel-title"><div class="filter-panel-icon">⌁</div><div><div class="filter-panel-name">Período financeiro</div><div class="filter-panel-hint">Escolha um atalho ou personalize abaixo</div></div></div>
+            <div class="period-chips">
+              <button class="period-chip" id="fr-q-atual" onclick="aplicarPeriodoFinanceiro('fr','atual')">Este mês</button>
+              <button class="period-chip" id="fr-q-anterior" onclick="aplicarPeriodoFinanceiro('fr','anterior')">Mês anterior</button>
+              <button class="period-chip" id="fr-q-30d" onclick="aplicarPeriodoFinanceiro('fr','30d')">Últimos 30 dias</button>
+              <button class="period-chip" id="fr-q-todos" onclick="aplicarPeriodoFinanceiro('fr','todos')">Todo o período</button>
+            </div>
+            <span class="filter-panel-total" id="fr-total">0 resultados</span>
+          </div>
+          <div class="filter-fields">
+            <div class="filter-field"><label>Categoria</label><select class="filtro-select" id="fr-cat" onchange="renderReceitas()"><option value="">Todas as categorias</option></select></div>
+            <div class="filter-field"><label>Pagamento</label><select class="filtro-select" id="fr-pay" onchange="renderReceitas()"><option value="">Todas as formas</option><option value="pix">PIX</option><option value="cartao">Cartão</option><option value="dinheiro">Dinheiro</option><option value="boleto">Boleto</option></select></div>
+            <div class="filter-field wide"><label>Paciente</label><input class="filtro-input" id="fr-pac" type="text" placeholder="Nome do paciente" oninput="renderReceitas()"></div>
+            <div class="filter-field"><label>Mês</label><select class="filtro-select" id="fr-mes" onchange="periodoManual('fr');renderReceitas()"><option value="">Todos os meses</option></select></div>
+            <div class="filter-field"><label>Data inicial</label><input class="filtro-input" id="fr-de" type="date" onchange="periodoManual('fr');renderReceitas()"></div>
+            <div class="filter-field"><label>Data final</label><input class="filtro-input" id="fr-ate" type="date" onchange="periodoManual('fr');renderReceitas()"></div>
+            <div class="filter-actions"><button class="btn-limpar" onclick="limparFiltrosRec()">Redefinir</button></div>
+          </div>
         </div>
         <div class="card-body">
           <table class="tbl">
@@ -406,13 +431,24 @@ body.iframe-mode #login-wrap{display:none!important}
           <span class="card-title">Todas as despesas</span>
           <button class="btn btn-sm btn-terra" onclick="abrirModal('despesa')">+ Nova despesa</button>
         </div>
-        <div class="filtros">
-          <select class="filtro-select" id="fd2-cat" onchange="renderDespesas()"><option value="">Todas as categorias</option></select>
-          <select class="filtro-select" id="fd2-mes" onchange="renderDespesas()"><option value="">Todos os meses</option></select>
-          <input class="filtro-input" id="fd2-de" type="date" onchange="renderDespesas()" title="De">
-          <input class="filtro-input" id="fd2-ate" type="date" onchange="renderDespesas()" title="Até">
-          <button class="btn-limpar" onclick="limparFiltrosDes()">Limpar</button>
-          <span class="filtro-total" id="fd2-total"></span>
+        <div class="filter-panel">
+          <div class="filter-panel-top">
+            <div class="filter-panel-title"><div class="filter-panel-icon">⌁</div><div><div class="filter-panel-name">Período financeiro</div><div class="filter-panel-hint">Analise as saídas com precisão</div></div></div>
+            <div class="period-chips">
+              <button class="period-chip" id="fd2-q-atual" onclick="aplicarPeriodoFinanceiro('fd2','atual')">Este mês</button>
+              <button class="period-chip" id="fd2-q-anterior" onclick="aplicarPeriodoFinanceiro('fd2','anterior')">Mês anterior</button>
+              <button class="period-chip" id="fd2-q-30d" onclick="aplicarPeriodoFinanceiro('fd2','30d')">Últimos 30 dias</button>
+              <button class="period-chip" id="fd2-q-todos" onclick="aplicarPeriodoFinanceiro('fd2','todos')">Todo o período</button>
+            </div>
+            <span class="filter-panel-total" id="fd2-total">0 resultados</span>
+          </div>
+          <div class="filter-fields">
+            <div class="filter-field wide"><label>Categoria</label><select class="filtro-select" id="fd2-cat" onchange="renderDespesas()"><option value="">Todas as categorias</option></select></div>
+            <div class="filter-field"><label>Mês</label><select class="filtro-select" id="fd2-mes" onchange="periodoManual('fd2');renderDespesas()"><option value="">Todos os meses</option></select></div>
+            <div class="filter-field"><label>Data inicial</label><input class="filtro-input" id="fd2-de" type="date" onchange="periodoManual('fd2');renderDespesas()"></div>
+            <div class="filter-field"><label>Data final</label><input class="filtro-input" id="fd2-ate" type="date" onchange="periodoManual('fd2');renderDespesas()"></div>
+            <div class="filter-actions"><button class="btn-limpar" onclick="limparFiltrosDes()">Redefinir</button></div>
+          </div>
         </div>
         <div class="card-body">
           <table class="tbl">
@@ -501,14 +537,24 @@ body.iframe-mode #login-wrap{display:none!important}
       </div>
       <div class="card">
         <div class="card-hd"><span class="card-title">Histórico financeiro imutável</span><span style="font-size:10px;color:var(--tl)">Somente leitura</span></div>
-        <div class="filtros">
-          <select class="filtro-select" id="aud-acao" onchange="renderAuditoria()">
-            <option value="">Todas as ações</option><option value="estorno">Estornos</option><option value="conciliacao">Conciliações</option><option value="desconciliacao">Desconciliações</option>
-          </select>
-          <input class="filtro-input" id="aud-busca" type="text" placeholder="Buscar descrição ou motivo..." oninput="renderAuditoria()">
-          <input class="filtro-input" id="aud-de" type="date" onchange="renderAuditoria()" title="De">
-          <input class="filtro-input" id="aud-ate" type="date" onchange="renderAuditoria()" title="Até">
-          <button class="btn-limpar" onclick="limparFiltrosAuditoria()">Limpar</button><span class="filtro-total" id="aud-total"></span>
+        <div class="filter-panel">
+          <div class="filter-panel-top">
+            <div class="filter-panel-title"><div class="filter-panel-icon">⌁</div><div><div class="filter-panel-name">Período da auditoria</div><div class="filter-panel-hint">Histórico operacional somente leitura</div></div></div>
+            <div class="period-chips">
+              <button class="period-chip" id="aud-q-atual" onclick="aplicarPeriodoFinanceiro('aud','atual')">Este mês</button>
+              <button class="period-chip" id="aud-q-anterior" onclick="aplicarPeriodoFinanceiro('aud','anterior')">Mês anterior</button>
+              <button class="period-chip" id="aud-q-30d" onclick="aplicarPeriodoFinanceiro('aud','30d')">Últimos 30 dias</button>
+              <button class="period-chip" id="aud-q-todos" onclick="aplicarPeriodoFinanceiro('aud','todos')">Todo o período</button>
+            </div>
+            <span class="filter-panel-total" id="aud-total">0 eventos</span>
+          </div>
+          <div class="filter-fields">
+            <div class="filter-field"><label>Ação</label><select class="filtro-select" id="aud-acao" onchange="renderAuditoria()"><option value="">Todas as ações</option><option value="estorno">Estornos</option><option value="conciliacao">Conciliações</option><option value="desconciliacao">Desconciliações</option></select></div>
+            <div class="filter-field wide"><label>Busca</label><input class="filtro-input" id="aud-busca" type="text" placeholder="Descrição ou motivo" oninput="renderAuditoria()"></div>
+            <div class="filter-field"><label>Data inicial</label><input class="filtro-input" id="aud-de" type="date" onchange="periodoManual('aud');renderAuditoria()"></div>
+            <div class="filter-field"><label>Data final</label><input class="filtro-input" id="aud-ate" type="date" onchange="periodoManual('aud');renderAuditoria()"></div>
+            <div class="filter-actions"><button class="btn-limpar" onclick="limparFiltrosAuditoria()">Redefinir</button></div>
+          </div>
         </div>
         <div class="card-body">
           <table class="tbl"><thead><tr><th>Data e hora</th><th>Ação</th><th>Lançamento</th><th>Motivo / referência</th><th>Responsável</th><th style="text-align:right">Valor</th><th style="text-align:center">Acesso</th></tr></thead><tbody id="aud-tbody"></tbody></table>
@@ -978,6 +1024,36 @@ const fmtMes=(m)=>{
 };
 const periodoFinanceiro=(data)=>/^\d{4}-\d{2}/.test(String(data||''))?String(data).slice(0,7):'';
 const dataLocalTimestamp=(data)=>{const d=new Date(data);return Number.isNaN(d.getTime())?'':isoLocal(d);};
+function marcarPeriodoAtivo(prefix,chave=''){
+  ['atual','anterior','30d','todos'].forEach(k=>S(`${prefix}-q-${k}`)?.classList.toggle('on',k===chave));
+}
+function periodoManual(prefix){marcarPeriodoAtivo(prefix,'');}
+function renderEscopoPeriodo(prefix){
+  if(prefix==='fr'){REC_PG=0;renderReceitas();}
+  else if(prefix==='fd2'){DES_PG=0;renderDespesas();}
+  else if(prefix==='aud'){AUD_PG=0;renderAuditoria();}
+}
+function aplicarPeriodoFinanceiro(prefix,chave){
+  const mes=S(prefix==='fr'?'fr-mes':prefix==='fd2'?'fd2-mes':'');
+  const de=S(`${prefix}-de`),ate=S(`${prefix}-ate`);
+  const agora=new Date(),inicio=new Date(agora.getFullYear(),agora.getMonth(),1,12);
+  const anteriorIni=new Date(agora.getFullYear(),agora.getMonth()-1,1,12);
+  const anteriorFim=new Date(agora.getFullYear(),agora.getMonth(),0,12);
+  if(mes)mes.value='';if(de)de.value='';if(ate)ate.value='';
+  if(chave==='atual'){
+    if(mes&&[...mes.options].some(o=>o.value===mesAtual()))mes.value=mesAtual();
+    else{if(de)de.value=isoLocal(inicio);if(ate)ate.value=isoLocal(new Date(agora.getFullYear(),agora.getMonth()+1,0,12));}
+  }else if(chave==='anterior'){
+    const periodo=isoLocal(anteriorIni).slice(0,7);
+    if(mes&&[...mes.options].some(o=>o.value===periodo))mes.value=periodo;
+    else{if(de)de.value=isoLocal(anteriorIni);if(ate)ate.value=isoLocal(anteriorFim);}
+  }else if(chave==='30d'){
+    const inicio30=new Date(agora);inicio30.setDate(inicio30.getDate()-29);
+    if(de)de.value=isoLocal(inicio30);if(ate)ate.value=isoLocal(agora);
+  }
+  marcarPeriodoAtivo(prefix,chave);
+  renderEscopoPeriodo(prefix);
+}
 const isAdmin=()=>NIVEL==='admin'||NIVEL==='administrador'||NIVEL==='Administrador';
 const canManageFinance=()=>isAdmin()||String(NIVEL||'').toLowerCase()==='financeiro';
 const S=(id)=>document.getElementById(id);
@@ -1385,7 +1461,7 @@ function limparFiltrosRec(){
   ['fr-cat','fr-pay','fr-mes','fr-de','fr-ate'].forEach(id=>{const e=S(id);if(e)e.value='';});
   const p=S('fr-pac');if(p)p.value='';
   setSafe('fr-total','');
-  REC_PG=0; renderReceitas();
+  marcarPeriodoAtivo('fr','todos');REC_PG=0; renderReceitas();
 }
 
 // ── DESPESAS ───────────────────────────────────────────────────
@@ -1438,7 +1514,7 @@ function renderRowDes(l){
 
 function limparFiltrosDes(){
   ['fd2-cat','fd2-mes','fd2-de','fd2-ate'].forEach(id=>{const e=S(id);if(e)e.value='';});
-  setSafe('fd2-total',''); DES_PG=0; renderDespesas();
+  marcarPeriodoAtivo('fd2','todos');setSafe('fd2-total',''); DES_PG=0; renderDespesas();
 }
 
 // ── PAGINAÇÃO ──────────────────────────────────────────────────
@@ -2242,7 +2318,7 @@ function renderRowAuditoria(a){
 
 function limparFiltrosAuditoria(){
   ['aud-acao','aud-busca','aud-de','aud-ate'].forEach(id=>{const e=S(id);if(e)e.value='';});
-  AUD_PG=0;renderAuditoria();
+  marcarPeriodoAtivo('aud','todos');AUD_PG=0;renderAuditoria();
 }
 
 // ── DRE ───────────────────────────────────────────────────────
