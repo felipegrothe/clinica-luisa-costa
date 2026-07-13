@@ -495,7 +495,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
               <button class="btn btn-terra" onclick="pdfProtocolo()">PDF Protocolo</button>
               <button class="btn btn-dk" onclick="openModal('recibo')">Recibo Financeiro</button>
               <button class="btn btn-verde" onclick="irParaSemanas()">Gestão de Semanas</button>
-              <button class="btn" style="background:var(--terra-xl);color:var(--terra-d);border-color:var(--terra-l);font-size:10px;font-weight:500" onclick="salvarProtocoloLocal()">Salvar no histórico</button>
+              <button id="save-protocolo-btn" class="btn" style="background:var(--terra-xl);color:var(--terra-d);border-color:var(--terra-l);font-size:10px;font-weight:500" onclick="salvarProtocoloLocal()">Salvar no histórico</button>
               <button class="btn btn-danger btn-sm" onclick="clearAll()">Limpar seleção</button>
             </div>
           </div>
@@ -691,6 +691,9 @@ let historico=[]; // protocolos salvos para o dashboard
 let protocolosBanco=[];
 const signatures={};
 let saveTimer=null;
+let protocoloSaveInFlight=false;
+let protocoloSaveSignature='';
+let protocoloSaveKey='';
 const SUPA_URL='https://eeianweavbnrikzqquxq.supabase.co';
 const SUPA_KEY='sb_publishable_RWouef1R4SySi3PyBxq0lQ_AEEpGHly';
 const db=window.supabase?window.supabase.createClient(SUPA_URL,SUPA_KEY):null;
@@ -701,6 +704,12 @@ function getCat(n){for(const[c,ns]of Object.entries(CATS_MAP))if(ns.includes(n))
 function fmt(v){return'R$\u00a0'+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function esc(s){return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
 function escHtml(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function novaChaveProtocolo(){
+  if(globalThis.crypto?.randomUUID)return globalThis.crypto.randomUUID();
+  return'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{
+    const r=Math.floor(Math.random()*16);return(c==='x'?r:(r&3)|8).toString(16);
+  });
+}
 function getNome(){return document.getElementById('nome-livre').value||(activePacIdx!==null&&pacientes[activePacIdx]?pacientes[activePacIdx].nome:'');}
 function getMesesAtivos(){return duracao===0?Math.max(1,Number(document.getElementById('dur-livre-meses')?.value)||1):duracao;}
 function getWeekCount(){return Math.max(1,getMesesAtivos()*4);}
@@ -881,6 +890,7 @@ function delModelo(i){if(!confirm('Remover modelo "'+modelos[i].nome+'"?'))retur
 
 // ══ SALVAR NO HISTÓRICO (para dashboard) ════════════════════════════════════
 async function salvarProtocoloLocal(){
+  if(protocoloSaveInFlight)return;
   const items=Object.keys(selected);if(!items.length){alert('Selecione ativos primeiro.');return;}
   const nome=getNome()||'Paciente sem nome';
   const b=getBruto(),disc=getDisc(b),final=Math.max(0,b-disc)+getTaxa(Math.max(0,b-disc));
@@ -899,9 +909,18 @@ async function salvarProtocoloLocal(){
     criadoEm:new Date().toISOString()
   };
   const msg=document.getElementById('save-msg');
+  const saveBtn=document.getElementById('save-protocolo-btn');
+  const saveSignature=JSON.stringify({nome,final,dur,dtI,dtF:dtF.toISOString().slice(0,10),payMode,ativos:protocolo.ativos,sessoes});
+  if(saveSignature!==protocoloSaveSignature){
+    protocoloSaveSignature=saveSignature;
+    protocoloSaveKey=novaChaveProtocolo();
+  }
+  protocoloSaveInFlight=true;
+  if(saveBtn){saveBtn.disabled=true;saveBtn.textContent='Salvando...';}
   if(msg)msg.textContent='Salvando no Supabase...';
   let salvoNoBanco=false;
-  if(db){
+  try{
+   if(db){
     try{
       const {data:{session}}=await db.auth.getSession();
       const payload={
@@ -915,10 +934,11 @@ async function salvarProtocoloLocal(){
         pagamento:payMode,
         itens:protocolo.ativos,
         sessoes:sessoes,
+        idempotency_key:protocoloSaveKey,
         user_id:session?.user?.id||null,
         updated_at:new Date().toISOString()
       };
-      const {data,error}=await db.from('protocolos').insert(payload).select().single();
+      const {data,error}=await db.from('protocolos').upsert(payload,{onConflict:'idempotency_key'}).select().single();
       if(error)throw error;
       protocolo.id=data.id;
       protocolo.supabase_id=data.id;
@@ -929,15 +949,20 @@ async function salvarProtocoloLocal(){
       if(msg){msg.textContent='Não salvo no Supabase';clearTimeout(msg._t);msg._t=setTimeout(()=>msg.textContent='',4000);}
       return;
     }
-  }
+   }
   if(!salvoNoBanco){
     alert('NÃO FOI SALVO: o protocolo não foi gravado no Supabase. A ação foi bloqueada para evitar backup local.');
     if(msg){msg.textContent='Não salvo no Supabase';clearTimeout(msg._t);msg._t=setTimeout(()=>msg.textContent='',4000);}
     return;
   }
-  historico.push(protocolo);
+  const historicoIdx=historico.findIndex(p=>String(p.supabase_id||p.id)===String(protocolo.supabase_id));
+  if(historicoIdx>=0)historico[historicoIdx]=protocolo;else historico.push(protocolo);
   scheduleSave();
   if(msg){msg.textContent='Protocolo salvo no Supabase';clearTimeout(msg._t);msg._t=setTimeout(()=>msg.textContent='',4000);}
+  }finally{
+    protocoloSaveInFlight=false;
+    if(saveBtn){saveBtn.disabled=false;saveBtn.textContent='Salvar no histórico';}
+  }
 }
 
 // ══ PACIENTES (mínimo — para linkar futuramente) ════════════════════════════

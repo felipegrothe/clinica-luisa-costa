@@ -15,6 +15,7 @@ create table if not exists public.protocolos (
   pagamento text,
   itens jsonb default '[]'::jsonb,
   sessoes jsonb default '[]'::jsonb,
+  idempotency_key uuid,
   user_id uuid,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
@@ -30,8 +31,13 @@ alter table public.protocolos add column if not exists status text default 'anda
 alter table public.protocolos add column if not exists pagamento text;
 alter table public.protocolos add column if not exists itens jsonb default '[]'::jsonb;
 alter table public.protocolos add column if not exists sessoes jsonb default '[]'::jsonb;
+alter table public.protocolos add column if not exists idempotency_key uuid;
 alter table public.protocolos add column if not exists user_id uuid;
 alter table public.protocolos add column if not exists updated_at timestamptz default now();
+
+create unique index if not exists protocolos_idempotency_key_uidx
+  on public.protocolos(idempotency_key)
+  where idempotency_key is not null;
 
 do $$
 declare
