@@ -17,6 +17,19 @@ const tests = [
   ['banco impede dois estornos do mesmo lançamento', () => assert.match(sql, /unique\(lancamento_id\)/)],
   ['estorno de pagamento manual reabre saldo', () => assert.match(sql, /v_novo_pago:=greatest\(0,v_pago-v_pag\.valor\)[\s\S]*saldo_devedor=greatest/)],
   ['operações gravam auditoria com estado anterior e posterior', () => assert.match(sql, /insert into public\.fin_auditoria[\s\S]*dados_antes,dados_depois/)],
+  ['navegação possui página de auditoria', () => assert.match(html, /goSub\('auditoria',this\)/)],
+  ['auditoria é carregada diretamente da tabela protegida', () => assert.match(html, /db\.from\('fin_auditoria'\)/)],
+  ['consulta de auditoria possui limite defensivo', () => assert.match(html, /\.order\('created_at',\{ascending:false\}\)\.limit\(500\)/)],
+  ['tela identifica histórico como somente leitura', () => assert.match(html, /Histórico financeiro imutável[\s\S]*Somente leitura/)],
+  ['filtros incluem ação, busca e intervalo', () => {
+    assert.match(html, /id="aud-acao"/);assert.match(html, /id="aud-busca"/);assert.match(html, /id="aud-de"/);assert.match(html, /id="aud-ate"/);
+  }],
+  ['dados vindos da auditoria são escapados na tabela', () => assert.match(html, /function renderRowAuditoria[\s\S]*esc\(antes\.descricao/)],
+  ['responsável externo não expõe UUID completo', () => assert.match(html, /slice\(-6\)/)],
+  ['lançamento estornado pode ser consultado sem ações administrativas', () => {
+    assert.match(html, /\[\.\.\.LANCS,\.\.\.LANCS_ESTORNADOS\]/);
+    assert.match(html, /isAdmin\(\)&&!l\.estornado_at/);
+  }],
 ];
 
 for (const [name, run] of tests) {

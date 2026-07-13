@@ -305,6 +305,7 @@ body.iframe-mode #login-wrap{display:none!important}
     <div class="sn" onclick="goSub('contas',this)">Contas a pagar</div>
     <div class="sn" onclick="goSub('inadimplentes',this)">Contas a receber</div>
     <div class="sn" onclick="goSub('dre',this)">DRE</div>
+    <div class="sn" onclick="goSub('auditoria',this)">Auditoria</div>
     <div class="sn" onclick="goSub('ia',this)">Assistente IA</div>
     <div class="sn" onclick="goSub('config',this)">Configurações</div>
   </div>
@@ -488,6 +489,31 @@ body.iframe-mode #login-wrap{display:none!important}
           </div>
         </div>
         <div id="dre-corpo"></div>
+      </div>
+    </div>
+
+    <!-- ── AUDITORIA FINANCEIRA ─────────────────────────────── -->
+    <div class="pg" id="pg-auditoria">
+      <div class="kpi-grid-3" style="margin-bottom:14px">
+        <div class="kpi r"><div class="kpi-lbl">Estornos</div><div class="kpi-val red" id="aud-kpi-estornos">0</div><div class="kpi-sub">registrados</div></div>
+        <div class="kpi g"><div class="kpi-lbl">Conciliações</div><div class="kpi-val grn" id="aud-kpi-conciliacoes">0</div><div class="kpi-sub">ações realizadas</div></div>
+        <div class="kpi o"><div class="kpi-lbl">Últimos 30 dias</div><div class="kpi-val gold" id="aud-kpi-recentes">0</div><div class="kpi-sub">eventos auditados</div></div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><span class="card-title">Histórico financeiro imutável</span><span style="font-size:10px;color:var(--tl)">Somente leitura</span></div>
+        <div class="filtros">
+          <select class="filtro-select" id="aud-acao" onchange="renderAuditoria()">
+            <option value="">Todas as ações</option><option value="estorno">Estornos</option><option value="conciliacao">Conciliações</option><option value="desconciliacao">Desconciliações</option>
+          </select>
+          <input class="filtro-input" id="aud-busca" type="text" placeholder="Buscar descrição ou motivo..." oninput="renderAuditoria()">
+          <input class="filtro-input" id="aud-de" type="date" onchange="renderAuditoria()" title="De">
+          <input class="filtro-input" id="aud-ate" type="date" onchange="renderAuditoria()" title="Até">
+          <button class="btn-limpar" onclick="limparFiltrosAuditoria()">Limpar</button><span class="filtro-total" id="aud-total"></span>
+        </div>
+        <div class="card-body">
+          <table class="tbl"><thead><tr><th>Data e hora</th><th>Ação</th><th>Lançamento</th><th>Motivo / referência</th><th>Responsável</th><th style="text-align:right">Valor</th><th style="text-align:center">Acesso</th></tr></thead><tbody id="aud-tbody"></tbody></table>
+          <div id="aud-pag" class="pag"></div>
+        </div>
       </div>
     </div>
 
@@ -810,7 +836,7 @@ if(window.self!==window.top)document.body.classList.add('iframe-mode');
 const AI_PROXY = SUPA_URL + '/functions/v1/ai-proxy';
 
 let USER=null, PERFIL=null, NIVEL=null;
-let LANCS=[], LANCS_ESTORNADOS=[], PAGAMENTOS=[], INAD_MANUAIS=[], PACS_CACHE=[], FAVS=[];
+let LANCS=[], LANCS_ESTORNADOS=[], PAGAMENTOS=[], INAD_MANUAIS=[], PACS_CACHE=[], FAVS=[], AUDITORIA=[];
 let PACIENTES_DB=[];
 let TIPO='receita', PAY='pix';
 let DET_ID=null, QUIT_ID=null, QUIT_ORIGEM=null, QUIT_SALDO=0, QUIT_KEY=null;
@@ -819,7 +845,7 @@ let DRE_MES='';
 let INAD_LISTA=[];
 let INAD_EDIT_ID=null;
 let IMPORT_FIN=null;
-let REC_PG=0, DES_PG=0;
+let REC_PG=0, DES_PG=0, AUD_PG=0;
 let FIN_MATCH_RUNNING=false;
 let FIN_MATCH_DONE=false;
 const PG_SIZE=15;
@@ -1203,6 +1229,7 @@ function goSub(id,el){
     contas:()=>carregar().then(renderContas),
     inadimplentes:()=>carregar().then(renderInad),
     dre:()=>carregar().then(renderDRE),
+    auditoria:()=>carregarAuditoria().then(renderAuditoria),
     config:()=>renderConfig(),
   };
   reloads[id]?.();
@@ -1994,7 +2021,7 @@ document.addEventListener('change',e=>{
 
 // ── DETALHE / EDIÇÃO ──────────────────────────────────────────
 function abrirDet(id){
-  const l=LANCS.find(x=>String(x.id)===String(id)); if(!l)return;
+  const l=[...LANCS,...LANCS_ESTORNADOS].find(x=>String(x.id)===String(id)); if(!l)return;
   DET_ID=id;
   const pos=l.tipo==='receita';
   const cat=labelCategoria(pos?CATS_REC:CATS_DES,l.categoria_dre);
@@ -2013,6 +2040,8 @@ function abrirDet(id){
     {k:'Vencimento',v:l.vencimento?fmtData(l.vencimento):null},
     {k:'Conciliação',v:l.conciliado_at?'Conciliado em '+new Date(l.conciliado_at).toLocaleString('pt-BR'):'Não conciliado'},
     {k:'Referência',v:l.conciliacao_ref||null},
+    {k:'Estorno',v:l.estornado_at?'Estornado em '+new Date(l.estornado_at).toLocaleString('pt-BR'):null},
+    {k:'Motivo do estorno',v:l.estorno_motivo||null},
     {k:'Observação',v:obsLimpa},
   ].filter(r=>r.v&&r.v!=='—');
   S('det-body').innerHTML=`<div style="display:flex;flex-direction:column">`+
@@ -2020,7 +2049,7 @@ function abrirDet(id){
       <span style="font-size:12px;color:var(--tl)">${r.k}</span>
       <span style="font-size:12px;font-weight:${r.k==='Valor'?500:400};color:${r.c||'var(--tx)'}">${esc(r.v)}</span>
     </div>`).join('')+'</div>';
-  const ab=S('det-admin-btns'); if(ab)ab.style.display=isAdmin()?'flex':'none';
+  const ab=S('det-admin-btns'); if(ab)ab.style.display=isAdmin()&&!l.estornado_at?'flex':'none';
   const cb=S('det-conciliar-btn');if(cb)cb.textContent=l.conciliado_at?'Desconciliar':'Conciliar';
   modoDetalhe();
   S('m-det').classList.add('on');
@@ -2146,6 +2175,68 @@ async function alternarConciliacao(){
   }catch(e){
     showToast('Erro na conciliação: '+(e.message||'operação não concluída'),'err');
   }finally{if(btn)btn.disabled=false;}
+}
+
+// ── AUDITORIA FINANCEIRA ─────────────────────────────────────
+async function carregarAuditoria(){
+  try{
+    const{data,error}=await db.from('fin_auditoria')
+      .select('id,entidade,entidade_id,acao,dados_antes,dados_depois,motivo,user_id,created_at')
+      .order('created_at',{ascending:false}).limit(500);
+    if(error)throw error;
+    AUDITORIA=data||[];
+  }catch(e){
+    AUDITORIA=[];
+    console.error('Falha ao carregar auditoria financeira:',e);
+    showToast('Não foi possível carregar a auditoria financeira','err');
+  }
+}
+
+function nomeResponsavelAuditoria(userId){
+  if(userId&&String(userId)===String(USER?.id))return PERFIL?.nome||USER?.email||'Usuário atual';
+  const fim=String(userId||'').replace(/-/g,'').slice(-6);
+  return fim?'Usuário • '+fim:'Usuário do sistema';
+}
+
+function labelAcaoAuditoria(acao){
+  return({estorno:'Estorno',conciliacao:'Conciliação',desconciliacao:'Desconciliação'})[acao]||acao||'Alteração';
+}
+
+function renderAuditoria(){
+  const limite30=new Date();limite30.setDate(limite30.getDate()-30);
+  setSafe('aud-kpi-estornos',String(AUDITORIA.filter(a=>a.acao==='estorno').length));
+  setSafe('aud-kpi-conciliacoes',String(AUDITORIA.filter(a=>a.acao==='conciliacao'||a.acao==='desconciliacao').length));
+  setSafe('aud-kpi-recentes',String(AUDITORIA.filter(a=>new Date(a.created_at)>=limite30).length));
+  const acao=S('aud-acao')?.value||'';
+  const busca=(S('aud-busca')?.value||'').trim().toLowerCase();
+  const de=S('aud-de')?.value||'',ate=S('aud-ate')?.value||'';
+  const lista=AUDITORIA.filter(a=>{
+    const data=String(a.created_at||'').slice(0,10),antes=a.dados_antes||{};
+    const texto=[antes.descricao,antes.paciente,a.motivo,labelAcaoAuditoria(a.acao)].filter(Boolean).join(' ').toLowerCase();
+    return(!acao||a.acao===acao)&&(!busca||texto.includes(busca))&&dataNoIntervalo(data,de,ate);
+  });
+  setSafe('aud-total',lista.length+' evento(s) · '+fmt(lista.reduce((s,a)=>s+Number(a.dados_antes?.valor||0),0)));
+  renderTblPag('aud-tbody','aud-pag',lista,AUD_PG,(p)=>{AUD_PG=p;renderAuditoria();},renderRowAuditoria);
+}
+
+function renderRowAuditoria(a){
+  const antes=a.dados_antes||{},acao=labelAcaoAuditoria(a.acao);
+  const cor=a.acao==='estorno'?'var(--red)':(a.acao==='conciliacao'?'var(--verde)':'var(--terra-d)');
+  const data=a.created_at?new Date(a.created_at).toLocaleString('pt-BR'):'—';
+  return`<tr>
+    <td style="white-space:nowrap;color:var(--tl)">${esc(data)}</td>
+    <td><span class="badge" style="color:${cor};background:var(--bg3)">${esc(acao)}</span></td>
+    <td><div style="font-weight:500">${esc(antes.descricao||'Lançamento financeiro')}</div><div style="font-size:10px;color:var(--tl)">${esc(antes.paciente||antes.tipo||'—')}</div></td>
+    <td style="max-width:260px;color:var(--tm)">${esc(a.motivo||'—')}</td>
+    <td>${esc(nomeResponsavelAuditoria(a.user_id))}</td>
+    <td style="text-align:right;font-weight:500">${fmt(antes.valor||0)}</td>
+    <td style="text-align:center"><button onclick="abrirDet('${escJs(a.entidade_id)}')" style="font-size:9px;padding:3px 8px;border:1px solid var(--bd2);border-radius:var(--r);background:none;color:var(--tl);cursor:pointer">Ver lançamento</button></td>
+  </tr>`;
+}
+
+function limparFiltrosAuditoria(){
+  ['aud-acao','aud-busca','aud-de','aud-ate'].forEach(id=>{const e=S(id);if(e)e.value='';});
+  AUD_PG=0;renderAuditoria();
 }
 
 // ── DRE ───────────────────────────────────────────────────────
