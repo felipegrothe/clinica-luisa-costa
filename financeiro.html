@@ -743,7 +743,7 @@ body.iframe-mode #login-wrap{display:none!important}
     </div>
     <div class="modal-ft">
       <button class="btn" onclick="fecharQuit()">Cancelar</button>
-      <button class="btn btn-verde" onclick="confirmarQuit()">Confirmar quitação</button>
+      <button class="btn btn-verde" id="quit-confirmar" onclick="confirmarQuit()">Confirmar quitação</button>
     </div>
   </div>
 </div>
@@ -809,10 +809,10 @@ if(window.self!==window.top)document.body.classList.add('iframe-mode');
 const AI_PROXY = SUPA_URL + '/functions/v1/ai-proxy';
 
 let USER=null, PERFIL=null, NIVEL=null;
-let LANCS=[], INAD_MANUAIS=[], PACS_CACHE=[], FAVS=[];
+let LANCS=[], PAGAMENTOS=[], INAD_MANUAIS=[], PACS_CACHE=[], FAVS=[];
 let PACIENTES_DB=[];
 let TIPO='receita', PAY='pix';
-let DET_ID=null, QUIT_ID=null, QUIT_ORIGEM=null, QUIT_SALDO=0;
+let DET_ID=null, QUIT_ID=null, QUIT_ORIGEM=null, QUIT_SALDO=0, QUIT_KEY=null;
 let INAD_FILTRO='todos', DASH_FILTRO='', DASH_MES='';
 let DRE_MES='';
 let INAD_LISTA=[];
@@ -1493,10 +1493,20 @@ async function renderInad(){
     if(!error&&data) protAbertos=data;
   }catch(e){}
 
+  try{
+    const{data,error}=await db.from('fin_pagamentos')
+      .select('id,idempotency_key,origem,conta_receber_id,protocolo_id,lancamento_id,valor,data_pagamento');
+    if(error)throw error;
+    PAGAMENTOS=data||[];
+  }catch(e){
+    PAGAMENTOS=[];
+    console.error('Falha ao carregar pagamentos vinculados:',e);
+    showToast('Não foi possível carregar os pagamentos vinculados','err');
+  }
+
   const inadProt=protAbertos.map(p=>{
-    const pago=LANCS.filter(l=>l.tipo==='receita'&&l.paciente&&
-      l.paciente.trim().toLowerCase()===p.paciente_nome?.trim().toLowerCase())
-      .reduce((s,l)=>s+Number(l.valor||0),0);
+    const pago=PAGAMENTOS.filter(pg=>pg.origem==='protocolo'&&String(pg.protocolo_id)===String(p.id))
+      .reduce((s,pg)=>s+Number(pg.valor||0),0);
     const saldo=Math.max(0,Number(p.valor_total||0)-pago);
     return{...p,valor_pago:pago,saldo_devedor:saldo,origem:'protocolo',quitado:saldo<0.01};
   }).filter(p=>p.valor_total>0);
@@ -1744,6 +1754,7 @@ function abrirQuit(idx){
   QUIT_ID=String(i.id||i.paciente_nome);
   QUIT_ORIGEM=i.origem;
   QUIT_SALDO=Number(i.saldo_devedor||0);
+  QUIT_KEY=globalThis.crypto?.randomUUID?.()||null;
   const nome=i.paciente_nome||i.paciente||'—';
   const desc=i.titulo||i.descricao||'—';
   setSafe('quit-pac',nome);
@@ -1771,14 +1782,21 @@ async function confirmarQuit(){
   const obs=S('quit-obs')?.value.trim()||'Quitação';
   const pac=S('quit-pac')?.textContent||'';
   const desc=S('quit-desc')?.textContent||'';
+  let foiDuplicado=false;
   if(!valor||valor<=0){showToast('Informe o valor','err');return;}
   if(valor>QUIT_SALDO+0.009){showToast('O pagamento não pode superar o saldo em aberto','err');return;}
   if(!canManageFinance()){showToast('Acesso negado','err');return;}
+  if(!QUIT_KEY){showToast('Não foi possível gerar a chave segura da quitação','err');return;}
+
+  const btn=S('quit-confirmar');
+  if(btn?.disabled)return;
+  if(btn){btn.disabled=true;btn.textContent='Registrando...';}
 
   if(QUIT_ORIGEM==='boleto'){
-    if(Math.abs(valor-QUIT_SALDO)>0.009){showToast('Boletos devem ser recebidos pelo valor total','err');return;}
+    if(Math.abs(valor-QUIT_SALDO)>0.009){showToast('Boletos devem ser recebidos pelo valor total','err');if(btn){btn.disabled=false;btn.textContent='Confirmar quitação';}return;}
     const lancamentoId=QUIT_ID.replace(/^boleto_/,'');
     await marcarRecebidoBoleto(lancamentoId);
+    if(btn){btn.disabled=false;btn.textContent='Confirmar quitação';}
     fecharQuit();
     return;
   }
@@ -1793,13 +1811,20 @@ async function confirmarQuit(){
       p_paciente:pac,
       p_paciente_id:resolvePacienteIdByNome(pac),
       p_descricao:desc,
-      p_observacao:obs
+      p_observacao:obs,
+      p_idempotency_key:QUIT_KEY
     });
     if(error)throw error;
     if(!result)throw new Error('Quitação sem confirmação do banco.');
-  }catch(e){showToast('Erro ao registrar quitação: '+(e.message||'verifique o banco'),'err');return;}
+    foiDuplicado=!!result.duplicado;
+  }catch(e){
+    showToast('Erro ao registrar quitação: '+(e.message||'verifique o banco'),'err');
+    if(btn){btn.disabled=false;btn.textContent='Confirmar quitação';}
+    return;
+  }
 
-  showToast('Quitação registrada! Lançamento criado.');
+  showToast(foiDuplicado?'Esta quitação já havia sido registrada.':'Quitação registrada! Lançamento criado.');
+  if(btn){btn.disabled=false;btn.textContent='Confirmar quitação';}
   fecharQuit();
   // Recarregar dados frescos e re-renderizar
   await carregar();
