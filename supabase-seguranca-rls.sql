@@ -35,6 +35,7 @@ begin
     ('agenda_eventos','agenda'),('agenda_configuracoes','agenda'),
     ('pacientes','pacientes'),('protocolos','precificador'),('precificador_state','precificador'),
     ('fin_lancamentos','financeiro'),('fin_inadimplentes','financeiro'),('fin_pagamentos','financeiro'),
+    ('fin_estornos','financeiro'),('fin_auditoria','financeiro'),
     ('itens','estoque'),('lotes','estoque'),('movimentacoes','estoque'),
     ('tirzepatida_frascos','estoque'),('tirzepatida_movimentacoes','estoque'),
     ('fornecedores','estoque'),('setores','estoque'),('auditoria','estoque'),

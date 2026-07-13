@@ -29,6 +29,7 @@ Execute os arquivos no SQL Editor do Supabase nesta ordem:
 10. `supabase-seguranca-rls.sql` — último arquivo de políticas
 11. `supabase-financeiro-quitacao.sql` — quitação financeira transacional
 12. `supabase-financeiro-integridade.sql` — pagamentos vinculados, saldo por protocolo e idempotência
+13. `supabase-financeiro-estornos-conciliacao.sql` — estornos transacionais, conciliação e auditoria
 
 O arquivo de segurança remove políticas antigas permissivas e aplica autorização por módulo. Usuários sem perfil ativo não recebem acesso. As funções transacionais podem ser instaladas depois dele.
 

@@ -650,7 +650,8 @@ body.iframe-mode #login-wrap{display:none!important}
       <div class="modal-body" id="det-body"></div>
       <div class="modal-ft">
         <div id="det-admin-btns" style="display:none;gap:8px">
-          <button class="btn btn-danger" onclick="removerLanc()">Remover</button>
+          <button class="btn btn-danger" id="det-estornar-btn" onclick="estornarLanc()">Estornar</button>
+          <button class="btn" id="det-conciliar-btn" onclick="alternarConciliacao()">Conciliar</button>
           <button class="btn btn-terra" onclick="modoEditar()">Editar</button>
         </div>
         <button class="btn" onclick="fecharDet()" style="margin-left:auto">Fechar</button>
@@ -809,7 +810,7 @@ if(window.self!==window.top)document.body.classList.add('iframe-mode');
 const AI_PROXY = SUPA_URL + '/functions/v1/ai-proxy';
 
 let USER=null, PERFIL=null, NIVEL=null;
-let LANCS=[], PAGAMENTOS=[], INAD_MANUAIS=[], PACS_CACHE=[], FAVS=[];
+let LANCS=[], LANCS_ESTORNADOS=[], PAGAMENTOS=[], INAD_MANUAIS=[], PACS_CACHE=[], FAVS=[];
 let PACIENTES_DB=[];
 let TIPO='receita', PAY='pix';
 let DET_ID=null, QUIT_ID=null, QUIT_ORIGEM=null, QUIT_SALDO=0, QUIT_KEY=null;
@@ -1070,7 +1071,10 @@ async function carregar(){
   try{
     const{data,error}=await db.from('fin_lancamentos')
       .select('*').order('data',{ascending:false}).order('created_at',{ascending:false});
-    if(!error&&data) LANCS=data;
+    if(!error&&data){
+      LANCS_ESTORNADOS=data.filter(l=>l.estornado_at);
+      LANCS=data.filter(l=>!l.estornado_at);
+    }
   }catch(e){}
 }
 
@@ -1495,7 +1499,7 @@ async function renderInad(){
 
   try{
     const{data,error}=await db.from('fin_pagamentos')
-      .select('id,idempotency_key,origem,conta_receber_id,protocolo_id,lancamento_id,valor,data_pagamento');
+      .select('id,idempotency_key,origem,conta_receber_id,protocolo_id,lancamento_id,valor,data_pagamento,estornado_at,estornado_por');
     if(error)throw error;
     PAGAMENTOS=data||[];
   }catch(e){
@@ -1505,7 +1509,7 @@ async function renderInad(){
   }
 
   const inadProt=protAbertos.map(p=>{
-    const pago=PAGAMENTOS.filter(pg=>pg.origem==='protocolo'&&String(pg.protocolo_id)===String(p.id))
+    const pago=PAGAMENTOS.filter(pg=>!pg.estornado_at&&pg.origem==='protocolo'&&String(pg.protocolo_id)===String(p.id))
       .reduce((s,pg)=>s+Number(pg.valor||0),0);
     const saldo=Math.max(0,Number(p.valor_total||0)-pago);
     return{...p,valor_pago:pago,saldo_devedor:saldo,origem:'protocolo',quitado:saldo<0.01};
@@ -2007,6 +2011,8 @@ function abrirDet(id){
     {k:'Paciente',v:l.paciente||null},
     {k:'Sinal de consulta',v:l.eh_sinal?'Sim':null},
     {k:'Vencimento',v:l.vencimento?fmtData(l.vencimento):null},
+    {k:'Conciliação',v:l.conciliado_at?'Conciliado em '+new Date(l.conciliado_at).toLocaleString('pt-BR'):'Não conciliado'},
+    {k:'Referência',v:l.conciliacao_ref||null},
     {k:'Observação',v:obsLimpa},
   ].filter(r=>r.v&&r.v!=='—');
   S('det-body').innerHTML=`<div style="display:flex;flex-direction:column">`+
@@ -2015,6 +2021,7 @@ function abrirDet(id){
       <span style="font-size:12px;font-weight:${r.k==='Valor'?500:400};color:${r.c||'var(--tx)'}">${esc(r.v)}</span>
     </div>`).join('')+'</div>';
   const ab=S('det-admin-btns'); if(ab)ab.style.display=isAdmin()?'flex':'none';
+  const cb=S('det-conciliar-btn');if(cb)cb.textContent=l.conciliado_at?'Desconciliar':'Conciliar';
   modoDetalhe();
   S('m-det').classList.add('on');
 }
@@ -2081,36 +2088,64 @@ async function salvarEdicao(){
     console.error('salvarEdicao error:',e);
   }
 }
-async function removerLanc(){
+async function estornarLanc(){
   if(!isAdmin()){showToast('Acesso negado','err');return;}
   const l=LANCS.find(x=>String(x.id)===String(DET_ID));
   if(!l){showToast('Lançamento não encontrado','err');return;}
-  if(!confirm('Remover "'+( l.descricao||'este lançamento')+'" de '+fmt(l.valor)+'?'))return;
+  const motivo=prompt('Informe o motivo do estorno de "'+(l.descricao||'este lançamento')+'" ('+fmt(l.valor)+'):');
+  if(motivo===null)return;
+  if(motivo.trim().length<5){showToast('Informe um motivo com pelo menos 5 caracteres','err');return;}
 
   // Lançamento local (não salvo no banco)
   if(String(DET_ID).startsWith('local-')){
     LANCS=LANCS.filter(x=>String(x.id)!==String(DET_ID));
-    showToast('Removido.');
+    showToast('Lançamento local descartado.');
     fecharDet(); renderDash(); return;
   }
 
-  // Lançamento no Supabase
+  const btn=S('det-estornar-btn');
+  if(btn){btn.disabled=true;btn.textContent='Estornando...';}
   try{
-    const resp=await db.from('fin_lancamentos').delete().eq('id',String(DET_ID));
-    if(resp.error){
-      showToast('Erro: '+resp.error.message,'err');
-      console.error('Delete error:',resp.error);
-      return;
-    }
-    LANCS=LANCS.filter(x=>String(x.id)!==String(DET_ID));
-    showToast('Lançamento removido!');
+    const key=globalThis.crypto?.randomUUID?.();
+    if(!key)throw new Error('Não foi possível gerar chave segura para o estorno');
+    const{error}=await db.rpc('estornar_lancamento_financeiro',{
+      p_lancamento_id:String(DET_ID),p_motivo:motivo.trim(),p_idempotency_key:key
+    });
+    if(error)throw error;
+    showToast('Estorno registrado e auditado!');
     fecharDet();
     await carregar();
     renderDash();
   }catch(e){
-    showToast('Erro ao remover','err');
-    console.error('removerLanc error:',e);
+    showToast('Erro ao estornar: '+(e.message||'operação não concluída'),'err');
+    console.error('estornarLanc error:',e);
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='Estornar';}
   }
+}
+
+async function alternarConciliacao(){
+  if(!canManageFinance()){showToast('Acesso negado','err');return;}
+  const l=LANCS.find(x=>String(x.id)===String(DET_ID));
+  if(!l){showToast('Lançamento não encontrado','err');return;}
+  const conciliando=!l.conciliado_at;
+  let referencia=null;
+  if(conciliando){
+    referencia=prompt('Informe a referência da conciliação (extrato, NSU, comprovante ou lote):');
+    if(referencia===null)return;
+    if(referencia.trim().length<3){showToast('Informe uma referência válida','err');return;}
+  }else if(!confirm('Desconciliar este lançamento? A ação ficará registrada na auditoria.'))return;
+  const btn=S('det-conciliar-btn');if(btn)btn.disabled=true;
+  try{
+    const{error}=await db.rpc('conciliar_lancamento_financeiro',{
+      p_lancamento_id:String(DET_ID),p_conciliado:conciliando,p_referencia:referencia?.trim()||null
+    });
+    if(error)throw error;
+    showToast(conciliando?'Lançamento conciliado!':'Lançamento desconciliado.');
+    fecharDet();await carregar();renderDash();
+  }catch(e){
+    showToast('Erro na conciliação: '+(e.message||'operação não concluída'),'err');
+  }finally{if(btn)btn.disabled=false;}
 }
 
 // ── DRE ───────────────────────────────────────────────────────
