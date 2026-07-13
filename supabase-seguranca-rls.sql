@@ -35,11 +35,7 @@ begin
     ('agenda_eventos','agenda'),('agenda_configuracoes','agenda'),
     ('pacientes','pacientes'),('protocolos','precificador'),('precificador_state','precificador'),
     ('fin_lancamentos','financeiro'),('fin_inadimplentes','financeiro'),('fin_pagamentos','financeiro'),
-    ('fin_estornos','financeiro'),('fin_auditoria','financeiro'),
-    ('itens','estoque'),('lotes','estoque'),('movimentacoes','estoque'),
-    ('tirzepatida_frascos','estoque'),('tirzepatida_movimentacoes','estoque'),
-    ('fornecedores','estoque'),('setores','estoque'),('auditoria','estoque'),
-    ('alertas_validade','estoque'),('comparativo_fornecedores','estoque')
+    ('fin_estornos','financeiro'),('fin_auditoria','financeiro')
   ) as x(table_name,module_name)
   loop
     if exists (
@@ -64,6 +60,10 @@ begin
     end if;
   end loop;
 end $$;
+
+-- O estoque não usa a política genérica FOR ALL. Execute
+-- supabase-estoque-integridade.sql depois deste arquivo para instalar políticas
+-- separadas de leitura, manutenção, aprovação e retirada transacional.
 
 -- Remove também os nomes históricos usados pelos scripts específicos da agenda.
 drop policy if exists "agenda_select_authenticated" on public.agenda_eventos;

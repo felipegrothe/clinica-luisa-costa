@@ -228,7 +228,7 @@ values
 ('colaborador','agenda',false),
 ('colaborador','precificador',false),
 ('colaborador','pacientes',true),
-('colaborador','estoque',false),
+('colaborador','estoque',true),
 ('colaborador','financeiro',false),
 ('colaborador','prontuario',false),
 ('colaborador','administracao',false)

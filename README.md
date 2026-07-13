@@ -26,18 +26,20 @@ Execute os arquivos no SQL Editor do Supabase nesta ordem:
 7. `supabase-pacientes-policies.sql`
 8. `supabase-operacional-policies.sql`
 9. `supabase-financeiro-paciente-id.sql`
-10. `supabase-seguranca-rls.sql` — último arquivo de políticas
-11. `supabase-financeiro-quitacao.sql` — quitação financeira transacional
-12. `supabase-financeiro-integridade.sql` — pagamentos vinculados, saldo por protocolo e idempotência
-13. `supabase-financeiro-estornos-conciliacao.sql` — estornos transacionais, conciliação e auditoria
+10. `supabase-estoque-schema.sql` — estrutura, índices e views versionadas do estoque
+11. `supabase-seguranca-rls.sql` — políticas gerais por módulo
+12. `supabase-financeiro-quitacao.sql` — quitação financeira transacional
+13. `supabase-financeiro-integridade.sql` — pagamentos vinculados, saldo por protocolo e idempotência
+14. `supabase-financeiro-estornos-conciliacao.sql` — estornos transacionais, conciliação e auditoria
+15. `supabase-estoque-integridade.sql` — permissões granulares, retiradas/ajustes idempotentes e entradas transacionais
 
-O arquivo de segurança remove políticas antigas permissivas e aplica autorização por módulo. Usuários sem perfil ativo não recebem acesso. As funções transacionais podem ser instaladas depois dele.
+O arquivo de segurança remove políticas antigas permissivas e aplica autorização por módulo. Usuários sem perfil ativo não recebem acesso. As funções transacionais podem ser instaladas depois dele. A migração do estoque deve ser executada por último, pois substitui a política ampla do módulo por políticas específicas de leitura, manutenção e retirada.
 
 O cadastro público usa exclusivamente a função `criar_paciente_publico(jsonb)`. O `INSERT` anônimo direto em `pacientes` permanece revogado.
 
-## Estrutura operacional ainda não versionada
+## Inventário do ambiente existente
 
-As tabelas financeiras e de estoque já usadas no ambiente de produção não têm sua criação completa neste repositório. Para exportá-las com fidelidade, execute `supabase-inventario-schema.sql` no SQL Editor e salve o resultado antes de tentar recriar essas estruturas.
+As tabelas e views do estoque estão versionadas em `supabase-estoque-schema.sql`. O financeiro ainda depende parcialmente da estrutura já existente em produção. Antes de uma recriação completa do ambiente, execute `supabase-inventario-schema.sql` no SQL Editor para comparar o banco existente com as migrations versionadas.
 
 ## Desenvolvimento local
 
