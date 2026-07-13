@@ -340,7 +340,7 @@ body.iframe-mode #login-wrap{display:none!important}
                   <button class="filtro-btn" id="fd-des" onclick="setDashFiltro('despesa')">Saídas</button>
                 </div>
                 <select class="filtro-select" id="fd-mes" onchange="renderDash()" style="font-size:10px;padding:5px 8px">
-                  <option value="">Todos os meses</option>
+                  <option value="">Mês atual</option>
                 </select>
                 <button class="btn btn-sm btn-terra" onclick="abrirModal()">+ Novo</button>
               </div>
@@ -971,7 +971,13 @@ const isoLocal=(d=new Date())=>{
 const hoje=()=>isoLocal();
 const mesAtual=()=>isoLocal().slice(0,7);
 const fmtData=(d)=>d?new Date(d+'T12:00').toLocaleDateString('pt-BR'):'—';
-const fmtMes=(m)=>{if(!m)return'';const d=new Date(m+'-01');return d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});};
+const fmtMes=(m)=>{
+  const match=String(m||'').match(/^(\d{4})-(\d{2})$/);if(!match)return'';
+  const d=new Date(Number(match[1]),Number(match[2])-1,1,12);
+  return d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+};
+const periodoFinanceiro=(data)=>/^\d{4}-\d{2}/.test(String(data||''))?String(data).slice(0,7):'';
+const dataLocalTimestamp=(data)=>{const d=new Date(data);return Number.isNaN(d.getTime())?'':isoLocal(d);};
 const isAdmin=()=>NIVEL==='admin'||NIVEL==='administrador'||NIVEL==='Administrador';
 const canManageFinance=()=>isAdmin()||String(NIVEL||'').toLowerCase()==='financeiro';
 const S=(id)=>document.getElementById(id);
@@ -1081,6 +1087,7 @@ async function iniciar(user){
   await carregarPacs();
   carregarFavs();
   await carregar();
+  popularMeses();
   renderDash();
   gerarResumo();
   // Correspondências por IA exigem revisão humana e não são executadas automaticamente.
@@ -1238,9 +1245,9 @@ function goSub(id,el){
 // ── DASHBOARD ──────────────────────────────────────────────────
 function popularMeses(){
   const mes=S('fd-mes'); if(!mes)return;
-  const atual=mes.value;
-  const meses=[...new Set(LANCS.filter(l=>l.data).map(l=>l.data.slice(0,7)))].sort().reverse();
-  mes.innerHTML='<option value="">Todos os meses</option>'+
+  const atual=mes.value||mesAtual();
+  const meses=[...new Set([mesAtual(),...LANCS.map(l=>periodoFinanceiro(l.data)).filter(Boolean)])].sort().reverse();
+  mes.innerHTML=
     meses.map(m=>`<option value="${m}"${m===atual?' selected':''}>${fmtMes(m)}</option>`).join('');
 }
 
@@ -1256,8 +1263,8 @@ function setDashFiltro(t){
 
 function renderDash(){
   const mes=S('fd-mes')?.value||mesAtual(), hj=hoje();
-  const rec=LANCS.filter(l=>l.tipo==='receita'&&l.data?.startsWith(mes));
-  const des=LANCS.filter(l=>l.tipo==='despesa'&&l.data?.startsWith(mes));
+  const rec=LANCS.filter(l=>l.tipo==='receita'&&periodoFinanceiro(l.data)===mes);
+  const des=LANCS.filter(l=>l.tipo==='despesa'&&periodoFinanceiro(l.data)===mes);
   const tRec=rec.reduce((s,l)=>s+Number(l.valor||0),0);
   const tDes=des.reduce((s,l)=>s+Number(l.valor||0),0);
   const saldo=tRec-tDes;
@@ -1273,9 +1280,8 @@ function renderDash(){
   setSafe('kpi-venc',String(vencHoje)); setSafe('kpi-venc-sub',vencHoje>0?'requer atenção':'em dia');
 
   // Tabela lançamentos recentes
-  const mesFiltro=S('fd-mes')?.value||'';
   let lista=DASH_FILTRO?LANCS.filter(l=>l.tipo===DASH_FILTRO):LANCS;
-  if(mesFiltro) lista=lista.filter(l=>l.data?.startsWith(mesFiltro));
+  lista=lista.filter(l=>periodoFinanceiro(l.data)===mes);
   lista=lista.slice(0,PG_SIZE);
 
   const tb=S('dash-tbody'); if(!tb)return;
@@ -1332,7 +1338,7 @@ function popularFiltrosRec(){
     fc.innerHTML='<option value="">Todas as categorias</option>'+
       cats.map(c=>`<option value="${esc(c.cod)}"${c.cod===v?' selected':''}>${esc(c.label)}</option>`).join('');
   }
-  const meses=[...new Set(LANCS.filter(l=>l.tipo==='receita'&&l.data).map(l=>l.data.slice(0,7)))].sort().reverse();
+  const meses=[...new Set(LANCS.filter(l=>l.tipo==='receita').map(l=>periodoFinanceiro(l.data)).filter(Boolean))].sort().reverse();
   const fm=S('fr-mes'); if(fm){
     const v=fm.value;
     fm.innerHTML='<option value="">Todos os meses</option>'+
@@ -1348,10 +1354,10 @@ function renderReceitas(){
   const mes=S('fr-mes')?.value||'';
   const de=S('fr-de')?.value||'';
   const ate=S('fr-ate')?.value||'';
-  if(cat) lista=lista.filter(l=>l.categoria_dre&&l.categoria_dre.startsWith(cat));
+  if(cat) lista=lista.filter(l=>categoriaNoGrupo(l.categoria_dre,cat));
   if(pay) lista=lista.filter(l=>l.forma_pagamento===pay);
   if(pac) lista=lista.filter(l=>l.paciente&&l.paciente.toLowerCase().includes(pac));
-  if(mes) lista=lista.filter(l=>l.data?.startsWith(mes));
+  if(mes) lista=lista.filter(l=>periodoFinanceiro(l.data)===mes);
   if(de||ate) lista=lista.filter(l=>dataNoIntervalo(l.data,de,ate));
   const total=lista.reduce((s,l)=>s+Number(l.valor||0),0);
   const isDiaEspecifico=!!de&&!!ate&&de===ate;
@@ -1390,7 +1396,7 @@ function popularFiltrosDes(){
     fc.innerHTML='<option value="">Todas as categorias</option>'+
       cats.map(c=>`<option value="${esc(c.cod)}"${c.cod===v?' selected':''}>${esc(c.label)}</option>`).join('');
   }
-  const meses=[...new Set(LANCS.filter(l=>l.tipo==='despesa'&&l.data).map(l=>l.data.slice(0,7)))].sort().reverse();
+  const meses=[...new Set(LANCS.filter(l=>l.tipo==='despesa').map(l=>periodoFinanceiro(l.data)).filter(Boolean))].sort().reverse();
   const fm=S('fd2-mes'); if(fm){
     const v=fm.value;
     fm.innerHTML='<option value="">Todos os meses</option>'+
@@ -1404,8 +1410,8 @@ function renderDespesas(){
   const mes=S('fd2-mes')?.value||'';
   const de=S('fd2-de')?.value||'';
   const ate=S('fd2-ate')?.value||'';
-  if(cat) lista=lista.filter(l=>l.categoria_dre&&l.categoria_dre.startsWith(cat));
-  if(mes) lista=lista.filter(l=>l.data?.startsWith(mes));
+  if(cat) lista=lista.filter(l=>categoriaNoGrupo(l.categoria_dre,cat));
+  if(mes) lista=lista.filter(l=>periodoFinanceiro(l.data)===mes);
   if(de||ate) lista=lista.filter(l=>dataNoIntervalo(l.data,de,ate));
   const total=lista.reduce((s,l)=>s+Number(l.valor||0),0);
   setSafe('fd2-total',lista.length+' resultado(s) · '+fmt(total));
@@ -1459,7 +1465,7 @@ function renderContas(){
   const contas=LANCS.filter(l=>l.tipo==='despesa'&&l.vencimento);
   const vencidas=contas.filter(l=>l.vencimento<hj&&!l.pago).length;
   const prox=contas.filter(l=>l.vencimento>=hj&&l.vencimento<=em7s&&!l.pago).length;
-  const pagas=contas.filter(l=>l.pago&&l.data?.startsWith(mesAtual())).length;
+  const pagas=contas.filter(l=>l.pago&&periodoFinanceiro(l.data)===mesAtual()).length;
   setSafe('cp-vencidas',String(vencidas));
   setSafe('cp-prox',String(prox));
   setSafe('cp-pagas',String(pagas));
@@ -2211,7 +2217,7 @@ function renderAuditoria(){
   const busca=(S('aud-busca')?.value||'').trim().toLowerCase();
   const de=S('aud-de')?.value||'',ate=S('aud-ate')?.value||'';
   const lista=AUDITORIA.filter(a=>{
-    const data=String(a.created_at||'').slice(0,10),antes=a.dados_antes||{};
+    const data=dataLocalTimestamp(a.created_at),antes=a.dados_antes||{};
     const texto=[antes.descricao,antes.paciente,a.motivo,labelAcaoAuditoria(a.acao)].filter(Boolean).join(' ').toLowerCase();
     return(!acao||a.acao===acao)&&(!busca||texto.includes(busca))&&dataNoIntervalo(data,de,ate);
   });
@@ -2243,7 +2249,7 @@ function limparFiltrosAuditoria(){
 function renderDRE(){
   const sel=S('dre-mes-sel');
   if(sel){
-    const meses=[...new Set(LANCS.filter(l=>l.data).map(l=>String(l.data).slice(0,7)))];
+    const meses=[...new Set(LANCS.map(l=>periodoFinanceiro(l.data)).filter(Boolean))];
     if(!meses.includes(mesAtual()))meses.push(mesAtual());
     meses.sort().reverse();
     const atual=sel.value||DRE_MES||mesAtual();
@@ -2253,7 +2259,7 @@ function renderDRE(){
   const mes=DRE_MES||mesAtual();
   setSafe('dre-mes',fmtMes(mes));
   setSafe('dre-data',new Date().toLocaleDateString('pt-BR'));
-  const get=(cod)=>LANCS.filter(l=>l.data?.startsWith(mes)&&categoriaNoGrupo(l.categoria_dre,cod))
+  const get=(cod)=>LANCS.filter(l=>periodoFinanceiro(l.data)===mes&&categoriaNoGrupo(l.categoria_dre,cod))
     .reduce((s,l)=>s+Number(l.valor||0),0);
   const col=(v,neg=false)=>{
     const isNeg=neg?v>0:v<0;
@@ -2370,7 +2376,7 @@ function exportarDRE(){
 // ── IA ─────────────────────────────────────────────────────────
 let IA_HIST=[];
 function dreContexto(mes=mesAtual()){
-  const get=(cod)=>LANCS.filter(l=>l.data?.startsWith(mes)&&categoriaNoGrupo(l.categoria_dre,cod))
+  const get=(cod)=>LANCS.filter(l=>periodoFinanceiro(l.data)===mes&&categoriaNoGrupo(l.categoria_dre,cod))
     .reduce((s,l)=>s+Number(l.valor||0),0);
   const recBruta=get('1.');
   const ded=get('2.');
@@ -2383,7 +2389,7 @@ function dreContexto(mes=mesAtual()){
   const resOp=resPessoal-operacionais;
   const financeiras=get('6.');
   const resultado=resOp-financeiras;
-  const topDes=[...LANCS.filter(l=>l.tipo==='despesa'&&l.data?.startsWith(mes))]
+  const topDes=[...LANCS.filter(l=>l.tipo==='despesa'&&periodoFinanceiro(l.data)===mes)]
     .sort((a,b)=>Number(b.valor||0)-Number(a.valor||0)).slice(0,5)
     .map(l=>`${l.descricao||l.categoria_dre}: ${fmt(l.valor)}`).join('; ');
   return `DRE ${fmtMes(mes)}: Receita bruta ${fmt(recBruta)}, deduções ${fmt(ded)}, receita líquida ${fmt(recLiq)}, custos dos serviços ${fmt(custos)}, lucro bruto ${fmt(lucroBruto)}, pessoal ${fmt(pessoal)}, despesas operacionais ${fmt(operacionais)}, despesas financeiras ${fmt(financeiras)}, resultado do mês ${fmt(resultado)}. Maiores despesas: ${topDes||'sem despesas relevantes'}.`;
@@ -2391,8 +2397,8 @@ function dreContexto(mes=mesAtual()){
 async function gerarResumo(){
   const el=S('ia-resumo'); if(!el)return;
   const mes=mesAtual();
-  const rec=LANCS.filter(l=>l.tipo==='receita'&&l.data?.startsWith(mes));
-  const des=LANCS.filter(l=>l.tipo==='despesa'&&l.data?.startsWith(mes));
+  const rec=LANCS.filter(l=>l.tipo==='receita'&&periodoFinanceiro(l.data)===mes);
+  const des=LANCS.filter(l=>l.tipo==='despesa'&&periodoFinanceiro(l.data)===mes);
   const tRec=rec.reduce((s,l)=>s+Number(l.valor||0),0);
   const tDes=des.reduce((s,l)=>s+Number(l.valor||0),0);
   if(!LANCS.length){el.textContent='Sem lançamentos registrados. Adicione receitas e despesas para ver o resumo.';return;}
@@ -2418,8 +2424,8 @@ async function enviarIA(){
   chat.innerHTML+=`<div class="ia-msg ai" id="ia-typing"><div class="ia-msg-lbl">Assistente</div>Analisando...</div>`;
   chat.scrollTop=chat.scrollHeight;
   const mes=mesAtual();
-  const tRec=LANCS.filter(l=>l.tipo==='receita'&&l.data?.startsWith(mes)).reduce((s,l)=>s+Number(l.valor||0),0);
-  const tDes=LANCS.filter(l=>l.tipo==='despesa'&&l.data?.startsWith(mes)).reduce((s,l)=>s+Number(l.valor||0),0);
+  const tRec=LANCS.filter(l=>l.tipo==='receita'&&periodoFinanceiro(l.data)===mes).reduce((s,l)=>s+Number(l.valor||0),0);
+  const tDes=LANCS.filter(l=>l.tipo==='despesa'&&periodoFinanceiro(l.data)===mes).reduce((s,l)=>s+Number(l.valor||0),0);
   const sys=`Assistente financeiro da Clínica Luisa Costa. Use os dados do DRE, receitas, despesas, contas, inadimplentes e pacientes quando responder. Dados do mês: Receitas ${fmt(tRec)}, Despesas ${fmt(tDes)}, Saldo ${fmt(tRec-tDes)}. ${dreContexto(mes)}`;
   IA_HIST.push({role:'user',content:q});
   if(IA_HIST.length>10) IA_HIST=IA_HIST.slice(-10);
