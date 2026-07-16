@@ -976,7 +976,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--c8);color:v
   </div>
   <div class="ma">
     <button class="btn btn-gh" onclick="fechar('madusr')">Cancelar</button>
-    <button class="btn btn-gd" onclick="criarUsuario()">Criar Usuário</button>
+    <button class="btn btn-gd" id="btn-criar-usuario-estoque" onclick="criarUsuario()">Criar Usuário</button>
   </div>
   <div id="usr-msg" class="fmsg" style="margin-top:8px"></div>
 </div></div>
@@ -2161,29 +2161,58 @@ async function desativarUsuario(id,nome){
   await db.from('perfis').update({ativo:false}).eq('id',id);
   flash();renderUsuarios();
 }
+var CRIANDO_USUARIO=false;
+function mensagemErroUsuario(valor){
+  if(!valor)return 'Serviço de criação de usuários indisponível.';
+  if(typeof valor==='string')return valor;
+  return valor.message||valor.msg||valor.error_description||JSON.stringify(valor);
+}
 async function criarUsuario(){
   if(!isAdmin()){alert('Apenas administradores podem criar usuários.');return;}
-  var email=document.getElementById('usr-email').value.trim();
+  if(CRIANDO_USUARIO)return;
+  var email=document.getElementById('usr-email').value.trim().toLowerCase();
   var nome=document.getElementById('usr-nome').value.trim();
   var senha=document.getElementById('usr-senha').value;
   var nivel=document.getElementById('usr-nivel').value;
   var msg=document.getElementById('usr-msg');
   if(!email||!nome||!senha){msg.style.color='var(--Rm)';msg.textContent='Preencha todos os campos.';return;}
   if(senha.length<6){msg.style.color='var(--Rm)';msg.textContent='Senha deve ter ao menos 6 caracteres.';return;}
+  var botao=document.getElementById('btn-criar-usuario-estoque');
+  CRIANDO_USUARIO=true;
+  if(botao){botao.disabled=true;botao.textContent='Criando...';}
   msg.style.color='var(--c4)';msg.textContent='Criando usuário...';
-  // Criar via Edge Function (usa service role key no servidor)
-  var {data:{session}}=await db.auth.getSession();
-  if(!session){msg.style.color='var(--Rm)';msg.textContent='Sua sessão expirou. Entre novamente.';return;}
-  var resp=await fetch(SUPA_URL+'/functions/v1/ai-proxy',{
-    method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},
-    body:JSON.stringify({action:'create_user',email,password:senha,nome,nivel})
-  });
-  var d=await resp.json();
-  if(d.error){msg.style.color='var(--Rm)';msg.textContent='Erro: '+d.error;return;}
-  msg.style.color='var(--Gm)';msg.textContent='Usuário criado com sucesso!';
-  setTimeout(function(){fechar('madusr');renderUsuarios();},1500);
-  ['usr-email','usr-nome','usr-senha'].forEach(function(i){document.getElementById(i).value='';});
+  try{
+    // Criar via Edge Function (usa service role key no servidor)
+    var {data:{session}}=await db.auth.getSession();
+    if(!session||!session.access_token)throw new Error('Sua sessão expirou. Entre novamente.');
+    var resp=await fetch(AI_PROXY,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},
+      body:JSON.stringify({action:'create_user',email,password:senha,nome,nivel})
+    });
+    var texto=await resp.text(),d={};
+    try{d=texto?JSON.parse(texto):{};}catch(_){d={error:texto};}
+    if(!resp.ok||d.error)throw new Error(mensagemErroUsuario(d.error||d));
+    var authUser=d.user||(d.data&&d.data.user)||null;
+    var usuarioId=(authUser&&authUser.id)||d.id||(d.data&&d.data.id)||null;
+    if(!usuarioId){
+      var busca=await db.from('perfis').select('id').eq('email',email).limit(1).maybeSingle();
+      usuarioId=busca.data&&busca.data.id;
+    }
+    if(!usuarioId)throw new Error('O usuário foi criado, mas o identificador não foi retornado. Atualize a lista e ajuste o perfil.');
+    var perfil=await db.from('perfis').upsert({id:usuarioId,email,nome,nivel,ativo:true,atualizado_em:new Date().toISOString()},{onConflict:'id'});
+    if(perfil.error)throw new Error(mensagemErroUsuario(perfil.error));
+    msg.style.color='var(--Gm)';msg.textContent='Usuário criado com sucesso!';
+    ['usr-email','usr-nome','usr-senha'].forEach(function(i){document.getElementById(i).value='';});
+    await renderUsuarios();
+    fechar('madusr');
+  }catch(e){
+    var erro=mensagemErroUsuario(e),duplicado=erro.toLowerCase().includes('already')||erro.toLowerCase().includes('registered');
+    msg.style.color='var(--Rm)';msg.textContent='Erro: '+(duplicado?'Este e-mail já possui uma conta. Atualize a lista de usuários.':erro);
+  }finally{
+    CRIANDO_USUARIO=false;
+    if(botao){botao.disabled=false;botao.textContent='Criar Usuário';}
+  }
 }
 
 // ── PDF RETIRADA ─────────────────────────────────────────────────────

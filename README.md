@@ -32,8 +32,9 @@ Execute os arquivos no SQL Editor do Supabase nesta ordem:
 13. `supabase-financeiro-integridade.sql` — pagamentos vinculados, saldo por protocolo e idempotência
 14. `supabase-financeiro-estornos-conciliacao.sql` — estornos transacionais, conciliação e auditoria
 15. `supabase-estoque-integridade.sql` — permissões granulares, retiradas/ajustes idempotentes e entradas transacionais
+16. `supabase-usuarios-integridade.sql` — sincroniza contas de autenticação com perfis e recupera cadastros invisíveis
 
-O arquivo de segurança remove políticas antigas permissivas e aplica autorização por módulo. Usuários sem perfil ativo não recebem acesso. As funções transacionais podem ser instaladas depois dele. A migração do estoque deve ser executada por último, pois substitui a política ampla do módulo por políticas específicas de leitura, manutenção e retirada.
+O arquivo de segurança remove políticas antigas permissivas e aplica autorização por módulo. Usuários sem perfil ativo não recebem acesso. As funções transacionais podem ser instaladas depois dele. A migração do estoque deve ser executada depois da segurança, pois substitui a política ampla do módulo por políticas específicas de leitura, manutenção e retirada. A migração de usuários fecha a sequência e recupera contas do Auth que estejam sem perfil.
 
 O cadastro público usa exclusivamente a função `criar_paciente_publico(jsonb)`. O `INSERT` anônimo direto em `pacientes` permanece revogado.
 

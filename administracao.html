@@ -114,7 +114,7 @@ body.iframe-mode{background:var(--bg)}
               <option value="compras">Estoque / Compras</option>
               <option value="colaborador">Colaborador</option>
             </select></div>
-            <div class="actions"><button class="btn btn-p" onclick="criarUsuario()">Criar usuário</button></div>
+            <div class="actions"><button class="btn btn-p" id="btn-criar-usuario" onclick="criarUsuario()">Criar usuário</button></div>
           </div>
         </div>
         <div class="card">
@@ -270,28 +270,49 @@ async function renderUsuarios(){
     </div>
   </div>`).join('');
 }
+let CRIANDO_USUARIO=false;
+function mensagemErroUsuario(valor){
+  if(!valor)return 'Serviço de criação de usuários indisponível.';
+  if(typeof valor==='string')return valor;
+  return valor.message||valor.msg||valor.error_description||JSON.stringify(valor);
+}
 async function criarUsuario(){
   if(!requireAdmin())return;
-  const email=gv('usr-email'),nome=gv('usr-nome'),password=gv('usr-senha'),nivel=gv('usr-nivel');
+  if(CRIANDO_USUARIO)return;
+  const email=gv('usr-email').toLowerCase(),nome=gv('usr-nome'),password=gv('usr-senha'),nivel=gv('usr-nivel');
   if(!email||!nome||!password){toast('Preencha nome, e-mail e senha.');return;}
   if(password.length<6){toast('A senha temporária precisa ter ao menos 6 caracteres.');return;}
+  const botao=document.getElementById('btn-criar-usuario');
+  CRIANDO_USUARIO=true;
+  if(botao){botao.disabled=true;botao.textContent='Criando...';}
   try{
     const {data:{session}}=await db.auth.getSession();
     if(!session?.access_token)throw new Error('Sessão administrativa expirada. Entre novamente.');
     const resp=await fetch(AI_PROXY,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},body:JSON.stringify({action:'create_user',email,password,nome,nivel})});
-    const data=await resp.json();
-    if(!resp.ok||data.error)throw new Error(data.error?.message||data.error||'Serviço de criação de usuários indisponível.');
+    const texto=await resp.text();
+    let data={};
+    try{data=texto?JSON.parse(texto):{};}catch(_){data={error:texto};}
+    if(!resp.ok||data.error)throw new Error(mensagemErroUsuario(data.error||data));
     const authUser=data.user||data.data?.user||null;
-    if(!authUser?.id)throw new Error('O serviço não retornou o usuário criado.');
-    if(authUser?.id){
-      const {error:perfilError}=await db.from('perfis').upsert({id:authUser.id,email,nome,nivel,ativo:true,atualizado_em:new Date().toISOString()},{onConflict:'id'});
-      if(perfilError)throw perfilError;
+    let usuarioId=authUser?.id||data.id||data.data?.id||null;
+    if(!usuarioId){
+      const {data:perfilExistente}=await db.from('perfis').select('id').eq('email',email).limit(1).maybeSingle();
+      usuarioId=perfilExistente?.id||null;
     }
+    if(!usuarioId)throw new Error('O usuário foi criado, mas o identificador não foi retornado. Atualize a lista e tente ajustar o perfil.');
+    const {error:perfilError}=await db.from('perfis').upsert({id:usuarioId,email,nome,nivel,ativo:true,atualizado_em:new Date().toISOString()},{onConflict:'id'});
+    if(perfilError)throw new Error(mensagemErroUsuario(perfilError));
     ['usr-email','usr-nome','usr-senha'].forEach(id=>sv(id,''));
     toast('Usuário criado com sucesso.');
     await logAudit('criou_usuario','perfis',{email,nome,nivel});
-    renderUsuarios();
-  }catch(e){toast('Erro ao criar usuário: '+e.message);}
+    await renderUsuarios();
+  }catch(e){
+    const msg=mensagemErroUsuario(e);
+    toast('Erro ao criar usuário: '+(msg.toLowerCase().includes('already')||msg.toLowerCase().includes('registered')?'Este e-mail já possui uma conta. Atualize a lista de usuários.':msg));
+  }finally{
+    CRIANDO_USUARIO=false;
+    if(botao){botao.disabled=false;botao.textContent='Criar usuário';}
+  }
 }
 async function mudarNivel(id,nivel){if(!requireAdmin())return;const{error}=await db.from('perfis').update({nivel}).eq('id',id);if(!error)await logAudit('alterou_nivel_usuario','perfis',{id,nivel});toast(error?'Erro ao alterar nível.':'Nível atualizado.');renderUsuarios();}
 async function setAtivo(id,ativo){if(!requireAdmin())return;if(id===USER?.id&&!ativo){toast('Você não pode desativar seu próprio usuário.');return;}const{error}=await db.from('perfis').update({ativo}).eq('id',id);if(!error)await logAudit(ativo?'ativou_usuario':'desativou_usuario','perfis',{id,ativo});toast(error?'Erro ao alterar acesso.':(ativo?'Usuário ativado.':'Usuário desativado.'));renderUsuarios();}
