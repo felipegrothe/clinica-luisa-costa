@@ -617,7 +617,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
         <div class="sec">Medicamentos e lotes aplicados</div>
         <div class="notice">Prefira um lote aprovado do estoque. “Lote manual/legado” deve ser usado somente para transcrever aplicações antigas que não constam no estoque digital.</div>
         <div id="app-itens"></div>
-        <div class="btns"><button class="btn" type="button" onclick="adicionarAplicacaoItem()">+ Adicionar medicamento</button><button id="salvar-app-btn" class="btn btn-verde" type="button" onclick="salvarAplicacao()">Confirmar aplicação</button></div>
+        <div class="btns"><button class="btn" type="button" onclick="adicionarAplicacaoItem()">+ Adicionar medicamento</button><button class="btn" type="button" onclick="pdfFormularioAplicacao()">PDF para assinatura</button><button id="salvar-app-btn" class="btn btn-verde" type="button" onclick="salvarAplicacao()">Confirmar aplicação</button></div>
       </div>
     </div>
 
@@ -635,7 +635,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
           <div class="field"><label>Profissional</label><input id="hist-prof" type="text" placeholder="Buscar responsável" oninput="renderHistoricoTratamentos()"></div>
         </div>
         <div id="hist-resumo" class="notice">Nenhum registro carregado.</div>
-        <div class="table-wrap"><table class="trace-table"><thead><tr><th>Data</th><th>Paciente</th><th>Plano / sessão</th><th>Medicamento</th><th>Dose / via</th><th>Lote</th><th>Validade</th><th>Profissional</th><th>Status</th></tr></thead><tbody id="hist-body"></tbody></table></div>
+        <div class="table-wrap"><table class="trace-table"><thead><tr><th>Data</th><th>Paciente</th><th>Plano / sessão</th><th>Medicamento</th><th>Dose / via</th><th>Lote</th><th>Validade</th><th>Profissional</th><th>Status</th><th>Documento</th></tr></thead><tbody id="hist-body"></tbody></table></div>
       </div>
     </div>
 
@@ -1221,7 +1221,7 @@ function renderPlanosTratamento(){
   el.innerHTML='<div class="table-wrap"><table class="trace-table"><thead><tr><th>Paciente</th><th>Plano</th><th>Ativos</th><th>Sessões</th><th>Início / frequência</th><th>Status</th><th></th></tr></thead><tbody>'+tratamentoPlanos.map(p=>{
     const feitos=new Set(rastreabilidade.filter(r=>r.plano_id===p.id&&r.status==='realizada').map(r=>r.aplicacao_id)).size;
     const ativos=(p.tratamento_plano_itens||[]).map(i=>i.ativo_nome).join(', ')||'—';
-    return`<tr><td><strong>${escHtml(p.paciente_nome_snapshot)}</strong></td><td>${escHtml(p.nome)}<br><span style="color:var(--tl)">${p.origem==='manual'?'Manual':'Precificação'}</span></td><td>${escHtml(ativos)}</td><td>${feitos} de ${p.sessoes_planejadas}</td><td>${formatarDataTrat(p.data_inicio)}<br><span style="color:var(--tl)">${escHtml(p.frequencia||'Sem frequência')}</span></td><td><span class="status-pill ${p.status==='cancelado'?'warn':''}">${escHtml(p.status)}</span></td><td><button class="btn btn-xs btn-verde" onclick="iniciarAplicacaoPlano('${p.id}')">Registrar sessão</button></td></tr>`;
+    return`<tr><td><strong>${escHtml(p.paciente_nome_snapshot)}</strong></td><td>${escHtml(p.nome)}<br><span style="color:var(--tl)">${p.origem==='manual'?'Manual':'Precificação'}</span></td><td>${escHtml(ativos)}</td><td>${feitos} de ${p.sessoes_planejadas}</td><td>${formatarDataTrat(p.data_inicio)}<br><span style="color:var(--tl)">${escHtml(p.frequencia||'Sem frequência')}</span></td><td><span class="status-pill ${p.status==='cancelado'?'warn':''}">${escHtml(p.status)}</span></td><td><div class="btns"><button class="btn btn-xs" onclick="pdfPlanoTratamento('${p.id}')">PDF do plano</button><button class="btn btn-xs btn-verde" onclick="iniciarAplicacaoPlano('${p.id}')">Registrar sessão</button></div></td></tr>`;
   }).join('')+'</tbody></table></div>';
 }
 function renderAplicacaoPlanos(){
@@ -1271,7 +1271,7 @@ function historicoFiltrado(){
 function renderHistoricoTratamentos(){
   const body=document.getElementById('hist-body');if(!body)return;const rows=historicoFiltrado();
   document.getElementById('hist-resumo').textContent=`${rows.length} medicamento(s) em ${new Set(rows.map(r=>r.aplicacao_id)).size} aplicação(ões).`;
-  body.innerHTML=rows.length?rows.map(r=>`<tr><td>${formatarDataHoraTrat(r.aplicada_em)}</td><td><strong>${escHtml(r.paciente_nome_snapshot)}</strong></td><td>${escHtml(r.plano_nome||'Aplicação avulsa')}<br><span style="color:var(--tl)">${r.sessao_numero?`Sessão ${r.sessao_numero}${r.sessoes_total?' / '+r.sessoes_total:''}`:'—'}</span></td><td>${escHtml(r.ativo_nome)}</td><td>${escHtml(String(r.dose))} ${escHtml(r.unidade)}${r.via?' · '+escHtml(r.via):''}</td><td>${escHtml(r.lote_numero_snapshot)}${r.origem_lote==='manual_legado'?'<br><span style="color:var(--terra-d)">manual/legado</span>':''}</td><td>${formatarDataTrat(r.validade_snapshot)}</td><td>${escHtml(r.profissional)}</td><td><span class="status-pill ${r.status!=='realizada'?'warn':''}">${escHtml(r.status)}</span></td></tr>`).join(''):'<tr><td colspan="9"><div class="empty">Nenhum registro encontrado com esses filtros.</div></td></tr>';
+  body.innerHTML=rows.length?rows.map(r=>`<tr><td>${formatarDataHoraTrat(r.aplicada_em)}</td><td><strong>${escHtml(r.paciente_nome_snapshot)}</strong></td><td>${escHtml(r.plano_nome||'Aplicação avulsa')}<br><span style="color:var(--tl)">${r.sessao_numero?`Sessão ${r.sessao_numero}${r.sessoes_total?' / '+r.sessoes_total:''}`:'—'}</span></td><td>${escHtml(r.ativo_nome)}</td><td>${escHtml(String(r.dose))} ${escHtml(r.unidade)}${r.via?' · '+escHtml(r.via):''}</td><td>${escHtml(r.lote_numero_snapshot)}${r.origem_lote==='manual_legado'?'<br><span style="color:var(--terra-d)">manual/legado</span>':''}</td><td>${formatarDataTrat(r.validade_snapshot)}</td><td>${escHtml(r.profissional)}</td><td><span class="status-pill ${r.status!=='realizada'?'warn':''}">${escHtml(r.status)}</span></td><td><button class="btn btn-xs" onclick="pdfAplicacaoHistorica('${r.aplicacao_id}')">PDF</button></td></tr>`).join(''):'<tr><td colspan="10"><div class="empty">Nenhum registro encontrado com esses filtros.</div></td></tr>';
 }
 function limparFiltrosHistorico(){['hist-inicio','hist-fim','hist-ativo','hist-lote','hist-prof'].forEach(id=>document.getElementById(id).value='');document.getElementById('hist-paciente').value='';document.getElementById('hist-status').value='';renderHistoricoTratamentos();}
 function csvSeguro(v){let s=String(v??'');if(/^[=+\-@]/.test(s))s="'"+s;return'"'+s.replace(/"/g,'""')+'"';}
@@ -1280,6 +1280,87 @@ function exportarHistoricoCSV(){
   const cols=['Data e hora','Paciente','Plano','Sessão','Total sessões','Medicamento','Dose','Unidade','Via','Lote','Validade','Fabricante','Origem do lote','Profissional','Status','Observações','Intercorrências'];
   const csv=[cols,...rows.map(r=>[formatarDataHoraTrat(r.aplicada_em),r.paciente_nome_snapshot,r.plano_nome||'Aplicação avulsa',r.sessao_numero||'',r.sessoes_total||'',r.ativo_nome,r.dose,r.unidade,r.via||'',r.lote_numero_snapshot,formatarDataTrat(r.validade_snapshot),r.fabricante_snapshot||'',r.origem_lote,r.profissional,r.status,r.observacoes||'',r.intercorrencias||''])].map(row=>row.map(csvSeguro).join(';')).join('\r\n');
   const url=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download='rastreabilidade_aplicacoes_'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function pdfCabecalhoClinico(doc,titulo,subtitulo='Documento clínico para preenchimento e assinatura'){
+  const W=doc.internal.pageSize.getWidth();
+  doc.setFillColor(193,123,62);doc.rect(0,0,W,28,'F');doc.setTextColor(255,255,255);
+  doc.setFont('helvetica','normal');doc.setFontSize(7);doc.text('CLÍNICA LUISA COSTA',14,8);
+  doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text(titulo,14,17);
+  doc.setFont('helvetica','normal');doc.setFontSize(7);doc.text(subtitulo,14,23);
+  doc.setFont('helvetica','bold');doc.setFontSize(6);doc.text('EMISSÃO',W-14,9,{align:'right'});
+  doc.setFont('helvetica','normal');doc.setFontSize(7);doc.text(new Date().toLocaleString('pt-BR'),W-14,15,{align:'right'});
+}
+function pdfLinhaCampo(doc,label,valor,x,y,w){
+  doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(107,90,78);doc.text(label.toUpperCase(),x,y);
+  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(44,36,32);doc.text(doc.splitTextToSize(String(valor||'—'),w),x,y+5);
+}
+function pdfAssinaturasClinicas(doc,y,nomes=['Paciente / responsável','Profissional responsável','Responsável técnico']){
+  const W=doc.internal.pageSize.getWidth(),ML=14,CW=W-28,gap=8,sw=(CW-gap*2)/3;
+  doc.setDrawColor(120,110,100);doc.setTextColor(80,70,62);doc.setFont('helvetica','normal');doc.setFontSize(7);
+  nomes.forEach((nome,i)=>{const x=ML+i*(sw+gap);doc.line(x,y,x+sw,y);doc.text(nome,x+sw/2,y+5,{align:'center'});doc.text('Data: ____/____/________',x+sw/2,y+10,{align:'center'});});
+}
+function pdfBoneco(doc,cx,top,label){
+  doc.setDrawColor(85,78,72);doc.setLineWidth(.45);doc.ellipse(cx,top+7,4.3,5.3);
+  doc.line(cx,top+12.3,cx,top+35);doc.line(cx-8,top+17,cx+8,top+17);
+  doc.line(cx-8,top+17,cx-12,top+34);doc.line(cx+8,top+17,cx+12,top+34);
+  doc.line(cx,top+35,cx-8,top+53);doc.line(cx,top+35,cx+8,top+53);
+  doc.line(cx-3,top+14,cx-5,top+31);doc.line(cx+3,top+14,cx+5,top+31);
+  doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(107,90,78);doc.text(label,cx,top+60,{align:'center'});
+}
+function pdfPaginaMapaCorporal(doc,paciente,referencia){
+  doc.addPage();pdfCabecalhoClinico(doc,'MAPA CORPORAL','Área em branco para marcações manuais de local de aplicação, reação ou observação');
+  pdfLinhaCampo(doc,'Paciente',paciente,14,37,120);pdfLinhaCampo(doc,'Referência',referencia,116,37,80);
+  doc.setDrawColor(220,212,202);doc.setFillColor(250,248,244);doc.roundedRect(14,50,182,94,3,3,'FD');
+  doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(139,85,32);doc.text('LOCAL / MARCAÇÕES',19,58);
+  pdfBoneco(doc,64,65,'FRENTE');pdfBoneco(doc,145,65,'COSTAS');
+  doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(139,85,32);doc.text('ANOTAÇÕES MANUAIS',14,155);
+  doc.setDrawColor(190,182,174);for(let i=0;i<6;i++)doc.line(14,164+i*9,196,164+i*9);
+  pdfAssinaturasClinicas(doc,245);
+  doc.setFont('helvetica','normal');doc.setFontSize(6);doc.setTextColor(170,160,150);doc.text('Mapa corporal não preenchido digitalmente — destinado a anotações à mão.',105,288,{align:'center'});
+}
+function pdfTabelaMedicamentos(doc,itens,y){
+  const ML=14,W=210,cols=[76,28,28,50],heads=['ATIVO / MEDICAMENTO','DOSE','VIA','LOTE / VALIDADE'];
+  doc.setFillColor(44,36,32);doc.rect(ML,y,W-28,8,'F');doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(7);let x=ML;
+  heads.forEach((h,i)=>{doc.text(h,x+2,y+5.3);x+=cols[i]});y+=8;
+  (itens||[]).forEach((it,idx)=>{const vals=[it.ativo_nome||it.nome||'—',`${it.dose||it.dose_prevista||'—'} ${it.unidade||''}`.trim(),it.via||'—',`${it.lote_numero_snapshot||it.lote_numero||'—'}${it.validade_snapshot||it.validade?' · '+formatarDataTrat(it.validade_snapshot||it.validade):''}`];const lines=vals.map((v,i)=>doc.splitTextToSize(String(v),cols[i]-4)),h=Math.max(9,...lines.map(l=>l.length*4+3));if(y+h>265){doc.addPage();pdfCabecalhoClinico(doc,'CONTINUAÇÃO — MEDICAMENTOS');y=36;doc.setFillColor(44,36,32);doc.rect(ML,y,W-28,8,'F');doc.setTextColor(255,255,255);x=ML;heads.forEach((hh,i)=>{doc.text(hh,x+2,y+5.3);x+=cols[i]});y+=8;}if(idx%2===0){doc.setFillColor(250,248,244);doc.rect(ML,y,W-28,h,'F');}doc.setTextColor(44,36,32);doc.setFont('helvetica','normal');doc.setFontSize(8);x=ML;lines.forEach((ls,i)=>{doc.text(ls,x+2,y+5);x+=cols[i]});doc.setDrawColor(232,226,218);doc.line(ML,y+h,W-14,y+h);y+=h;});
+  return y;
+}
+function pdfPlanoTratamento(id){
+  const p=tratamentoPlanos.find(x=>x.id===id);if(!p){alert('Plano não encontrado.');return;}
+  gerarPdfPlanoAssinatura(p);
+}
+function gerarPdfPlanoAssinatura(p){
+  const {jsPDF}=window.jspdf,doc=new jsPDF({unit:'mm',format:'a4'});pdfCabecalhoClinico(doc,'PLANO DE ACOMPANHAMENTO');
+  pdfLinhaCampo(doc,'Paciente',p.paciente_nome_snapshot,14,38,85);pdfLinhaCampo(doc,'Plano',p.nome,105,38,90);
+  pdfLinhaCampo(doc,'Início',formatarDataTrat(p.data_inicio),14,55,45);pdfLinhaCampo(doc,'Sessões planejadas',p.sessoes_planejadas,65,55,42);pdfLinhaCampo(doc,'Frequência',p.frequencia||'—',112,55,83);
+  doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(139,85,32);doc.text('ATIVOS PREVISTOS',14,73);
+  let y=pdfTabelaMedicamentos(doc,p.tratamento_plano_itens||[],77);y+=8;
+  doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(139,85,32);doc.text('ORIENTAÇÕES / OBSERVAÇÕES',14,y);y+=6;
+  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(44,36,32);const obs=doc.splitTextToSize(p.observacoes||'Espaço reservado para orientações e complementos escritos à mão.',182);doc.text(obs,14,y);y+=Math.max(18,obs.length*4+8);
+  doc.setDrawColor(190,182,174);for(let i=0;i<3;i++)doc.line(14,y+i*8,196,y+i*8);y+=32;
+  if(y>245){doc.addPage();pdfCabecalhoClinico(doc,'PLANO DE ACOMPANHAMENTO — ASSINATURAS');y=55;}
+  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(70,62,56);doc.text(doc.splitTextToSize('Declaro que recebi as orientações referentes ao plano acima e tive oportunidade de esclarecer minhas dúvidas.',182),14,y);pdfAssinaturasClinicas(doc,y+30);
+  pdfPaginaMapaCorporal(doc,p.paciente_nome_snapshot,p.nome);doc.save('Plano_Acompanhamento_'+p.paciente_nome_snapshot.replace(/[^a-z0-9]+/gi,'_')+'.pdf');
+}
+function aplicacaoAtualParaPdf(){
+  const paciente=pacienteOficial(document.getElementById('app-paciente').value),plano=tratamentoPlanos.find(p=>p.id===document.getElementById('app-plano').value);
+  const itens=coletarAplicacaoItens().map(it=>{const l=estoqueLotes.find(x=>x.id===it.lote_id);return{ativo_nome:it.origem_lote==='estoque'?itemEstoqueNome(l?.item_id):it.ativo_nome,dose:it.dose,unidade:it.unidade,via:it.via,lote_numero:it.origem_lote==='estoque'?(l?.numero_lote||'SEM NÚMERO'):it.lote_numero,validade:it.origem_lote==='estoque'?l?.validade:it.validade};});
+  return{paciente:paciente?.nome||'',plano:plano?.nome||'Aplicação avulsa',data:document.getElementById('app-data').value,profissional:document.getElementById('app-profissional').value.trim(),sessao:document.getElementById('app-sessao').value,total:document.getElementById('app-total').value,observacoes:document.getElementById('app-obs').value.trim(),intercorrencias:document.getElementById('app-intercorrencias').value.trim(),itens};
+}
+function pdfFormularioAplicacao(){const dados=aplicacaoAtualParaPdf();if(!dados.paciente){alert('Selecione o paciente antes de gerar o PDF.');return;}gerarPdfAplicacaoAssinatura(dados);}
+function pdfAplicacaoHistorica(id){
+  const rows=rastreabilidade.filter(r=>r.aplicacao_id===id);if(!rows.length){alert('Aplicação não encontrada.');return;}const r=rows[0];
+  gerarPdfAplicacaoAssinatura({paciente:r.paciente_nome_snapshot,plano:r.plano_nome||'Aplicação avulsa',data:r.aplicada_em,profissional:r.profissional,sessao:r.sessao_numero,total:r.sessoes_total,observacoes:r.observacoes,intercorrencias:r.intercorrencias,itens:rows.map(x=>({ativo_nome:x.ativo_nome,dose:x.dose,unidade:x.unidade,via:x.via,lote_numero:x.lote_numero_snapshot,validade:x.validade_snapshot}))});
+}
+function gerarPdfAplicacaoAssinatura(d){
+  const {jsPDF}=window.jspdf,doc=new jsPDF({unit:'mm',format:'a4'});pdfCabecalhoClinico(doc,'REGISTRO DE APLICAÇÃO');
+  pdfLinhaCampo(doc,'Paciente',d.paciente,14,38,85);pdfLinhaCampo(doc,'Plano / origem',d.plano,105,38,90);
+  pdfLinhaCampo(doc,'Data e hora',d.data?formatarDataHoraTrat(d.data):'____/____/________ às ____:____',14,55,70);pdfLinhaCampo(doc,'Profissional',d.profissional||'________________________________',90,55,70);pdfLinhaCampo(doc,'Sessão',d.sessao?`${d.sessao}${d.total?' / '+d.total:''}`:'—',165,55,30);
+  doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(139,85,32);doc.text('MEDICAMENTOS / LOTES',14,73);let y=pdfTabelaMedicamentos(doc,d.itens||[],77)+8;
+  doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(139,85,32);doc.text('OBSERVAÇÕES',14,y);doc.setFont('helvetica','normal');doc.setTextColor(44,36,32);doc.text(doc.splitTextToSize(d.observacoes||'Sem observações registradas.',182),14,y+6);y+=24;
+  doc.setFont('helvetica','bold');doc.setTextColor(163,45,45);doc.text('INTERCORRÊNCIAS / REAÇÕES ADVERSAS',14,y);doc.setFont('helvetica','normal');doc.text(doc.splitTextToSize(d.intercorrencias||'Nenhuma intercorrência registrada.',182),14,y+6);y+=25;
+  if(y>240){doc.addPage();pdfCabecalhoClinico(doc,'REGISTRO DE APLICAÇÃO — ASSINATURAS');y=58;}
+  pdfAssinaturasClinicas(doc,y+20);pdfPaginaMapaCorporal(doc,d.paciente,d.plano+(d.sessao?' · sessão '+d.sessao:''));doc.save('Aplicacao_'+d.paciente.replace(/[^a-z0-9]+/gi,'_')+'_'+new Date().toISOString().slice(0,10)+'.pdf');
 }
 function exportarHistoricoPDF(){
   const rows=historicoFiltrado();if(!rows.length){alert('Não há registros para gerar o relatório.');return;}
