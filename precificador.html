@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Clínica Luisa Costa — Precificador</title>
+<title>Clínica Luisa Costa — Tratamentos</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -272,6 +272,21 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
 .mf-val-title{font-size:9px;font-weight:500;color:var(--tl);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;}
 .mf-margin{font-size:12px;font-weight:500;color:var(--verde);margin-top:6px;}
 .empty{text-align:center;padding:2.5rem;color:var(--tl);font-size:12px;}
+.form-grid{display:grid;grid-template-columns:repeat(4,minmax(140px,1fr));gap:10px;margin-bottom:10px}
+.form-grid .span-2{grid-column:span 2}.form-grid .span-4{grid-column:1/-1}
+.field label{display:block;font-size:9px;color:var(--tl);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px;font-weight:600}
+.trace-row{display:grid;grid-template-columns:1.7fr .7fr .7fr .8fr 32px;gap:7px;align-items:end;padding:9px;border:1px solid var(--bd);border-radius:var(--r);margin-bottom:7px;background:var(--terra-xl)}
+.app-row{display:grid;grid-template-columns:1fr 1.7fr .7fr .7fr .7fr .7fr 32px;gap:7px;align-items:end;padding:9px;border:1px solid var(--bd);border-radius:var(--r);margin-bottom:7px;background:var(--terra-xl)}
+.app-manual{grid-column:1/-1;display:grid;grid-template-columns:2fr 1fr 1fr 1.4fr;gap:7px}
+.table-wrap{overflow:auto;border:1px solid var(--bd);border-radius:var(--r)}
+.trace-table{width:100%;border-collapse:collapse;min-width:900px;font-size:11px}
+.trace-table th{background:var(--dk);color:var(--txw);font-size:9px;text-transform:uppercase;letter-spacing:.6px;text-align:left;padding:9px}
+.trace-table td{padding:9px;border-bottom:1px solid var(--bd);vertical-align:top}.trace-table tr:last-child td{border-bottom:0}
+.status-pill{display:inline-block;padding:3px 7px;border-radius:20px;background:var(--verde-l);color:var(--verde);font-size:9px;text-transform:uppercase;font-weight:600}
+.status-pill.warn{background:var(--terra-xl);color:var(--terra-d)}
+.notice{padding:10px 12px;border:1px solid var(--terra-l);background:var(--terra-xl);border-radius:var(--r);font-size:11px;color:var(--terra-d);line-height:1.5;margin-bottom:12px}
+.section-title{font-size:16px;font-weight:600;color:var(--tx)}.section-sub{font-size:11px;color:var(--tl);margin-top:3px}
+@media(max-width:900px){.form-grid{grid-template-columns:1fr 1fr}.form-grid .span-4{grid-column:1/-1}.trace-row,.app-row{grid-template-columns:1fr 1fr}.app-manual{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -279,10 +294,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
 <!-- SIDEBAR (escondida quando em iframe) -->
 <nav class="sb" id="app-sidebar">
   <div class="sb-logo">LC</div>
-  <button class="sb-btn on" title="Precificador">
+  <button class="sb-btn on" title="Tratamentos">
     <svg viewBox="0 0 18 18" fill="none" stroke="#C17B3E" stroke-width="1.5"><rect x="2" y="2" width="14" height="14" rx="2.5"/><line x1="5" y1="7" x2="13" y2="7"/><line x1="5" y1="10" x2="11" y2="10"/><line x1="5" y1="13" x2="9" y2="13"/></svg>
-    <span>PREÇOS</span>
-    <div class="sb-tt">Precificador</div>
+    <span>TRAT.</span>
+    <div class="sb-tt">Tratamentos</div>
   </button>
 </nav>
 
@@ -290,7 +305,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
 <div class="main">
   <!-- TOPBAR (escondida quando em iframe) -->
   <div class="topbar" id="app-topbar">
-    <div class="tb-module">Precificador</div>
+    <div class="tb-module">Tratamentos</div>
     <div class="tb-center">
       <div class="tb-brand">Clínica</div>
       <div class="tb-name">Luisa Costa</div>
@@ -304,7 +319,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
   <!-- NAV TABS -->
   <div class="navtabs" id="app-navtabs">
     <button class="navtab" id="nav-dashboard" onclick="goPage('dashboard')">Dashboard</button>
-    <button class="navtab on" id="nav-precificador" onclick="goPage('precificador')">Precificador</button>
+    <button class="navtab on" id="nav-precificador" onclick="goPage('precificador')">Precificação</button>
+    <button class="navtab" id="nav-planos" onclick="goPage('planos')">Planos de Aplicação</button>
+    <button class="navtab" id="nav-aplicacao" onclick="goPage('aplicacao')">Aplicação Avulsa</button>
+    <button class="navtab" id="nav-historico" onclick="goPage('historico')">Histórico e Consultas</button>
     <button class="navtab" id="nav-semanas" onclick="goPage('semanas')">Gestão de Semanas</button>
     <button class="navtab" id="nav-ativos" onclick="goPage('ativos')">Ativos e Serviços</button>
   </div>
@@ -496,6 +514,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
               <button class="btn btn-dk" onclick="openModal('recibo')">Recibo Financeiro</button>
               <button class="btn btn-verde" onclick="irParaSemanas()">Gestão de Semanas</button>
               <button id="save-protocolo-btn" class="btn" style="background:var(--terra-xl);color:var(--terra-d);border-color:var(--terra-l);font-size:10px;font-weight:500" onclick="salvarProtocoloLocal()">Salvar no histórico</button>
+              <button id="criar-plano-preco-btn" class="btn btn-verde" onclick="criarPlanoDaPrecificacao()">Criar plano de aplicação</button>
               <button class="btn btn-danger btn-sm" onclick="clearAll()">Limpar seleção</button>
             </div>
           </div>
@@ -507,7 +526,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
     <div id="pg-semanas" class="page">
       <div class="transit-bar">
         <div><strong id="sem-pac-nome">—</strong><span id="sem-info"> · Selecione ativos no precificador primeiro</span></div>
-        <button class="btn btn-sm" onclick="goPage('precificador')">← Precificador</button>
+        <button class="btn btn-sm" onclick="goPage('precificador')">← Precificação</button>
       </div>
       <div class="sub-tabs">
         <button class="sub-tab on" id="sub-distrib" onclick="goSub('distrib')">Distribuição</button>
@@ -558,6 +577,65 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
         <div class="btns" style="margin-top:10px">
           <button class="btn btn-verde" onclick="pdfProntuario()">PDF Completo</button>
         </div>
+      </div>
+    </div>
+
+    <!-- ══ PLANOS DE APLICAÇÃO ═══════════════════════════════════════ -->
+    <div id="pg-planos" class="page">
+      <div class="card">
+        <div class="card-hd"><div><div class="section-title">Novo plano de aplicação</div><div class="section-sub">Crie um tratamento clínico sem precisar gerar preço ou proposta.</div></div></div>
+        <div class="notice">O plano fica ligado ao cadastro oficial do paciente. As aplicações realizadas serão registradas separadamente, preservando lote, validade e responsável.</div>
+        <div class="form-grid">
+          <div class="field span-2"><label>Paciente *</label><select id="plano-paciente"></select></div>
+          <div class="field span-2"><label>Nome do plano *</label><input id="plano-nome" type="text" placeholder="Ex.: Reposição de vitaminas — 8 sessões"></div>
+          <div class="field"><label>Número de sessões *</label><input id="plano-sessoes" type="number" min="1" value="1"></div>
+          <div class="field"><label>Data de início</label><input id="plano-inicio" type="date"></div>
+          <div class="field span-2"><label>Frequência</label><input id="plano-frequencia" type="text" placeholder="Ex.: semanal, a cada 15 dias"></div>
+          <div class="field span-4"><label>Observações</label><textarea id="plano-obs" rows="2" placeholder="Orientações gerais do tratamento"></textarea></div>
+        </div>
+        <div class="sec">Ativos previstos</div>
+        <div id="plano-itens"></div>
+        <div class="btns"><button class="btn" type="button" onclick="adicionarPlanoItem()">+ Adicionar ativo</button><button id="salvar-plano-btn" class="btn btn-terra" type="button" onclick="salvarPlanoAplicacao()">Salvar plano</button></div>
+      </div>
+      <div class="card"><div class="card-hd"><div><div class="section-title">Planos cadastrados</div><div class="section-sub">Planos manuais e originados da precificação.</div></div><button class="btn btn-sm" onclick="carregarTratamentos()">Atualizar</button></div><div id="planos-lista"><div class="empty">Carregando planos…</div></div></div>
+    </div>
+
+    <!-- ══ APLICAÇÃO ═════════════════════════════════════════════════ -->
+    <div id="pg-aplicacao" class="page">
+      <div class="card">
+        <div class="card-hd"><div><div class="section-title">Registrar aplicação realizada</div><div class="section-sub">Pode ser vinculada a um plano ou registrada de forma avulsa.</div></div></div>
+        <div class="form-grid">
+          <div class="field"><label>Tipo *</label><select id="app-tipo" onchange="onAplicacaoTipo()"><option value="avulsa">Aplicação avulsa</option><option value="plano">Sessão de um plano</option></select></div>
+          <div class="field span-2"><label>Plano</label><select id="app-plano" onchange="onAplicacaoPlano()" disabled><option value="">— Selecione —</option></select></div>
+          <div class="field"><label>Paciente *</label><select id="app-paciente"></select></div>
+          <div class="field"><label>Data e hora *</label><input id="app-data" type="datetime-local"></div>
+          <div class="field span-2"><label>Profissional responsável *</label><input id="app-profissional" type="text" placeholder="Nome completo"></div>
+          <div class="field"><label>Sessão</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><input id="app-sessao" type="number" min="1" placeholder="Nº"><input id="app-total" type="number" min="1" placeholder="Total"></div></div>
+          <div class="field span-2"><label>Observações</label><textarea id="app-obs" rows="2"></textarea></div>
+          <div class="field span-2"><label>Intercorrências / reações adversas</label><textarea id="app-intercorrencias" rows="2" placeholder="Informe ou deixe em branco quando não houver"></textarea></div>
+        </div>
+        <div class="sec">Medicamentos e lotes aplicados</div>
+        <div class="notice">Prefira um lote aprovado do estoque. “Lote manual/legado” deve ser usado somente para transcrever aplicações antigas que não constam no estoque digital.</div>
+        <div id="app-itens"></div>
+        <div class="btns"><button class="btn" type="button" onclick="adicionarAplicacaoItem()">+ Adicionar medicamento</button><button id="salvar-app-btn" class="btn btn-verde" type="button" onclick="salvarAplicacao()">Confirmar aplicação</button></div>
+      </div>
+    </div>
+
+    <!-- ══ HISTÓRICO E CONSULTAS ═════════════════════════════════════ -->
+    <div id="pg-historico" class="page">
+      <div class="card">
+        <div class="card-hd"><div><div class="section-title">Histórico e rastreabilidade</div><div class="section-sub">Uma linha por medicamento aplicado, pronta para consulta e exportação.</div></div><div class="btns"><button class="btn btn-sm" onclick="limparFiltrosHistorico()">Limpar filtros</button><button class="btn btn-sm" onclick="exportarHistoricoPDF()">Relatório PDF</button><button class="btn btn-verde btn-sm" onclick="exportarHistoricoCSV()">Exportar CSV</button></div></div>
+        <div class="form-grid">
+          <div class="field"><label>Data inicial</label><input id="hist-inicio" type="date" onchange="renderHistoricoTratamentos()"></div>
+          <div class="field"><label>Data final</label><input id="hist-fim" type="date" onchange="renderHistoricoTratamentos()"></div>
+          <div class="field"><label>Paciente</label><select id="hist-paciente" onchange="renderHistoricoTratamentos()"></select></div>
+          <div class="field"><label>Status</label><select id="hist-status" onchange="renderHistoricoTratamentos()"><option value="">Todos</option><option value="realizada">Realizada</option><option value="cancelada">Cancelada</option><option value="retificada">Retificada</option></select></div>
+          <div class="field span-2"><label>Medicamento / ativo</label><input id="hist-ativo" type="text" placeholder="Buscar por nome" oninput="renderHistoricoTratamentos()"></div>
+          <div class="field"><label>Número do lote</label><input id="hist-lote" type="text" placeholder="Buscar lote" oninput="renderHistoricoTratamentos()"></div>
+          <div class="field"><label>Profissional</label><input id="hist-prof" type="text" placeholder="Buscar responsável" oninput="renderHistoricoTratamentos()"></div>
+        </div>
+        <div id="hist-resumo" class="notice">Nenhum registro carregado.</div>
+        <div class="table-wrap"><table class="trace-table"><thead><tr><th>Data</th><th>Paciente</th><th>Plano / sessão</th><th>Medicamento</th><th>Dose / via</th><th>Lote</th><th>Validade</th><th>Profissional</th><th>Status</th></tr></thead><tbody id="hist-body"></tbody></table></div>
       </div>
     </div>
 
@@ -697,6 +775,10 @@ let protocoloSaveKey='';
 const SUPA_URL='https://eeianweavbnrikzqquxq.supabase.co';
 const SUPA_KEY='sb_publishable_RWouef1R4SySi3PyBxq0lQ_AEEpGHly';
 const db=window.supabase?window.supabase.createClient(SUPA_URL,SUPA_KEY):null;
+let tratamentoPlanos=[],rastreabilidade=[],estoqueItens=[],estoqueLotes=[];
+let planoItemCounter=0,aplicacaoItemCounter=0;
+let planoSaveInFlight=false,aplicacaoSaveInFlight=false;
+let planoDraftKey=novaChaveProtocolo(),aplicacaoDraftKey=novaChaveProtocolo();
 
 // ══ HELPERS ══════════════════════════════════════════════════════════════════
 function allItems(){const r=[];Object.entries(CATS_MAP).forEach(([c,ns])=>ns.forEach(n=>r.push({name:n,cat:c})));return r;}
@@ -751,6 +833,9 @@ function goPage(id){
   if(id==='ativos')renderAtivos();
   if(id==='dashboard')renderDashboard();
   if(id==='semanas'){atualizarResumoSemanas();renderSemTable();}
+  if(id==='planos')renderPlanosTratamento();
+  if(id==='aplicacao')renderAplicacaoPlanos();
+  if(id==='historico')renderHistoricoTratamentos();
 }
 function goSub(id){
   ['distrib','sessoes','overview'].forEach(s=>{
@@ -924,6 +1009,7 @@ async function salvarProtocoloLocal(){
     try{
       const {data:{session}}=await db.auth.getSession();
       const payload={
+        paciente_id:activePacIdx!==null?(pacientes[activePacIdx]?.id||null):null,
         paciente_nome:nome,
         titulo:'Protocolo '+dur+' meses',
         valor_total:final,
@@ -1038,6 +1124,178 @@ async function carregarPacientesBase(){
   if(protocolosBanco.length)historico=protocolosBanco;
   renderPacSelect();
   renderPacResumo();
+  renderTratamentoPacientes();
+}
+
+// ══ TRATAMENTOS, APLICAÇÕES E RASTREABILIDADE ════════════════════════════════
+function pacienteOficial(id){return pacientes.find(p=>String(p.id||'')===String(id||''));}
+function renderTratamentoPacientes(){
+  const oficiais=pacientes.filter(p=>p.id);
+  const opts='<option value="">— Selecione o paciente —</option>'+oficiais.map(p=>`<option value="${escHtml(p.id)}">${escHtml(p.nome)}</option>`).join('');
+  ['plano-paciente','app-paciente','hist-paciente'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    const atual=el.value;el.innerHTML=id==='hist-paciente'?'<option value="">Todos os pacientes</option>'+opts.replace('<option value="">— Selecione o paciente —</option>',''):opts;
+    if([...el.options].some(o=>o.value===atual))el.value=atual;
+  });
+}
+function itemEstoqueNome(id){return estoqueItens.find(i=>String(i.id)===String(id))?.nome||'';}
+function loteDisponivel(l){return Math.max(0,(Number(l.quantidade_cx)||0)*(Number(l.amp_por_caixa)||1)-(Number(l.usado_base)||0));}
+function lotesValidos(){
+  const hoje=new Date().toISOString().slice(0,10);
+  return estoqueLotes.filter(l=>l.status==='aprovado'&&loteDisponivel(l)>0&&String(l.validade||'')>=hoje);
+}
+function loteOptions(itemId=''){
+  const lotes=lotesValidos().slice().sort((a,b)=>String(a.validade).localeCompare(String(b.validade)));
+  const ordered=itemId?[...lotes.filter(l=>l.item_id===itemId),...lotes.filter(l=>l.item_id!==itemId)]:lotes;
+  return '<option value="">— Selecione lote aprovado —</option>'+ordered.map(l=>`<option value="${escHtml(l.id)}">${escHtml(itemEstoqueNome(l.item_id)||'Item')} · lote ${escHtml(l.numero_lote||'sem número')} · val. ${formatarDataTrat(l.validade)} · saldo ${loteDisponivel(l)}</option>`).join('');
+}
+function itemOptions(){return '<option value="">— Ativo manual —</option>'+estoqueItens.filter(i=>i.ativo!==false).map(i=>`<option value="${escHtml(i.id)}">${escHtml(i.nome)}</option>`).join('');}
+function formatarDataTrat(v){if(!v)return'—';const d=new Date(String(v).slice(0,10)+'T12:00:00');return Number.isNaN(d.getTime())?'—':d.toLocaleDateString('pt-BR');}
+function formatarDataHoraTrat(v){if(!v)return'—';const d=new Date(v);return Number.isNaN(d.getTime())?'—':d.toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'});}
+
+async function carregarTratamentos(){
+  if(!db)return;
+  try{
+    const [itensResp,lotesResp,planosResp,histResp]=await Promise.all([
+      db.from('itens').select('id,nome,unidade,ativo').eq('ativo',true).order('nome'),
+      db.from('lotes').select('id,item_id,numero_lote,validade,quantidade_cx,amp_por_caixa,usado_base,status').eq('status','aprovado').order('validade'),
+      db.from('tratamento_planos').select('*,tratamento_plano_itens(*)').order('criado_em',{ascending:false}),
+      db.from('tratamento_rastreabilidade').select('*').order('aplicada_em',{ascending:false}).limit(5000)
+    ]);
+    if(itensResp.error)throw itensResp.error;if(lotesResp.error)throw lotesResp.error;
+    if(planosResp.error)throw planosResp.error;if(histResp.error)throw histResp.error;
+    estoqueItens=itensResp.data||[];estoqueLotes=lotesResp.data||[];
+    tratamentoPlanos=planosResp.data||[];rastreabilidade=histResp.data||[];
+    renderPlanosTratamento();renderAplicacaoPlanos();renderHistoricoTratamentos();
+  }catch(e){
+    console.warn('Módulo de tratamentos ainda não disponível:',e);
+    const msg='A estrutura de Tratamentos ainda precisa ser instalada no Supabase.';
+    const pl=document.getElementById('planos-lista');if(pl)pl.innerHTML=`<div class="notice">${msg}</div>`;
+    const hr=document.getElementById('hist-resumo');if(hr)hr.textContent=msg;
+  }
+}
+
+function adicionarPlanoItem(prefill={}){
+  const wrap=document.getElementById('plano-itens');if(!wrap)return;
+  const id=++planoItemCounter,row=document.createElement('div');row.className='trace-row';row.dataset.row=id;
+  row.innerHTML=`<div class="field"><label>Ativo / medicamento *</label><select class="pl-item" onchange="togglePlanoManual(this)">${itemOptions()}</select><input class="pl-manual" type="text" placeholder="Nome do ativo manual" style="margin-top:5px"></div><div class="field"><label>Dose prevista</label><input class="pl-dose" type="number" min="0" step="0.01"></div><div class="field"><label>Unidade</label><input class="pl-unidade" type="text" placeholder="mg, ml, UI"></div><div class="field"><label>Via</label><input class="pl-via" type="text" placeholder="IV, IM, SC…"></div><button class="btn btn-danger" type="button" title="Remover" onclick="this.closest('.trace-row').remove()">×</button>`;
+  wrap.appendChild(row);
+  row.querySelector('.pl-item').value=prefill.item_id||'';row.querySelector('.pl-manual').value=prefill.ativo_nome||'';
+  row.querySelector('.pl-dose').value=prefill.dose_prevista||'';row.querySelector('.pl-unidade').value=prefill.unidade||'';row.querySelector('.pl-via').value=prefill.via||'';
+  togglePlanoManual(row.querySelector('.pl-item'));
+}
+function togglePlanoManual(sel){const input=sel.closest('.trace-row').querySelector('.pl-manual');input.style.display=sel.value?'none':'block';}
+function coletarPlanoItens(){
+  return [...document.querySelectorAll('#plano-itens .trace-row')].map(r=>({item_id:r.querySelector('.pl-item').value||null,ativo_nome:r.querySelector('.pl-manual').value.trim(),dose:r.querySelector('.pl-dose').value||null,unidade:r.querySelector('.pl-unidade').value.trim()||null,via:r.querySelector('.pl-via').value.trim()||null})).filter(i=>i.item_id||i.ativo_nome);
+}
+async function salvarPlanoAplicacao(){
+  if(planoSaveInFlight)return;
+  const pacienteId=document.getElementById('plano-paciente').value,nome=document.getElementById('plano-nome').value.trim();
+  const sessoes=Number(document.getElementById('plano-sessoes').value),itens=coletarPlanoItens();
+  if(!pacienteId||!nome||sessoes<1||!itens.length){alert('Preencha paciente, nome, número de sessões e pelo menos um ativo.');return;}
+  planoSaveInFlight=true;const btn=document.getElementById('salvar-plano-btn');btn.disabled=true;btn.textContent='Salvando…';
+  try{
+    const {error}=await db.rpc('salvar_tratamento_plano',{p_paciente_id:pacienteId,p_nome:nome,p_sessoes_planejadas:sessoes,p_data_inicio:document.getElementById('plano-inicio').value||null,p_frequencia:document.getElementById('plano-frequencia').value.trim()||null,p_observacoes:document.getElementById('plano-obs').value.trim()||null,p_origem:'manual',p_protocolo_id:null,p_idempotency_key:planoDraftKey,p_itens:itens});
+    if(error)throw error;
+    planoDraftKey=novaChaveProtocolo();document.getElementById('plano-nome').value='';document.getElementById('plano-sessoes').value='1';document.getElementById('plano-frequencia').value='';document.getElementById('plano-obs').value='';document.getElementById('plano-itens').innerHTML='';adicionarPlanoItem();
+    await carregarTratamentos();alert('Plano de aplicação salvo com sucesso.');
+  }catch(e){console.error(e);alert('Não foi possível salvar o plano: '+(e.message||'erro desconhecido'));}
+  finally{planoSaveInFlight=false;btn.disabled=false;btn.textContent='Salvar plano';}
+}
+async function criarPlanoDaPrecificacao(){
+  if(planoSaveInFlight)return;const paciente=activePacIdx!==null?pacientes[activePacIdx]:null,itensSelecionados=Object.entries(selected);
+  if(!paciente?.id){alert('Selecione um paciente cadastrado na base oficial para criar o plano.');return;}
+  if(!itensSelecionados.length){alert('Selecione pelo menos um ativo na precificação.');return;}
+  if(!confirm(`Criar um plano de ${getWeekCount()} sessões para ${paciente.nome}, usando os ativos selecionados?`))return;
+  planoSaveInFlight=true;const btn=document.getElementById('criar-plano-preco-btn');btn.disabled=true;btn.textContent='Criando…';
+  try{
+    const itens=itensSelecionados.map(([nome,d])=>{const est=estoqueItens.find(i=>normalizarNome(i.nome)===normalizarNome(nome));return{item_id:est?.id||null,ativo_nome:nome,dose:null,unidade:est?.unidade||null,via:null,observacoes:d.note||null};});
+    const meses=getMesesAtivos(),{error}=await db.rpc('salvar_tratamento_plano',{p_paciente_id:paciente.id,p_nome:`Plano ${meses} ${meses===1?'mês':'meses'} — ${paciente.nome}`,p_sessoes_planejadas:getWeekCount(),p_data_inicio:document.getElementById('dt-inicio').value||null,p_frequencia:'Semanal',p_observacoes:'Plano criado a partir da tela de precificação.',p_origem:'precificador',p_protocolo_id:null,p_idempotency_key:planoDraftKey,p_itens:itens});
+    if(error)throw error;planoDraftKey=novaChaveProtocolo();await carregarTratamentos();alert('Plano criado a partir da precificação.');goPage('planos');
+  }catch(e){console.error(e);alert('Não foi possível criar o plano: '+(e.message||'erro desconhecido'));}
+  finally{planoSaveInFlight=false;btn.disabled=false;btn.textContent='Criar plano de aplicação';}
+}
+function renderPlanosTratamento(){
+  const el=document.getElementById('planos-lista');if(!el)return;
+  if(!tratamentoPlanos.length){el.innerHTML='<div class="empty">Nenhum plano de aplicação cadastrado.</div>';return;}
+  el.innerHTML='<div class="table-wrap"><table class="trace-table"><thead><tr><th>Paciente</th><th>Plano</th><th>Ativos</th><th>Sessões</th><th>Início / frequência</th><th>Status</th><th></th></tr></thead><tbody>'+tratamentoPlanos.map(p=>{
+    const feitos=new Set(rastreabilidade.filter(r=>r.plano_id===p.id&&r.status==='realizada').map(r=>r.aplicacao_id)).size;
+    const ativos=(p.tratamento_plano_itens||[]).map(i=>i.ativo_nome).join(', ')||'—';
+    return`<tr><td><strong>${escHtml(p.paciente_nome_snapshot)}</strong></td><td>${escHtml(p.nome)}<br><span style="color:var(--tl)">${p.origem==='manual'?'Manual':'Precificação'}</span></td><td>${escHtml(ativos)}</td><td>${feitos} de ${p.sessoes_planejadas}</td><td>${formatarDataTrat(p.data_inicio)}<br><span style="color:var(--tl)">${escHtml(p.frequencia||'Sem frequência')}</span></td><td><span class="status-pill ${p.status==='cancelado'?'warn':''}">${escHtml(p.status)}</span></td><td><button class="btn btn-xs btn-verde" onclick="iniciarAplicacaoPlano('${p.id}')">Registrar sessão</button></td></tr>`;
+  }).join('')+'</tbody></table></div>';
+}
+function renderAplicacaoPlanos(){
+  const el=document.getElementById('app-plano');if(!el)return;const atual=el.value;
+  el.innerHTML='<option value="">— Selecione o plano —</option>'+tratamentoPlanos.filter(p=>!['concluido','cancelado'].includes(p.status)).map(p=>`<option value="${p.id}">${escHtml(p.paciente_nome_snapshot)} · ${escHtml(p.nome)}</option>`).join('');
+  if(tratamentoPlanos.some(p=>p.id===atual))el.value=atual;
+}
+function onAplicacaoTipo(){const plano=document.getElementById('app-plano'),isPlano=document.getElementById('app-tipo').value==='plano';plano.disabled=!isPlano;if(!isPlano){plano.value='';document.getElementById('app-paciente').disabled=false;}}
+function onAplicacaoPlano(){
+  const p=tratamentoPlanos.find(x=>x.id===document.getElementById('app-plano').value);if(!p)return;
+  const pac=document.getElementById('app-paciente');pac.value=p.paciente_id;pac.disabled=true;document.getElementById('app-total').value=p.sessoes_planejadas;
+  const feitas=new Set(rastreabilidade.filter(r=>r.plano_id===p.id&&r.status==='realizada').map(r=>r.aplicacao_id)).size;document.getElementById('app-sessao').value=Math.min(feitas+1,p.sessoes_planejadas);
+  document.getElementById('app-itens').innerHTML='';(p.tratamento_plano_itens||[]).forEach(i=>adicionarAplicacaoItem(i));if(!(p.tratamento_plano_itens||[]).length)adicionarAplicacaoItem();
+}
+function iniciarAplicacaoPlano(id){goPage('aplicacao');document.getElementById('app-tipo').value='plano';onAplicacaoTipo();document.getElementById('app-plano').value=id;onAplicacaoPlano();}
+function adicionarAplicacaoItem(prefill={}){
+  const wrap=document.getElementById('app-itens');if(!wrap)return;const row=document.createElement('div');row.className='app-row';row.dataset.row=++aplicacaoItemCounter;
+  row.innerHTML=`<div class="field"><label>Origem do lote</label><select class="ap-origem" onchange="toggleAppOrigem(this)"><option value="estoque">Estoque aprovado</option><option value="manual_legado">Manual / legado</option></select></div><div class="field"><label>Lote do estoque *</label><select class="ap-lote" onchange="onAppLote(this)">${loteOptions(prefill.item_id||'')}</select></div><div class="field"><label>Dose *</label><input class="ap-dose" type="number" min="0.0001" step="0.01"></div><div class="field"><label>Unidade *</label><input class="ap-unidade" type="text" placeholder="mg, ml, UI"></div><div class="field"><label>Via</label><input class="ap-via" type="text" placeholder="IV, IM, SC"></div><div class="field"><label>Baixa estoque</label><input class="ap-qtd" type="number" min="0.0001" step="0.01" value="1"></div><button class="btn btn-danger" type="button" onclick="this.closest('.app-row').remove()">×</button><div class="app-manual"><div class="field"><label>Ativo manual *</label><input class="ap-ativo" type="text"></div><div class="field"><label>Nº lote *</label><input class="ap-lote-manual" type="text"></div><div class="field"><label>Validade</label><input class="ap-validade" type="date"></div><div class="field"><label>Fabricante</label><input class="ap-fabricante" type="text"></div></div>`;
+  wrap.appendChild(row);row.querySelector('.ap-dose').value=prefill.dose_prevista||'';row.querySelector('.ap-unidade').value=prefill.unidade||'';row.querySelector('.ap-via').value=prefill.via||'';row.querySelector('.ap-ativo').value=prefill.ativo_nome||'';
+  if(prefill.item_id&&!lotesValidos().some(l=>l.item_id===prefill.item_id)){row.querySelector('.ap-origem').value='manual_legado';}
+  toggleAppOrigem(row.querySelector('.ap-origem'));
+}
+function toggleAppOrigem(sel){const r=sel.closest('.app-row'),manual=sel.value==='manual_legado';r.querySelector('.ap-lote').disabled=manual;r.querySelector('.app-manual').style.display=manual?'grid':'none';}
+function onAppLote(sel){const l=estoqueLotes.find(x=>x.id===sel.value);if(!l)return;const r=sel.closest('.app-row');if(!r.querySelector('.ap-unidade').value)r.querySelector('.ap-unidade').value=estoqueItens.find(i=>i.id===l.item_id)?.unidade||'';}
+function coletarAplicacaoItens(){return [...document.querySelectorAll('#app-itens .app-row')].map(r=>({origem_lote:r.querySelector('.ap-origem').value,lote_id:r.querySelector('.ap-lote').value||null,ativo_nome:r.querySelector('.ap-ativo').value.trim(),dose:r.querySelector('.ap-dose').value,unidade:r.querySelector('.ap-unidade').value.trim(),via:r.querySelector('.ap-via').value.trim()||null,quantidade_estoque:r.querySelector('.ap-qtd').value||1,lote_numero:r.querySelector('.ap-lote-manual').value.trim(),validade:r.querySelector('.ap-validade').value||null,fabricante:r.querySelector('.ap-fabricante').value.trim()||null}));}
+async function salvarAplicacao(){
+  if(aplicacaoSaveInFlight)return;const tipo=document.getElementById('app-tipo').value,planoId=document.getElementById('app-plano').value||null,pacienteId=document.getElementById('app-paciente').value;
+  const profissional=document.getElementById('app-profissional').value.trim(),data=document.getElementById('app-data').value,itens=coletarAplicacaoItens();
+  if(!pacienteId||!profissional||!data||!itens.length){alert('Preencha paciente, data, profissional e pelo menos um medicamento.');return;}
+  if(tipo==='plano'&&!planoId){alert('Selecione o plano.');return;}
+  if(itens.some(i=>!i.dose||!i.unidade||(i.origem_lote==='estoque'&&!i.lote_id)||(i.origem_lote==='manual_legado'&&(!i.ativo_nome||!i.lote_numero)))){alert('Revise dose, unidade e lote de todos os medicamentos.');return;}
+  if(!confirm('Confirma que esta aplicação foi realizada? O registro será auditado e os lotes do estoque serão baixados.'))return;
+  aplicacaoSaveInFlight=true;const btn=document.getElementById('salvar-app-btn');btn.disabled=true;btn.textContent='Confirmando…';
+  try{
+    const {error}=await db.rpc('registrar_tratamento_aplicacao',{p_paciente_id:pacienteId,p_plano_id:planoId,p_tipo:tipo,p_sessao_numero:Number(document.getElementById('app-sessao').value)||null,p_sessoes_total:Number(document.getElementById('app-total').value)||null,p_aplicada_em:new Date(data).toISOString(),p_profissional:profissional,p_observacoes:document.getElementById('app-obs').value.trim()||null,p_intercorrencias:document.getElementById('app-intercorrencias').value.trim()||null,p_idempotency_key:aplicacaoDraftKey,p_itens:itens});
+    if(error)throw error;
+    aplicacaoDraftKey=novaChaveProtocolo();document.getElementById('app-itens').innerHTML='';adicionarAplicacaoItem();document.getElementById('app-obs').value='';document.getElementById('app-intercorrencias').value='';
+    await carregarTratamentos();alert('Aplicação registrada e estoque atualizado com sucesso.');goPage('historico');
+  }catch(e){console.error(e);alert('A aplicação não foi registrada: '+(e.message||'erro desconhecido'));}
+  finally{aplicacaoSaveInFlight=false;btn.disabled=false;btn.textContent='Confirmar aplicação';}
+}
+function historicoFiltrado(){
+  const ini=document.getElementById('hist-inicio')?.value||'',fim=document.getElementById('hist-fim')?.value||'',pac=document.getElementById('hist-paciente')?.value||'',status=document.getElementById('hist-status')?.value||'';
+  const ativo=normalizarNome(document.getElementById('hist-ativo')?.value),lote=normalizarNome(document.getElementById('hist-lote')?.value),prof=normalizarNome(document.getElementById('hist-prof')?.value);
+  return rastreabilidade.filter(r=>{const dia=String(r.aplicada_em||'').slice(0,10);return(!ini||dia>=ini)&&(!fim||dia<=fim)&&(!pac||r.paciente_id===pac)&&(!status||r.status===status)&&(!ativo||normalizarNome(r.ativo_nome).includes(ativo))&&(!lote||normalizarNome(r.lote_numero_snapshot).includes(lote))&&(!prof||normalizarNome(r.profissional).includes(prof));});
+}
+function renderHistoricoTratamentos(){
+  const body=document.getElementById('hist-body');if(!body)return;const rows=historicoFiltrado();
+  document.getElementById('hist-resumo').textContent=`${rows.length} medicamento(s) em ${new Set(rows.map(r=>r.aplicacao_id)).size} aplicação(ões).`;
+  body.innerHTML=rows.length?rows.map(r=>`<tr><td>${formatarDataHoraTrat(r.aplicada_em)}</td><td><strong>${escHtml(r.paciente_nome_snapshot)}</strong></td><td>${escHtml(r.plano_nome||'Aplicação avulsa')}<br><span style="color:var(--tl)">${r.sessao_numero?`Sessão ${r.sessao_numero}${r.sessoes_total?' / '+r.sessoes_total:''}`:'—'}</span></td><td>${escHtml(r.ativo_nome)}</td><td>${escHtml(String(r.dose))} ${escHtml(r.unidade)}${r.via?' · '+escHtml(r.via):''}</td><td>${escHtml(r.lote_numero_snapshot)}${r.origem_lote==='manual_legado'?'<br><span style="color:var(--terra-d)">manual/legado</span>':''}</td><td>${formatarDataTrat(r.validade_snapshot)}</td><td>${escHtml(r.profissional)}</td><td><span class="status-pill ${r.status!=='realizada'?'warn':''}">${escHtml(r.status)}</span></td></tr>`).join(''):'<tr><td colspan="9"><div class="empty">Nenhum registro encontrado com esses filtros.</div></td></tr>';
+}
+function limparFiltrosHistorico(){['hist-inicio','hist-fim','hist-ativo','hist-lote','hist-prof'].forEach(id=>document.getElementById(id).value='');document.getElementById('hist-paciente').value='';document.getElementById('hist-status').value='';renderHistoricoTratamentos();}
+function csvSeguro(v){let s=String(v??'');if(/^[=+\-@]/.test(s))s="'"+s;return'"'+s.replace(/"/g,'""')+'"';}
+function exportarHistoricoCSV(){
+  const rows=historicoFiltrado();if(!rows.length){alert('Não há registros para exportar.');return;}
+  const cols=['Data e hora','Paciente','Plano','Sessão','Total sessões','Medicamento','Dose','Unidade','Via','Lote','Validade','Fabricante','Origem do lote','Profissional','Status','Observações','Intercorrências'];
+  const csv=[cols,...rows.map(r=>[formatarDataHoraTrat(r.aplicada_em),r.paciente_nome_snapshot,r.plano_nome||'Aplicação avulsa',r.sessao_numero||'',r.sessoes_total||'',r.ativo_nome,r.dose,r.unidade,r.via||'',r.lote_numero_snapshot,formatarDataTrat(r.validade_snapshot),r.fabricante_snapshot||'',r.origem_lote,r.profissional,r.status,r.observacoes||'',r.intercorrencias||''])].map(row=>row.map(csvSeguro).join(';')).join('\r\n');
+  const url=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download='rastreabilidade_aplicacoes_'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function exportarHistoricoPDF(){
+  const rows=historicoFiltrado();if(!rows.length){alert('Não há registros para gerar o relatório.');return;}
+  const {jsPDF}=window.jspdf,doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'}),W=297,ML=10,MR=10;
+  const widths=[24,47,53,29,31,25,48],heads=['DATA/HORA','PACIENTE','MEDICAMENTO','DOSE / VIA','LOTE','VALIDADE','PROFISSIONAL'];
+  let y=0,page=1;
+  function header(){doc.setFillColor(193,123,62);doc.rect(0,0,W,24,'F');doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text('RELATÓRIO DE MEDICAMENTOS APLICADOS',ML,10);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text('Clínica Luisa Costa · Rastreabilidade por paciente, medicamento e lote',ML,17);doc.text('Emitido em '+new Date().toLocaleString('pt-BR'),W-MR,17,{align:'right'});y=29;doc.setFillColor(44,36,32);doc.rect(ML,y,W-ML-MR,8,'F');doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(6.5);let x=ML;heads.forEach((h,i)=>{doc.text(h,x+1.5,y+5);x+=widths[i]});y+=8;}
+  function footer(){doc.setFont('helvetica','normal');doc.setFontSize(6);doc.setTextColor(150,140,130);doc.text('Documento gerado pelo módulo Tratamentos · Página '+page,W/2,204,{align:'center'});}
+  header();
+  rows.forEach(r=>{
+    const vals=[formatarDataHoraTrat(r.aplicada_em),r.paciente_nome_snapshot,r.ativo_nome,`${r.dose} ${r.unidade}${r.via?' · '+r.via:''}`,r.lote_numero_snapshot,formatarDataTrat(r.validade_snapshot),r.profissional];
+    const lines=vals.map((v,i)=>doc.splitTextToSize(String(v||'—'),widths[i]-3)),h=Math.max(8,...lines.map(l=>l.length*3.6+3));
+    if(y+h>198){footer();doc.addPage();page++;header();}
+    doc.setFillColor(page%2?250:248,248,244);doc.rect(ML,y,W-ML-MR,h,'F');doc.setDrawColor(232,226,218);doc.line(ML,y+h,W-MR,y+h);doc.setTextColor(44,36,32);doc.setFont('helvetica','normal');doc.setFontSize(7);let x=ML;lines.forEach((ls,i)=>{doc.text(ls,x+1.5,y+4);x+=widths[i]});y+=h;
+  });
+  footer();doc.save('relatorio_aplicacoes_'+new Date().toISOString().slice(0,10)+'.pdf');
 }
 
 // ══ DASHBOARD ════════════════════════════════════════════════════════════════
@@ -1607,8 +1865,11 @@ async function initPrecificador(){
     // navtabs mantidas visíveis — navegação interna do precificador
   }
   document.getElementById('dt-inicio').value=new Date().toISOString().slice(0,10);
+  document.getElementById('plano-inicio').value=new Date().toISOString().slice(0,10);
+  const agora=new Date();agora.setMinutes(agora.getMinutes()-agora.getTimezoneOffset());document.getElementById('app-data').value=agora.toISOString().slice(0,16);
   await loadState();
   await carregarPacientesBase();
+  await carregarTratamentos();
   setDur(duracao);
   aplicarTaxaCartao();
   initCatPills();
@@ -1618,6 +1879,8 @@ async function initPrecificador(){
   renderPacSelect();
   renderPacResumo();
   renderModelos();
+  if(!document.querySelector('#plano-itens .trace-row'))adicionarPlanoItem();
+  if(!document.querySelector('#app-itens .app-row'))adicionarAplicacaoItem();
 }
 initPrecificador();
 </script>
