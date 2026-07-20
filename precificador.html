@@ -595,7 +595,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
         </div>
         <div class="sec">Ativos previstos</div>
         <div id="plano-itens"></div>
-        <div class="btns"><button class="btn" type="button" onclick="adicionarPlanoItem()">+ Adicionar ativo</button><button id="salvar-plano-btn" class="btn btn-terra" type="button" onclick="salvarPlanoAplicacao()">Salvar plano</button></div>
+        <div class="btns"><button class="btn" type="button" onclick="adicionarPlanoItem()">+ Adicionar ativo</button><button class="btn" type="button" onclick="pdfFichaManualEmBranco()">Modelo manual em branco</button><button id="salvar-plano-btn" class="btn btn-terra" type="button" onclick="salvarPlanoAplicacao()">Salvar plano</button></div>
       </div>
       <div class="card"><div class="card-hd"><div><div class="section-title">Planos cadastrados</div><div class="section-sub">Planos manuais e originados da precificação.</div></div><button class="btn btn-sm" onclick="carregarTratamentos()">Atualizar</button></div><div id="planos-lista"><div class="empty">Carregando planos…</div></div></div>
     </div>
@@ -617,7 +617,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
         <div class="sec">Medicamentos e lotes aplicados</div>
         <div class="notice">Prefira um lote aprovado do estoque. “Lote manual/legado” deve ser usado somente para transcrever aplicações antigas que não constam no estoque digital.</div>
         <div id="app-itens"></div>
-        <div class="btns"><button class="btn" type="button" onclick="adicionarAplicacaoItem()">+ Adicionar medicamento</button><button class="btn" type="button" onclick="pdfFormularioAplicacao()">PDF para assinatura</button><button id="salvar-app-btn" class="btn btn-verde" type="button" onclick="salvarAplicacao()">Confirmar aplicação</button></div>
+        <div class="btns"><button class="btn" type="button" onclick="adicionarAplicacaoItem()">+ Adicionar medicamento</button><button class="btn" type="button" onclick="pdfFichaManualEmBranco()">Modelo manual em branco</button><button class="btn" type="button" onclick="pdfFormularioAplicacao()">PDF para assinatura</button><button id="salvar-app-btn" class="btn btn-verde" type="button" onclick="salvarAplicacao()">Confirmar aplicação</button></div>
       </div>
     </div>
 
@@ -1324,6 +1324,36 @@ function pdfTabelaMedicamentos(doc,itens,y){
   heads.forEach((h,i)=>{doc.text(h,x+2,y+5.3);x+=cols[i]});y+=8;
   (itens||[]).forEach((it,idx)=>{const vals=[it.ativo_nome||it.nome||'—',`${it.dose||it.dose_prevista||'—'} ${it.unidade||''}`.trim(),it.via||'—',`${it.lote_numero_snapshot||it.lote_numero||'—'}${it.validade_snapshot||it.validade?' · '+formatarDataTrat(it.validade_snapshot||it.validade):''}`];const lines=vals.map((v,i)=>doc.splitTextToSize(String(v),cols[i]-4)),h=Math.max(9,...lines.map(l=>l.length*4+3));if(y+h>265){doc.addPage();pdfCabecalhoClinico(doc,'CONTINUAÇÃO — MEDICAMENTOS');y=36;doc.setFillColor(44,36,32);doc.rect(ML,y,W-28,8,'F');doc.setTextColor(255,255,255);x=ML;heads.forEach((hh,i)=>{doc.text(hh,x+2,y+5.3);x+=cols[i]});y+=8;}if(idx%2===0){doc.setFillColor(250,248,244);doc.rect(ML,y,W-28,h,'F');}doc.setTextColor(44,36,32);doc.setFont('helvetica','normal');doc.setFontSize(8);x=ML;lines.forEach((ls,i)=>{doc.text(ls,x+2,y+5);x+=cols[i]});doc.setDrawColor(232,226,218);doc.line(ML,y+h,W-14,y+h);y+=h;});
   return y;
+}
+function pdfFichaManualEmBranco(){
+  const {jsPDF}=window.jspdf,doc=new jsPDF({unit:'mm',format:'a4'}),ML=14,W=182;
+  pdfCabecalhoClinico(doc,'FICHA MANUAL DE TRATAMENTO / APLICAÇÃO','Documento totalmente em branco para preenchimento à mão');
+  doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(107,90,78);doc.text('TIPO DE REGISTRO',ML,38);
+  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(44,36,32);doc.text('[  ] Plano de acompanhamento     [  ] Aplicação avulsa     [  ] Sessão de plano',ML,45);
+  pdfLinhaCampo(doc,'Paciente','________________________________________________________________',ML,55,112);
+  pdfLinhaCampo(doc,'Nascimento / prontuário','____________________________',132,55,64);
+  pdfLinhaCampo(doc,'Data e hora','____/____/________  às  ____:____',ML,72,65);
+  pdfLinhaCampo(doc,'Profissional responsável','____________________________________________',85,72,111);
+  pdfLinhaCampo(doc,'Nome do plano / tratamento','_______________________________________________________________',ML,89,112);
+  pdfLinhaCampo(doc,'Sessão','______ / ______',132,89,28);
+  pdfLinhaCampo(doc,'Frequência','________________',165,89,31);
+  doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(139,85,32);doc.text('MEDICAMENTOS / ATIVOS E RASTREABILIDADE',ML,107);
+  const cols=[48,19,24,27,24,40],heads=['MEDICAMENTO / ATIVO','DOSE','UNID. / VIA','LOTE','VALIDADE','FABRICANTE'];
+  let x=ML,y=111;doc.setFillColor(44,36,32);doc.rect(ML,y,W,8,'F');doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(6);
+  heads.forEach((h,i)=>{doc.text(h,x+1.5,y+5.2);x+=cols[i]});y+=8;
+  doc.setDrawColor(210,202,194);doc.setTextColor(44,36,32);
+  for(let row=0;row<6;row++){
+    if(row%2===0){doc.setFillColor(250,248,244);doc.rect(ML,y,W,11,'F');}
+    x=ML;doc.line(ML,y,ML+W,y);cols.forEach(c=>{doc.line(x,y,x,y+11);x+=c});doc.line(ML+W,y,ML+W,y+11);y+=11;
+  }
+  doc.line(ML,y,ML+W,y);
+  doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(139,85,32);doc.text('OBSERVAÇÕES / ORIENTAÇÕES',ML,y+11);
+  doc.setDrawColor(190,182,174);for(let i=0;i<2;i++)doc.line(ML,y+19+i*8,ML+W,y+19+i*8);
+  doc.setTextColor(163,45,45);doc.text('INTERCORRÊNCIAS / REAÇÕES ADVERSAS',ML,y+34);
+  doc.setDrawColor(190,182,174);for(let i=0;i<2;i++)doc.line(ML,y+42+i*8,ML+W,y+42+i*8);
+  pdfAssinaturasClinicas(doc,y+66);
+  pdfPaginaMapaCorporal(doc,'____________________________________________','Ficha manual - preencher à mão');
+  doc.save('Modelo_Manual_Tratamento_Aplicacao.pdf');
 }
 function pdfPlanoTratamento(id){
   const p=tratamentoPlanos.find(x=>x.id===id);if(!p){alert('Plano não encontrado.');return;}

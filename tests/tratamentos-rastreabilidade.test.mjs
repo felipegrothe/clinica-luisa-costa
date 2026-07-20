@@ -19,6 +19,7 @@ const tests=[
   ['plano possui PDF próprio para assinatura',()=>{assert.match(html,/pdfPlanoTratamento\('/);assert.match(html,/PLANO DE ACOMPANHAMENTO/);assert.match(html,/Paciente \/ responsável/)}],
   ['aplicação atual e histórica possuem PDF individual',()=>{assert.match(html,/pdfFormularioAplicacao\(\)/);assert.match(html,/pdfAplicacaoHistorica\('/);assert.match(html,/REGISTRO DE APLICAÇÃO/)}],
   ['documentos possuem mapa corporal em branco',()=>{assert.match(html,/MAPA CORPORAL/);assert.match(html,/pdfBoneco/);assert.match(html,/FRENTE/);assert.match(html,/COSTAS/);assert.match(html,/ANOTAÇÕES MANUAIS/)}],
+  ['ficha totalmente manual pode ser gerada sem cadastro prévio',()=>{assert.match(html,/pdfFichaManualEmBranco\(\)/);assert.match(html,/FICHA MANUAL DE TRATAMENTO \/ APLICAÇÃO/);assert.match(html,/TIPO DE REGISTRO/);assert.match(html,/FABRICANTE/);assert.match(html,/Modelo_Manual_Tratamento_Aplicacao\.pdf/)}],
   ['exportação neutraliza fórmulas em CSV',()=>assert.match(html,/if\(\/\^\[=\+\\-@\]\//)],
   ['uso de lote manual é identificado como legado',()=>{assert.match(sql,/manual_legado/);assert.match(html,/Manual \/ legado/)}],
   ['duplo clique é bloqueado nas duas gravações',()=>{assert.match(html,/if\(planoSaveInFlight\)return/);assert.match(html,/if\(aplicacaoSaveInFlight\)return/)}],
