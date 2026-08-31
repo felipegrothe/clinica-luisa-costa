@@ -16,26 +16,26 @@ create policy "pacientes_select_authenticated"
 on public.pacientes
 for select
 to authenticated
-using (true);
+using (public.can_access_module('pacientes'));
 
 create policy "pacientes_insert_authenticated"
 on public.pacientes
 for insert
 to authenticated
-with check (true);
+with check (public.can_access_module('pacientes'));
 
 create policy "pacientes_update_authenticated"
 on public.pacientes
 for update
 to authenticated
-using (true)
-with check (true);
+using (public.can_access_module('pacientes'))
+with check (public.can_access_module('pacientes'));
 
 create policy "pacientes_delete_authenticated"
 on public.pacientes
 for delete
 to authenticated
-using (true);
+using (public.can_access_module('pacientes'));
 
 -- Storage das fotos dos pacientes.
 -- Se estas policies ja existirem no bucket pacientes-fotos, os comandos abaixo apenas recriam o mesmo acesso.

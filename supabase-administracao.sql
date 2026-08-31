@@ -86,52 +86,93 @@ grant select, insert, update, delete on public.perfis to authenticated;
 grant select, insert, update, delete on public.permissoes_modulos to authenticated;
 grant select, insert on public.audit_logs to authenticated;
 
+create or replace function public.current_user_level()
+returns text
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select lower(p.nivel)
+  from public.perfis p
+  where p.id = auth.uid() and p.ativo is true
+  limit 1
+$$;
+
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select coalesce(public.current_user_level() in ('admin','administrador'), false)
+$$;
+
+create or replace function public.can_access_module(requested_module text)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select coalesce(
+    public.is_admin() or exists (
+      select 1 from public.permissoes_modulos pm
+      where lower(pm.nivel) = public.current_user_level()
+        and pm.modulo = requested_module
+        and pm.pode_acessar is true
+    ), false
+  )
+$$;
+
+grant execute on function public.current_user_level() to authenticated;
+grant execute on function public.is_admin() to authenticated;
+grant execute on function public.can_access_module(text) to authenticated;
+
 drop policy if exists "config_clinica_all_authenticated" on public.config_clinica;
 drop policy if exists "config_sistema_all_authenticated" on public.config_sistema;
 drop policy if exists "perfis_all_authenticated" on public.perfis;
 drop policy if exists "permissoes_modulos_all_authenticated" on public.permissoes_modulos;
 drop policy if exists "audit_logs_select_authenticated" on public.audit_logs;
 drop policy if exists "audit_logs_insert_authenticated" on public.audit_logs;
+drop policy if exists "config_clinica_select_active" on public.config_clinica;
+drop policy if exists "config_clinica_write_admin" on public.config_clinica;
+drop policy if exists "config_sistema_select_active" on public.config_sistema;
+drop policy if exists "config_sistema_write_admin" on public.config_sistema;
+drop policy if exists "perfis_select_self_or_admin" on public.perfis;
+drop policy if exists "perfis_write_admin" on public.perfis;
+drop policy if exists "permissoes_select_active" on public.permissoes_modulos;
+drop policy if exists "permissoes_write_admin" on public.permissoes_modulos;
+drop policy if exists "audit_logs_select_admin" on public.audit_logs;
+drop policy if exists "audit_logs_insert_self" on public.audit_logs;
 
-create policy "config_clinica_all_authenticated"
-on public.config_clinica
-for all
-to authenticated
-using (true)
-with check (true);
+create policy "config_clinica_select_active" on public.config_clinica
+for select to authenticated using (public.current_user_level() is not null);
+create policy "config_clinica_write_admin" on public.config_clinica
+for all to authenticated using (public.is_admin()) with check (public.is_admin());
 
-create policy "config_sistema_all_authenticated"
-on public.config_sistema
-for all
-to authenticated
-using (true)
-with check (true);
+create policy "config_sistema_select_active" on public.config_sistema
+for select to authenticated using (public.current_user_level() is not null);
+create policy "config_sistema_write_admin" on public.config_sistema
+for all to authenticated using (public.is_admin()) with check (public.is_admin());
 
-create policy "perfis_all_authenticated"
-on public.perfis
-for all
-to authenticated
-using (true)
-with check (true);
+create policy "perfis_select_self_or_admin" on public.perfis
+for select to authenticated using (id = auth.uid() or public.is_admin());
+create policy "perfis_write_admin" on public.perfis
+for all to authenticated using (public.is_admin()) with check (public.is_admin());
 
-create policy "permissoes_modulos_all_authenticated"
-on public.permissoes_modulos
-for all
-to authenticated
-using (true)
-with check (true);
+create policy "permissoes_select_active" on public.permissoes_modulos
+for select to authenticated using (public.current_user_level() is not null);
+create policy "permissoes_write_admin" on public.permissoes_modulos
+for all to authenticated using (public.is_admin()) with check (public.is_admin());
 
-create policy "audit_logs_select_authenticated"
-on public.audit_logs
-for select
-to authenticated
-using (true);
+create policy "audit_logs_select_admin" on public.audit_logs
+for select to authenticated using (public.is_admin());
 
-create policy "audit_logs_insert_authenticated"
-on public.audit_logs
-for insert
-to authenticated
-with check (true);
+create policy "audit_logs_insert_self" on public.audit_logs
+for insert to authenticated
+with check (public.current_user_level() is not null and usuario_id = auth.uid());
 
 insert into public.config_clinica (id, nome_clinica, nome_fantasia)
 values (1, 'Clínica Luisa Costa', 'Clínica Luisa Costa')
@@ -187,7 +228,7 @@ values
 ('colaborador','agenda',false),
 ('colaborador','precificador',false),
 ('colaborador','pacientes',true),
-('colaborador','estoque',false),
+('colaborador','estoque',true),
 ('colaborador','financeiro',false),
 ('colaborador','prontuario',false),
 ('colaborador','administracao',false)

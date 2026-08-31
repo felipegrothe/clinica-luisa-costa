@@ -28,26 +28,26 @@ create policy "precificador_state_select_authenticated"
 on public.precificador_state
 for select
 to authenticated
-using (true);
+using (public.can_access_module('precificador'));
 
 create policy "precificador_state_insert_authenticated"
 on public.precificador_state
 for insert
 to authenticated
-with check (true);
+with check (public.can_access_module('precificador'));
 
 create policy "precificador_state_update_authenticated"
 on public.precificador_state
 for update
 to authenticated
-using (true)
-with check (true);
+using (public.can_access_module('precificador'))
+with check (public.can_access_module('precificador'));
 
 create policy "precificador_state_delete_authenticated"
 on public.precificador_state
 for delete
 to authenticated
-using (true);
+using (public.can_access_module('precificador'));
 
 insert into public.precificador_state (id, state)
 values (1, '{}'::jsonb)
@@ -66,6 +66,7 @@ create table if not exists public.protocolos (
   pagamento text,
   itens jsonb default '[]'::jsonb,
   sessoes jsonb default '[]'::jsonb,
+  idempotency_key uuid,
   user_id uuid,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
@@ -81,8 +82,13 @@ alter table public.protocolos add column if not exists status text default 'anda
 alter table public.protocolos add column if not exists pagamento text;
 alter table public.protocolos add column if not exists itens jsonb default '[]'::jsonb;
 alter table public.protocolos add column if not exists sessoes jsonb default '[]'::jsonb;
+alter table public.protocolos add column if not exists idempotency_key uuid;
 alter table public.protocolos add column if not exists user_id uuid;
 alter table public.protocolos add column if not exists updated_at timestamptz default now();
+
+create unique index if not exists protocolos_idempotency_key_uidx
+  on public.protocolos(idempotency_key)
+  where idempotency_key is not null;
 
 alter table public.protocolos enable row level security;
 grant select, insert, update, delete on public.protocolos to authenticated;
@@ -96,26 +102,26 @@ create policy "protocolos_select_authenticated"
 on public.protocolos
 for select
 to authenticated
-using (true);
+using (public.can_access_module('precificador'));
 
 create policy "protocolos_insert_authenticated"
 on public.protocolos
 for insert
 to authenticated
-with check (true);
+with check (public.can_access_module('precificador'));
 
 create policy "protocolos_update_authenticated"
 on public.protocolos
 for update
 to authenticated
-using (true)
-with check (true);
+using (public.can_access_module('precificador'))
+with check (public.can_access_module('precificador'));
 
 create policy "protocolos_delete_authenticated"
 on public.protocolos
 for delete
 to authenticated
-using (true);
+using (public.can_access_module('precificador'));
 
 -- Garante as colunas usadas pelo formulario publico de cadastro.
 create table if not exists public.pacientes (
@@ -220,20 +226,20 @@ create policy "pacientes_fotos_insert_authenticated"
 on storage.objects
 for insert
 to authenticated
-with check (bucket_id = 'pacientes-fotos');
+with check (bucket_id = 'pacientes-fotos' and public.can_access_module('pacientes'));
 
 create policy "pacientes_fotos_update_authenticated"
 on storage.objects
 for update
 to authenticated
-using (bucket_id = 'pacientes-fotos')
-with check (bucket_id = 'pacientes-fotos');
+using (bucket_id = 'pacientes-fotos' and public.can_access_module('pacientes'))
+with check (bucket_id = 'pacientes-fotos' and public.can_access_module('pacientes'));
 
 create policy "pacientes_fotos_delete_authenticated"
 on storage.objects
 for delete
 to authenticated
-using (bucket_id = 'pacientes-fotos');
+using (bucket_id = 'pacientes-fotos' and public.can_access_module('pacientes'));
 
 create policy "pacientes_fotos_public_insert_cadastro"
 on storage.objects

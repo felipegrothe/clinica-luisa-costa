@@ -695,11 +695,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
       <div class="sb-tt">Agenda</div>
     </button>
 
-    <!-- PRECIFICADOR -->
+    <!-- TRATAMENTOS -->
     <button class="sb-btn" data-module="precificador" onclick="carregarPrecificador(this)" id="sb-precificador">
       <svg viewBox="0 0 18 18" fill="none" stroke="#7A6E65" stroke-width="1.5"><rect x="2" y="2" width="14" height="14" rx="2.5"/><line x1="5" y1="7" x2="13" y2="7"/><line x1="5" y1="10" x2="11" y2="10"/><line x1="5" y1="13" x2="9" y2="13"/></svg>
-      <span>PREÇOS</span>
-      <div class="sb-tt">Precificador</div>
+      <span>TRAT.</span>
+      <div class="sb-tt">Tratamentos</div>
     </button>
 
     <div class="sb-div"></div>
@@ -740,7 +740,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
     <!-- TOPBAR -->
     <div class="topbar">
       <div class="tb-left">
-        <div class="tb-clinic" id="tb-clinic">Precificador</div>
+        <div class="tb-clinic" id="tb-clinic">Tratamentos</div>
         <div class="tb-page" id="tb-page">de Protocolos</div>
       </div>
       <div class="tb-center">
@@ -870,7 +870,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
       <div id="pg-precificador" class="page" style="padding:0">
         <div id="precificador-loading" style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:12px;color:var(--tl)">
           <div style="width:32px;height:32px;border:3px solid var(--bd);border-top-color:var(--terra);border-radius:50%;animation:spin .8s linear infinite"></div>
-          <div style="font-size:12px">Carregando precificador...</div>
+          <div style="font-size:12px">Carregando tratamentos...</div>
         </div>
         <iframe id="iframe-precificador" style="width:100%;height:100%;border:none;display:none"></iframe>
       </div>
@@ -1048,7 +1048,7 @@ async function fazerLogin(){
 
 async function iniciarApp(user){
   USER = user;
-  // Busca perfil — se não existir na tabela, usa dados do Auth mesmo assim
+  // Todo usuário precisa de um perfil ativo. Nunca conceder acesso por fallback.
   let perfil = null;
   try {
     const {data, error} = await db.from('perfis').select('*').eq('id', user.id).single();
@@ -1057,14 +1057,17 @@ async function iniciarApp(user){
     console.warn('Perfil não encontrado, usando email como nome.');
   }
 
-  // Se perfil existe mas está desativado, bloqueia
-  if(perfil && perfil.ativo === false){
+  if(!perfil){
+    document.getElementById('login-err').textContent = 'Usuário sem perfil de acesso. Contate o administrador.';
+    await db.auth.signOut(); return;
+  }
+  if(perfil.ativo === false){
     document.getElementById('login-err').textContent = 'Acesso desativado. Contate o administrador.';
     await db.auth.signOut(); return;
   }
 
   PERFIL = perfil;
-  NIVEL  = perfil ? perfil.nivel : 'administrador';
+  NIVEL  = String(perfil.nivel||'colaborador').toLowerCase();
   await carregarPermissoesUsuario();
   const nome = (perfil && perfil.nome) ? perfil.nome : user.email;
 
@@ -1185,13 +1188,13 @@ function fmtCPF(el){let v=el.value.replace(/\D/g,'').slice(0,11);v=v.replace(/(\
 
 // ── NAVIGATION ────────────────────────────────────────────────────────
 const PAGE_LABELS={dashboard:'',precificador:'',estoque:'',financeiro:'',pacientes:'',agenda:'',administracao:''};
-const PAGE_PREFIX={dashboard:'Dashboard',precificador:'Precificador',estoque:'Estoque',financeiro:'Financeiro',pacientes:'Pacientes',agenda:'Agenda',administracao:'Administração'};
+const PAGE_PREFIX={dashboard:'Dashboard',precificador:'Tratamentos',estoque:'Estoque',financeiro:'Financeiro',pacientes:'Pacientes',agenda:'Agenda',administracao:'Administração'};
 
 let estoqueLoaded=false,financeiroLoaded=false,precificadorLoaded=false,pacientesLoaded=false,agendaLoaded=false,administracaoLoaded=false;
 
 async function carregarPermissoesUsuario(){
   MOD_PERMS={dashboard:true};
-  const nivel=(NIVEL||'administrador').toLowerCase();
+  const nivel=(NIVEL||'colaborador').toLowerCase();
   if(nivel==='administrador'||nivel==='admin'){
     ['dashboard','pacientes','agenda','precificador','estoque','financeiro','administracao'].forEach(m=>MOD_PERMS[m]=true);
     return;
@@ -1283,7 +1286,7 @@ function carregarPrecificador(btn){
       precificadorLoaded=true;
     })
     .catch(()=>{
-      if(loading)loading.innerHTML='<div style="text-align:center;padding:24px"><div style="font-size:14px;font-weight:600;color:var(--tx);margin-bottom:8px">Precificador não encontrado</div><div style="font-size:12px;color:var(--tl)">Certifique-se que <strong>precificador.html</strong> está no repositório GitHub.</div></div>';
+      if(loading)loading.innerHTML='<div style="text-align:center;padding:24px"><div style="font-size:14px;font-weight:600;color:var(--tx);margin-bottom:8px">Módulo de Tratamentos não encontrado</div><div style="font-size:12px;color:var(--tl)">Certifique-se que <strong>precificador.html</strong> está no repositório GitHub.</div></div>';
     });
 }
 
@@ -1835,7 +1838,11 @@ const FIN_CATS_DES = [
 
 function finFmt(v){ return 'R$ '+Math.round(Number(v||0)).toLocaleString('pt-BR'); }
 function finFmtDec(v){ return 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
-function finHoje(){ return new Date().toISOString().slice(0,10); }
+function finIsoLocal(d=new Date()){
+  const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),dia=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${dia}`;
+}
+function finHoje(){ return finIsoLocal(); }
 function finMesAtual(){ const d=new Date(); return d.getFullYear()+'-'+(String(d.getMonth()+1).padStart(2,'0')); }
 function finMesLabel(){ return new Date().toLocaleDateString('pt-BR',{month:'long',year:'numeric'}); }
 
@@ -2076,7 +2083,7 @@ function finRenderDash(){
   const tDes=des.reduce((s,l)=>s+Number(l.valor||0),0);
   const saldo=tRec-tDes;
   const ticket=rec.length?Math.round(tRec/rec.length):0;
-  const em3=new Date(); em3.setDate(em3.getDate()+3); const em3s=em3.toISOString().slice(0,10);
+  const em3=new Date(); em3.setDate(em3.getDate()+3); const em3s=finIsoLocal(em3);
   const vencHoje=finLancs.filter(l=>l.tipo==='despesa'&&(l.vencimento===hj||l.vencimento<hj)&&!l.pago).length;
 
   const setSafe=(id,v)=>{ const el=document.getElementById(id); if(el)el.textContent=v; };
@@ -2113,7 +2120,7 @@ function finInferirSetor(cat, desc){
 
 function finChecarLembretes(){
   const hj=finHoje();
-  const em3=new Date(); em3.setDate(em3.getDate()+3); const em3s=em3.toISOString().slice(0,10);
+  const em3=new Date(); em3.setDate(em3.getDate()+3); const em3s=finIsoLocal(em3);
   const urg=finLancs.filter(l=>l.tipo==='despesa'&&l.vencimento&&!l.pago&&l.lembrete!==false&&l.vencimento<=em3s);
   if(!urg.length) return;
   const msg=urg.length===1?`Lembrete: "${urg[0].descricao||urg[0].categoria_dre}" vence em breve.`:`${urg.length} conta(s) vencem nos próximos 3 dias.`;
@@ -2485,7 +2492,7 @@ function finRenderLancRecentes(){
 function finRenderContasSide(){
   const el=document.getElementById('fin-contas-lista'); if(!el)return;
   const hj=finHoje();
-  const em3=new Date(); em3.setDate(em3.getDate()+3); const em3s=em3.toISOString().slice(0,10);
+  const em3=new Date(); em3.setDate(em3.getDate()+3); const em3s=finIsoLocal(em3);
   const contas=finLancs.filter(l=>l.tipo==='despesa'&&l.vencimento&&!l.pago).sort((a,b)=>a.vencimento.localeCompare(b.vencimento)).slice(0,5);
   if(!contas.length){el.innerHTML='<div style="color:var(--tl);font-size:11px;padding:4px 0">Nenhuma conta pendente.</div>';return;}
   el.innerHTML=contas.map(l=>{
@@ -2544,7 +2551,7 @@ function finRenderLista(tipo){
 
 function finRenderContas(){
   const hj=finHoje();
-  const em7=new Date(); em7.setDate(em7.getDate()+7); const em7s=em7.toISOString().slice(0,10);
+  const em7=new Date(); em7.setDate(em7.getDate()+7); const em7s=finIsoLocal(em7);
   const contas=finLancs.filter(l=>l.tipo==='despesa'&&l.vencimento);
   const vencidas=contas.filter(l=>l.vencimento<hj&&!l.pago);
   const prox7=contas.filter(l=>l.vencimento>=hj&&l.vencimento<=em7s&&!l.pago);
@@ -2984,7 +2991,7 @@ async function finConfirmarQuit(){
 function exportarDados(){
   const data={prices,costs,ativoObs,pacientes,semanas,sessoes,selected,duracao,payMode,parcSel,nomelivre:document.getElementById('nome-livre').value};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='CLC_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='CLC_backup_'+finIsoLocal()+'.json';a.click();
 }
 function importarDados(){
   const input=document.createElement('input');input.type='file';input.accept='.json';
