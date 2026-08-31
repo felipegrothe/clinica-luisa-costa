@@ -59,6 +59,15 @@ button{cursor:pointer}
 }
 .btn-login:hover{background:var(--terra-d)}
 .login-err{font-size:11px;color:#a33;text-align:center;margin-top:10px;min-height:18px;font-weight:500}
+.login-ok{font-size:11px;color:var(--verde);text-align:center;margin-top:10px;min-height:18px;font-weight:600;line-height:1.45}
+.login-help{font-size:11px;color:var(--tm);text-align:center;line-height:1.5;margin:-8px 0 18px}
+.login-link{
+  display:block;margin:12px auto 0;padding:4px;border:0;background:none;
+  color:var(--terra-d);font-size:11px;font-weight:600;text-decoration:underline;
+  text-underline-offset:3px
+}
+.login-link:hover{color:var(--terra)}
+.login-panel[hidden]{display:none!important}
 
 /* ── APP SHELL ────────────────────────────────────────────────────── */
 #app{display:none;height:100vh;overflow:hidden;flex-direction:row}
@@ -613,17 +622,49 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
     <div class="login-logo">LC</div>
     <div class="login-brand">Clínica</div>
     <div class="login-name">Luisa Costa</div>
-    <div class="lf">
-      <label>E-mail</label>
-      <input id="login-email" type="email" placeholder="seu@email.com" autocomplete="email">
+    <div id="login-panel" class="login-panel">
+      <div class="lf">
+        <label>E-mail</label>
+        <input id="login-email" type="email" placeholder="seu@email.com" autocomplete="email">
+      </div>
+      <div class="lf">
+        <label>Senha</label>
+        <input id="login-senha" type="password" placeholder="••••••••" autocomplete="current-password"
+          onkeydown="if(event.key==='Enter')fazerLogin()">
+      </div>
+      <button class="btn-login" onclick="fazerLogin()"><span id="btn-login-txt">Entrar</span></button>
+      <button type="button" class="login-link" onclick="mostrarRecuperacao()">Esqueci minha senha</button>
+      <div class="login-err" id="login-err"></div>
     </div>
-    <div class="lf">
-      <label>Senha</label>
-      <input id="login-senha" type="password" placeholder="••••••••" autocomplete="current-password"
-        onkeydown="if(event.key==='Enter')fazerLogin()">
+
+    <div id="recovery-panel" class="login-panel" hidden>
+      <p class="login-help">Informe o e-mail da sua conta. Você receberá um link seguro para criar uma nova senha.</p>
+      <div class="lf">
+        <label>E-mail</label>
+        <input id="recovery-email" type="email" placeholder="seu@email.com" autocomplete="email"
+          onkeydown="if(event.key==='Enter')solicitarRedefinicao()">
+      </div>
+      <button class="btn-login" onclick="solicitarRedefinicao()"><span id="btn-recovery-txt">Enviar link</span></button>
+      <button type="button" class="login-link" onclick="voltarLogin()">Voltar para o login</button>
+      <div class="login-err" id="recovery-err"></div>
+      <div class="login-ok" id="recovery-ok"></div>
     </div>
-    <button class="btn-login" onclick="fazerLogin()"><span id="btn-login-txt">Entrar</span></button>
-    <div class="login-err" id="login-err"></div>
+
+    <div id="new-password-panel" class="login-panel" hidden>
+      <p class="login-help">Crie uma nova senha com pelo menos 8 caracteres.</p>
+      <div class="lf">
+        <label>Nova senha</label>
+        <input id="new-password" type="password" placeholder="••••••••" autocomplete="new-password">
+      </div>
+      <div class="lf">
+        <label>Confirmar nova senha</label>
+        <input id="confirm-password" type="password" placeholder="••••••••" autocomplete="new-password"
+          onkeydown="if(event.key==='Enter')salvarNovaSenha()">
+      </div>
+      <button class="btn-login" onclick="salvarNovaSenha()"><span id="btn-new-password-txt">Salvar nova senha</span></button>
+      <div class="login-err" id="new-password-err"></div>
+      <div class="login-ok" id="new-password-ok"></div>
+    </div>
   </div>
 </div>
 
@@ -887,10 +928,12 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--terra);b
 // ── SUPABASE AUTH ─────────────────────────────────────────────────────
 const SUPA_URL = 'https://eeianweavbnrikzqquxq.supabase.co';
 const SUPA_KEY = 'sb_publishable_RWouef1R4SySi3PyBxq0lQ_AEEpGHly';
+const RECOVERY_LINK = location.hash.includes('type=recovery') || new URLSearchParams(location.search).get('type') === 'recovery';
 const { createClient } = supabase;
 const db = createClient(SUPA_URL, SUPA_KEY);
 
 let USER = null, PERFIL = null, NIVEL = null, MOD_PERMS = {};
+let RECOVERY_MODE = RECOVERY_LINK;
 const BRIEFING_SEEN_KEY = 'clc_briefing_seen';
 const BRIEFING_PENDING_KEY = 'clc_briefing_pending';
 
@@ -900,6 +943,88 @@ function deveAbrirBriefingPosLogin(){
 
 function prepararRedirecionamentoBriefing(){
   sessionStorage.setItem(BRIEFING_PENDING_KEY, '1');
+}
+
+function mostrarPainelLogin(id){
+  ['login-panel','recovery-panel','new-password-panel'].forEach(panelId => {
+    document.getElementById(panelId).hidden = panelId !== id;
+  });
+}
+
+function mostrarRecuperacao(){
+  const email = document.getElementById('login-email').value.trim();
+  document.getElementById('recovery-email').value = email;
+  document.getElementById('recovery-err').textContent = '';
+  document.getElementById('recovery-ok').textContent = '';
+  mostrarPainelLogin('recovery-panel');
+  setTimeout(() => document.getElementById('recovery-email').focus(), 0);
+}
+
+function voltarLogin(){
+  document.getElementById('login-email').value = document.getElementById('recovery-email').value.trim();
+  mostrarPainelLogin('login-panel');
+}
+
+function mostrarNovaSenha(){
+  RECOVERY_MODE = true;
+  document.getElementById('login-wrap').style.display = 'flex';
+  document.getElementById('app').classList.remove('on');
+  mostrarPainelLogin('new-password-panel');
+  setTimeout(() => document.getElementById('new-password').focus(), 0);
+}
+
+async function solicitarRedefinicao(){
+  const email = document.getElementById('recovery-email').value.trim();
+  const err = document.getElementById('recovery-err');
+  const ok = document.getElementById('recovery-ok');
+  const btn = document.getElementById('btn-recovery-txt');
+  err.textContent = ''; ok.textContent = '';
+  if(!email){err.textContent = 'Informe seu e-mail.';return;}
+  btn.textContent = 'Enviando...';
+  try {
+    const redirectTo = location.origin + location.pathname;
+    const {error} = await db.auth.resetPasswordForEmail(email, {redirectTo});
+    if(error) throw error;
+    ok.textContent = 'Se esse e-mail estiver cadastrado, o link chegará em alguns minutos. Verifique também o spam.';
+  } catch(e) {
+    console.error(e);
+    err.textContent = 'Não foi possível enviar agora. Aguarde um minuto e tente novamente.';
+  } finally {
+    btn.textContent = 'Enviar link';
+  }
+}
+
+async function salvarNovaSenha(){
+  const senha = document.getElementById('new-password').value;
+  const confirmar = document.getElementById('confirm-password').value;
+  const err = document.getElementById('new-password-err');
+  const ok = document.getElementById('new-password-ok');
+  const btn = document.getElementById('btn-new-password-txt');
+  err.textContent = ''; ok.textContent = '';
+  if(senha.length < 8){err.textContent = 'A senha precisa ter pelo menos 8 caracteres.';return;}
+  if(senha !== confirmar){err.textContent = 'As senhas não coincidem.';return;}
+  btn.textContent = 'Salvando...';
+  try {
+    const {data:{session}} = await db.auth.getSession();
+    if(!session) throw new Error('Sessão de recuperação inválida');
+    const {error} = await db.auth.updateUser({password:senha});
+    if(error) throw error;
+    ok.textContent = 'Senha alterada. Você já pode entrar.';
+    document.getElementById('new-password').value = '';
+    document.getElementById('confirm-password').value = '';
+    await db.auth.signOut();
+    history.replaceState(null, '', location.pathname);
+    RECOVERY_MODE = false;
+    setTimeout(() => {
+      mostrarPainelLogin('login-panel');
+      document.getElementById('login-err').textContent = 'Senha alterada com sucesso. Entre com a nova senha.';
+    }, 900);
+  } catch(e) {
+    console.error(e);
+    err.textContent = 'O link expirou ou já foi usado. Solicite um novo link.';
+  } finally {
+    btn.textContent = 'Salvar nova senha';
+  }
 }
 
 async function fazerLogin(){
@@ -970,10 +1095,18 @@ async function fazerLogout(){
   location.reload();
 }
 
+db.auth.onAuthStateChange((event) => {
+  if(event === 'PASSWORD_RECOVERY') mostrarNovaSenha();
+});
+
 // Verificar sessão salva
 (async function(){
   const {data:{session}} = await db.auth.getSession();
-  if(session && session.user) await iniciarApp(session.user);
+  if(RECOVERY_MODE){
+    mostrarNovaSenha();
+  } else if(session && session.user){
+    await iniciarApp(session.user);
+  }
 })();
 
 // ── DADOS ─────────────────────────────────────────────────────────────
